@@ -1,0 +1,28 @@
+﻿<Window x:Class="PZTools.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PZTools"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Background="{x:Null}" Foreground="{x:Null}" SnapsToDevicePixels="True">
+    <Grid Background="Black">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Button Content="Select Folder" Click="SelectFolder_Click" Grid.Row="0" Grid.Column="0"/>
+        <ListBox x:Name="Rooms" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="0" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>
+        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FF262626" Foreground="{x:Null}"/>
+        <ListBox x:Name="Containers" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>
+        <GridSplitter Grid.Row="1" Grid.Column="3" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FF262626" Foreground="{x:Null}"/>
+        <ListBox x:Name="Items" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="4" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>
+    </Grid>
+</Window>
