@@ -145,7 +145,7 @@ namespace PZTools
                     Items.Items.Add(procListEntry.Name);
                     Items.Items.Add(procListEntry.Min);
                     Items.Items.Add(procListEntry.Max);
-                    Items.Items.Add(procListEntry.WheightChance);
+                    Items.Items.Add(procListEntry.WeightChance);
                     Items.Items.Add(procListEntry.ForceForZones);
                     Items.Items.Add(procListEntry.ForceForTiles);
                     Items.Items.Add(procListEntry.ForceForRooms);

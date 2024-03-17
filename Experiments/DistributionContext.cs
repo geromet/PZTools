@@ -18,7 +18,6 @@ namespace Data
         {
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlite($"Data Source=Distributions.db");
-
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -28,28 +27,26 @@ namespace Data
                 .HasMany(d => d.Containers)
                 .WithOne(c => c.Distribution)
                 .HasForeignKey(c => c.DistributionId);
-
-            // Define Item relationship with Container
             modelBuilder.Entity<Item>()
-                .HasOne(i => i.Container)        // Item has one Container
-                .WithMany(c => c.ItemChances)          // Container has many Items
-                .HasForeignKey(i => i.ContainerId) // Foreign key
-                .OnDelete(DeleteBehavior.Restrict); // Optional: specify delete behavior
-            // Define Item relationship with Distribution
+                .HasOne(i => i.Container)
+                .WithMany(c => c.ItemChances)
+                .HasForeignKey(i => i.ContainerId);
             modelBuilder.Entity<Item>()
-                .HasOne(i => i.Distribution)     // Item has one Distribution
-                .WithMany(d => d.ItemChances)    // Distribution has many Items
-                .HasForeignKey(i => i.DistributionId) // Foreign key
-                .OnDelete(DeleteBehavior.Restrict); // Optional: specify delete behavior // Optional: specify delete behavior
+                .HasOne(i => i.Distribution)
+                .WithMany(d => d.ItemChances)
+                .HasForeignKey(i => i.DistributionId);
             modelBuilder.Entity<Container>()
                 .HasMany(c => c.ItemChances)
                 .WithOne(i => i.Container)
                 .HasForeignKey(i => i.ContainerId);
-
             modelBuilder.Entity<Container>()
                 .HasMany(c => c.ProcListEntries)
                 .WithOne(p => p.Container)
                 .HasForeignKey(p => p.ContainerId);
+            modelBuilder.Entity<Distribution>()
+              .HasMany(c => c.ProcListEntries)
+              .WithOne(p => p.Distribution)
+              .HasForeignKey(p => p.DistributionId);
         }
 
 

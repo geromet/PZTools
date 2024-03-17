@@ -14,6 +14,7 @@ namespace Data.Models.Items.Distributions
     {
         [Key]
         public int Id { get; set; }
+        public int? ProcListEntryId { get; set; }
         public string? Name { get; set; }
         public enum DistributionType
         {
@@ -32,6 +33,7 @@ namespace Data.Models.Items.Distributions
         public long? ItemRolls { get; set; }
         public int? JunkRolls { get; set; }
         public List<Item>? ItemChances { get; set; } = new();
+        public List<ProcListEntry>? ProcListEntries { get; set; }
 
     }
 }

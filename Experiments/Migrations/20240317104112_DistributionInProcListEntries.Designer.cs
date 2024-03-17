@@ -3,6 +3,7 @@ using System;
 using Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Data.Migrations
 {
     [DbContext(typeof(DistributionContext))]
-    partial class DistributionContextModelSnapshot : ModelSnapshot
+    [Migration("20240317104112_DistributionInProcListEntries")]
+    partial class DistributionInProcListEntries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.3");
@@ -86,6 +89,9 @@ namespace Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ProcListEntryId")
+                        .IsUnique();
+
                     b.ToTable("Distributions");
                 });
 
@@ -122,16 +128,7 @@ namespace Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ChildDistributionId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ChildDistributionId1")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int?>("ContainerId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("DistributionId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ForceForItems")
@@ -160,11 +157,7 @@ namespace Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChildDistributionId1");
-
                     b.HasIndex("ContainerId");
-
-                    b.HasIndex("DistributionId");
 
                     b.ToTable("ProcListEntries");
                 });
@@ -180,15 +173,26 @@ namespace Data.Migrations
                     b.Navigation("Distribution");
                 });
 
+            modelBuilder.Entity("Data.Models.Items.Distributions.Distribution", b =>
+                {
+                    b.HasOne("Data.Models.Items.Distributions.ProcListEntry", "ProcListEntry")
+                        .WithOne("Distribution")
+                        .HasForeignKey("Data.Models.Items.Distributions.Distribution", "ProcListEntryId");
+
+                    b.Navigation("ProcListEntry");
+                });
+
             modelBuilder.Entity("Data.Models.Items.Distributions.Item", b =>
                 {
                     b.HasOne("Data.Models.Items.Distributions.Container", "Container")
                         .WithMany("ItemChances")
-                        .HasForeignKey("ContainerId");
+                        .HasForeignKey("ContainerId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Data.Models.Items.Distributions.Distribution", "Distribution")
                         .WithMany("ItemChances")
-                        .HasForeignKey("DistributionId");
+                        .HasForeignKey("DistributionId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Container");
 
@@ -197,23 +201,11 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Models.Items.Distributions.ProcListEntry", b =>
                 {
-                    b.HasOne("Data.Models.Items.Distributions.Distribution", "ChildDistribution")
-                        .WithMany()
-                        .HasForeignKey("ChildDistributionId1");
-
                     b.HasOne("Data.Models.Items.Distributions.Container", "Container")
                         .WithMany("ProcListEntries")
                         .HasForeignKey("ContainerId");
 
-                    b.HasOne("Data.Models.Items.Distributions.Distribution", "Distribution")
-                        .WithMany("ProcListEntries")
-                        .HasForeignKey("DistributionId");
-
-                    b.Navigation("ChildDistribution");
-
                     b.Navigation("Container");
-
-                    b.Navigation("Distribution");
                 });
 
             modelBuilder.Entity("Data.Models.Items.Distributions.Container", b =>
@@ -228,8 +220,11 @@ namespace Data.Migrations
                     b.Navigation("Containers");
 
                     b.Navigation("ItemChances");
+                });
 
-                    b.Navigation("ProcListEntries");
+            modelBuilder.Entity("Data.Models.Items.Distributions.ProcListEntry", b =>
+                {
+                    b.Navigation("Distribution");
                 });
 #pragma warning restore 612, 618
         }

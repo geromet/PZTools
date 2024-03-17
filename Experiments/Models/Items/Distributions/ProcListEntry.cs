@@ -14,12 +14,16 @@ namespace Data.Models.Items.Distributions
         public string? Name { get; set; }
         public int? Min { get; set; }
         public int? Max { get; set; }
-        public int? WheightChance { get; set; }
+        public int? WeightChance { get; set; }
         public string? ForceForTiles { get; set; }
         public string? ForceForRooms { get; set; }
         public string? ForceForZones { get; set; }
         public string? ForceForItems { get; set; }
         public Container? Container { get; set; }
         public int? ContainerId { get; set; }
+        public Distribution? Distribution { get; set; }
+        public int? DistributionId { get; set; }
+        public Distribution? ChildDistribution { get; set; }
+        public int? ChildDistributionId { get; set; }
     }
 }

@@ -190,7 +190,7 @@ namespace Data
                                                                             procListEntry.Max = int.Parse(kvp5.Value.ToString());
                                                                             break;
                                                                         case "weightChance":
-                                                                            procListEntry.WheightChance = int.Parse(kvp5.Value.ToString());
+                                                                            procListEntry.WeightChance = int.Parse(kvp5.Value.ToString());
                                                                             break;
                                                                         case "forceForTiles":
                                                                             procListEntry.ForceForTiles = kvp5.Value.ToString();
@@ -228,6 +228,8 @@ namespace Data
                                                                     {
                                                                         case "name":
                                                                             procListEntry.Name = kvp5.Value.ToString();
+                                                                            //Todo: Parse the ProceduralDistributions File (earlier) and put distribution in procListEntry (search DB)
+                                                                            //Distributions where type = procedural && procListEntryId = procListEntry.Id
                                                                             break;
                                                                         case "min":
                                                                             procListEntry.Min = int.Parse(kvp5.Value.ToString());
@@ -236,7 +238,7 @@ namespace Data
                                                                             procListEntry.Max = int.Parse(kvp5.Value.ToString());
                                                                             break;
                                                                         case "weightChance":
-                                                                            procListEntry.WheightChance = int.Parse(kvp5.Value.ToString());
+                                                                            procListEntry.WeightChance = int.Parse(kvp5.Value.ToString());
                                                                             break;
                                                                         case "forceForTiles":
                                                                             procListEntry.ForceForTiles = kvp5.Value.ToString();
