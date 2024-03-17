@@ -19,6 +19,8 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Button Content="Select Folder" Click="SelectFolder_Click" Grid.Row="0" Grid.Column="0"/>
+        <Button Content="Create DB" Click="CreateDB_Click" Grid.Row="0" Grid.Column="2"/>
+        <Button Content="Load DB" Click="LoadDB_Click" Grid.Row="0" Grid.Column="4"/>
         <ListBox x:Name="Rooms" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="0" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FF262626" Foreground="{x:Null}"/>
         <ListBox x:Name="Containers" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>

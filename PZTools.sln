@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34616.47
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PZRoomDefs", "PZTools\PZRoomDefs.csproj", "{279E89FB-8777-479E-BBE0-04189E63710D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI", "PZTools\UI.csproj", "{279E89FB-8777-479E-BBE0-04189E63710D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Experiments\Data.csproj", "{EE955C77-EED6-4EBB-8AF2-0792DF8F171A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{279E89FB-8777-479E-BBE0-04189E63710D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{279E89FB-8777-479E-BBE0-04189E63710D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{279E89FB-8777-479E-BBE0-04189E63710D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE955C77-EED6-4EBB-8AF2-0792DF8F171A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE955C77-EED6-4EBB-8AF2-0792DF8F171A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE955C77-EED6-4EBB-8AF2-0792DF8F171A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE955C77-EED6-4EBB-8AF2-0792DF8F171A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

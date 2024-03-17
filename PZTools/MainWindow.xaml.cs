@@ -1,15 +1,7 @@
-﻿using PZViewer;
-using System.Text;
+﻿using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using NLua;
+using Data;
+using Data.Models.Items.Distributions;
 using Microsoft.Win32;
 
 namespace PZTools
@@ -19,14 +11,32 @@ namespace PZTools
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Dictionary<object, object>[] _distributions = new Dictionary<object, object>[2];
         private string folderPath;
+        DistributionContext dbContext = new();
+       
 
         public MainWindow()
         {
             InitializeComponent();
+            
             Rooms.SelectionChanged += Rooms_SelectionChanged;
             Containers.SelectionChanged += Containers_SelectionChanged;
+        }
+        private void InitializeDistributions()
+        {
+            foreach (var item in dbContext.Distributions)
+            {
+                Rooms.Items.Add(item.Name);
+            }
+        }
+        private void CreateDB_Click(object sender, RoutedEventArgs e)
+        {
+            Data.DataBase.CreateDB();
+            
+        }
+        private void LoadDB_Click(Object sender, RoutedEventArgs e)
+        {
+            InitializeDistributions();
         }
         private void SelectFolder_Click(object sender, RoutedEventArgs e)
         {
@@ -36,118 +46,121 @@ namespace PZTools
                 CheckFileExists = false,
                 FileName = "Select Folder",
                 Filter = "Folders|*.",
-                InitialDirectory = folderPath // Set initial directory if needed
+                InitialDirectory = folderPath
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
                 folderPath = System.IO.Path.GetDirectoryName(openFileDialog.FileName);
-                // Call your method that needs the folderPath, e.g., GetDistributions(folderPath);
-                GetDistributions(folderPath);
-            }
-        }
-        private void GetDistributions(string folderPath)
-        {
-            _distributions = LuaParser.GetDistributions(folderPath);
-            foreach (var key in _distributions[0].Keys)
-            {
-                Rooms.Items.Add(key);
             }
         }
         private void Rooms_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             Containers.Items.Clear();
             Items.Items.Clear();
-            var selectedKey = Rooms.SelectedItem;
-            if (selectedKey != null && _distributions[0].ContainsKey(selectedKey))
+            var selectedItem = Rooms.SelectedItem;
+            Distribution selectedDistribution = dbContext.Distributions.FirstOrDefault(x => x.Name==selectedItem.ToString());
+            if (selectedDistribution == null) 
+            { 
+                return; }
+            if(selectedDistribution.IsShop==true) 
             {
-                var selectedDict = (Dictionary<object, object>)_distributions[0][selectedKey];
-                foreach (var kvp in selectedDict)
+                Containers.Items.Add("IsShop");
+            }
+            if (selectedDistribution.DontSpawnAmmo == true)
+            {
+                Containers.Items.Add("DontSpawnAmmo");
+            }
+            if(selectedDistribution.MaxMap != null) 
+            {
+                Containers.Items.Add("MaxMap = "+ selectedDistribution.MaxMap);
+            }
+            if (selectedDistribution.StashChance != null)
+            {
+                Containers.Items.Add("StashChance = " + selectedDistribution.StashChance);
+            }
+            if (selectedDistribution.FillRand != null)
+            {
+                Containers.Items.Add("FillRand = " + selectedDistribution.FillRand);
+            }
+            if (selectedDistribution.ItemRolls != null)
+            {
+                Containers.Items.Add("ItemRolls = " + selectedDistribution.ItemRolls);
+            }
+            if (selectedDistribution.JunkRolls != null)
+            {
+                Containers.Items.Add("JunkRolls = " + selectedDistribution.JunkRolls);
+            }
+            if (selectedDistribution.Containers != null)
+            {
+                foreach(Container container in dbContext.Containers.Where(c => c.DistributionId == selectedDistribution.Id))
                 {
-                    var key = kvp.Key.ToString();
-                    Containers.Items.Add(key);
+                    Containers.Items.Add(container.Name);
                 }
             }
+            if (selectedDistribution.ItemChances != null)
+            {
+                foreach (Item item in dbContext.Items.Where(i => i.DistributionId == selectedDistribution.Id))
+                {
+                    Containers.Items.Add(item.Name + " " + item.Chance);
+                }
+            }
+
+            
         }
         private void Containers_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            var selectedKey = Containers.SelectedItem?.ToString();
-            var topLevelKey = Rooms.SelectedItem?.ToString();
-
-            if (selectedKey != null && topLevelKey != null)
+            Items.Items.Clear();
+            var selectedItem = Containers.SelectedItem;
+            if (selectedItem == null) { return; }
+            Container? selectedContainer = dbContext.Containers.FirstOrDefault(x => x.Name == selectedItem.ToString());
+            if(selectedContainer == null)
             {
-                var topLevelDict = (Dictionary<object, object>)_distributions[0][topLevelKey];
-
-                if (topLevelDict.ContainsKey(selectedKey))
+                return;
+            }
+            if (selectedContainer.Procedural == true)
+            {
+                Items.Items.Add("Procedural");
+            }
+            if (selectedContainer.DontSpawnAmmo == true)
+            {
+                Items.Items.Add("DontSpawnAmmo");
+            }
+            if (selectedContainer.FillRand != null)
+            {
+                Items.Items.Add("FillRand = " + selectedContainer.FillRand);
+            }
+            if (selectedContainer.ItemRolls != null)
+            {
+                Items.Items.Add("ItemRolls = " + selectedContainer.ItemRolls);
+            }
+            if (selectedContainer.JunkRolls != null)
+            {
+                Items.Items.Add("JunkRolls = " + selectedContainer.JunkRolls);
+            }
+            if (selectedContainer.ProcListEntries != null)
+            {
+                foreach (ProcListEntry procListEntry in dbContext.ProcListEntries.Where(p => p.ContainerId == selectedContainer.Id))
                 {
-                    var selectedValue = topLevelDict[selectedKey];
-
-                    if (selectedValue is Dictionary<object, object>)
-                    {
-                        Items.Items.Clear();
-                        var nestedDict = (Dictionary<object, object>)selectedValue;
-                        foreach (var kvp in nestedDict)
-                        {
-                            Items.Items.Add($"{kvp.Key} = {kvp.Value}");
-                        }
-                    }
-                    else if (selectedValue is List<object>)
-                    {
-                        Items.Items.Clear();
-                        var procList = (List<object>)selectedValue;
-                        foreach (var item in procList)
-                        {
-                            if (item is Dictionary<object, object>)
-                            {
-                                var nestedDict = (Dictionary<object, object>)item;
-                                var itemStr = string.Join(", ", nestedDict.Select(kvp => $"{kvp.Key} = {kvp.Value}"));
-                                Items.Items.Add(itemStr);
-                            }
-                        }
-                    }
-                    if (selectedValue is Dictionary<object, object> selectedDict && selectedDict.ContainsKey("procList"))
-                    {
-                        selectedDict.TryGetValue("procList", out object v);
-
-                        foreach (var item in (Dictionary<object, object>)v)
-                            {
-                                Dictionary<object, object> itemValue = (Dictionary<object, object>)item.Value;
-                                foreach (var value in itemValue.Values)
-                                {
-                                if (_distributions[1].ContainsKey(value))
-                                {
-                                    var itemValues = (Dictionary<object, object>)_distributions[1][value];
-                                    StringBuilder itemsStringBuilder = new StringBuilder();
-                                    itemsStringBuilder.Append("items = {\n");
-                                    foreach (var kvp in itemValues)
-                                    {
-                                        if (kvp.Value is Dictionary<object, object>)
-                                        {
-                                            var nestedDict = (Dictionary<object, object>)kvp.Value;
-                                            foreach (var nestedKvp in nestedDict)
-                                            {
-                                                itemsStringBuilder.Append($"    \"{nestedKvp.Key}\", {nestedKvp.Value},\n");
-                                            }
-                                        }
-                                    }
-
-                                    itemsStringBuilder.Append("},");
-                                    Items.Items.Add(itemsStringBuilder.ToString());
-                                }
-
-                            }
-
-                        }
-                        
-                    }
+                    Items.Items.Add(procListEntry.Name);
+                    Items.Items.Add(procListEntry.Min);
+                    Items.Items.Add(procListEntry.Max);
+                    Items.Items.Add(procListEntry.WheightChance);
+                    Items.Items.Add(procListEntry.ForceForZones);
+                    Items.Items.Add(procListEntry.ForceForTiles);
+                    Items.Items.Add(procListEntry.ForceForRooms);
+                    Items.Items.Add(procListEntry.ForceForItems);
+                    //Todo:Add The ItemChances from the procListEntry. Needs parsing of proceduralDistributions, then seed Db.
+                }
+            }
+            if (selectedContainer.ItemChances != null)
+            {
+                foreach (Item item in dbContext.Items.Where(i => i.ContainerId == selectedContainer.Id))
+                {
+                    Items.Items.Add(item.Name + " " + item.Chance);
                 }
             }
         }
-
-
-
-
-
 
     }
 }
