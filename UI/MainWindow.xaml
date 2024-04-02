@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UI"
+        xmlns:controls="clr-namespace:UI.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Background="{x:Null}" Foreground="{x:Null}" SnapsToDevicePixels="True">
-    <Grid Background="Black">
+    <Grid x:Name="grid" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -29,6 +30,6 @@
         <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FF262626" Foreground="{x:Null}"/>
         <ListBox x:Name="Containers" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>
         <GridSplitter Grid.Row="1" Grid.Column="3" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FF262626" Foreground="{x:Null}"/>
-        <ListBox x:Name="Items" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="4" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>
+        <controls:ContainerControl x:Name="ContainerControl" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="4" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="Black" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True"/>
     </Grid>
 </Window>

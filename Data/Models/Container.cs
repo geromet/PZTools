@@ -6,12 +6,12 @@ namespace DataInput.Models
     {
         public string? Name { get; set; }
         public bool? FillRand { get; set; }
+        public bool? Procedural { get; set; }
+        public bool? DontSpawnAmmo { get; set; }
         public int? ItemRolls { get; set; }
         public int? JunkRolls { get; set; }
         public List<Item>? ItemChances { get; set; } = new();
         public List<Item>? JunkChances { get; set; } = new();
-        public bool? Procedural { get; set; }
-        public bool? DontSpawnAmmo { get; set; }
         public List<ProcListEntry>? ProcListEntries { get; set; } = new();
         public override string ToString()
         {

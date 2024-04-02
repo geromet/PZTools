@@ -2,6 +2,7 @@ using Microsoft.Win32;
 using System.Windows;
 using DataInput.Models;
 using DataInput;
+using UI.Controls;
 
 namespace UI
 {
@@ -55,7 +56,7 @@ namespace UI
                 list.Add(selectedDistribution.ToFullString());
                 list.AddRange(selectedDistribution.Containers);
                 Containers.ItemsSource = list;
-                Items.ItemsSource = null; // Clear the third ListBox when a new room is selected
+                ContainerControl.DataContext = null;
             }
         }
 
@@ -63,9 +64,8 @@ namespace UI
         {
             if (Containers.SelectedItem is Container selectedContainer)
             {
-                List<object> list = new List<object>();
-                list.Add(selectedContainer.ToFullString());
-                Items.ItemsSource = list;
+                ContainerControl.DataContext = selectedContainer;
+
             }
         }
 
