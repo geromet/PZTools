@@ -1,0 +1,31 @@
+﻿<UserControl x:Class="UI.Controls.DistributionListControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:UI.Controls"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ToolBar Grid.Row="0">
+            <Button Content="Rooms" Tag="Room" Click="FilterButtonClick"/>
+            <Button Content="Professions" Tag="Profession" Click="FilterButtonClick"/>
+            <Button Content="Bags" Tag="Bag" Click="FilterButtonClick"/>
+            <Button Content="Caches" Tag="Cache" Click="FilterButtonClick"/>
+            <Button Content="Procedural" Tag="Procedural" Click="FilterButtonClick"/>
+        </ToolBar>
+        <ListBox x:Name="Distributions" Grid.Row="1" ItemsSource="{Binding Distributions}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        
+    </Grid>
+</UserControl>

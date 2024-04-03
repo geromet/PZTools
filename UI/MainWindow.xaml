@@ -4,32 +4,83 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:UI"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:controls="clr-namespace:UI.Controls"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Background="{x:Null}" Foreground="{x:Null}" SnapsToDevicePixels="True">
-    <Grid x:Name="grid" Background="Black">
+    <Grid Background="#FF1A1A1D">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Button Content="Select Folder" Click="SelectFolder_Click" Grid.Row="0" Grid.Column="0"/>
-        <ListBox x:Name="Rooms" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="0" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}" ItemsSource="{Binding }">
-            <ListBox.ItemTemplate>
+        <ToolBar>
+            <xctk:DropDownButton Content="File"  Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}"  Margin="10,0,10,0">
+                <xctk:DropDownButton.DropDownContent>
+                    <Button Content="Select Folder" Click="SelectFolder_Click" />
+                </xctk:DropDownButton.DropDownContent>
+            </xctk:DropDownButton>
+            <xctk:DropDownButton Content="View" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}"   Margin="10,0,10,0">
+                <xctk:DropDownButton.DropDownContent>
+                    <StackPanel>
+                        <Button Content="Distributions" Click="Distributions_Click" />
+                        <Button Content="Errors" Click="Errors_Click" />
+                        <Button Content="Properties" Click="Properties_Click" />
+                        <Button Content="Code" Click="Code_Click" />
+                    </StackPanel>
+                </xctk:DropDownButton.DropDownContent>
+            </xctk:DropDownButton>
+        </ToolBar>
+        <xcad:DockingManager Grid.Row="1"
+                           AllowMixedOrientation="True"
+                           BorderThickness="1"
+                           >
+            <xcad:DockingManager.DocumentHeaderTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Name}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Title}"/>
+                    </StackPanel>
                 </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-        <GridSplitter Grid.Row="1" Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FF262626" Foreground="{x:Null}"/>
-        <ListBox x:Name="Containers" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="2" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="{x:Null}"/>
-        <GridSplitter Grid.Row="1" Grid.Column="3" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Background="#FF262626" Foreground="{x:Null}"/>
-        <controls:ContainerControl x:Name="ContainerControl" VerticalAlignment="Stretch" Grid.Row="1" Grid.Column="4" Background="#FF1F1F1F" Foreground="#FFA0A0A0" BorderBrush="Black" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True"/>
+            </xcad:DockingManager.DocumentHeaderTemplate>
+            <xcad:LayoutRoot x:Name="LayoutRoot">
+
+                <xcad:LayoutRoot.LeftSide>
+                    <xcad:LayoutAnchorSide>
+                        <xcad:LayoutAnchorGroup>
+                            <xcad:LayoutAnchorable x:Name="distributionList" ContentId="distributionList" Title="Distributions" CanClose="False"
+                                                   AutoHideWidth="240">
+                                <controls:DistributionListControl DataContext="{Binding}"/>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorGroup>
+                    </xcad:LayoutAnchorSide>
+                </xcad:LayoutRoot.LeftSide>
+
+                <xcad:LayoutRoot.RightSide>
+                    <xcad:LayoutAnchorSide>
+                        <xcad:LayoutAnchorGroup>
+                            <xcad:LayoutAnchorable x:Name="properties" ContentId="properties" Title="Properties" CanClose="False"
+                            AutoHideWidth="240">
+
+                                <xctk:PropertyGrid NameColumnWidth="110"
+        SelectedObject="{Binding ElementName=LayoutRoot, Path=LastFocusedDocument.Content}"/>
+
+
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorGroup>
+                    </xcad:LayoutAnchorSide>
+                </xcad:LayoutRoot.RightSide>
+
+                <xcad:LayoutRoot.BottomSide>
+                    <xcad:LayoutAnchorSide>
+                        <xcad:LayoutAnchorGroup>
+                            <xcad:LayoutAnchorable x:Name="errorList" ContentId="ErrorList" Title="Error List" CanClose="False"
+                                                   AutoHideWidth="240">
+                                <controls:ErrorListControl  DataContext="{Binding}" Errors="{Binding Errors}" />
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorGroup>
+                    </xcad:LayoutAnchorSide>
+                </xcad:LayoutRoot.BottomSide>
+            </xcad:LayoutRoot>
+        </xcad:DockingManager>
     </Grid>
 </Window>

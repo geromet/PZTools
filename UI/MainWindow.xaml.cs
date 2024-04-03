@@ -3,6 +3,7 @@ using System.Windows;
 using DataInput.Models;
 using DataInput;
 using UI.Controls;
+using Xceed.Wpf.AvalonDock.Layout;
 
 namespace UI
 {
@@ -14,17 +15,16 @@ namespace UI
         private Dictionary<object, object>[] _distributions = new Dictionary<object, object>[2];
         private string folderPath;
         public DataProcessor dataProcessor = new();
+        private LayoutAnchorable _distributionList;
 
 
         public MainWindow()
         {
             InitializeComponent();
-            Rooms.SelectionChanged += Rooms_SelectionChanged;
-            Containers.SelectionChanged += Containers_SelectionChanged;
             try
             {
                 dataProcessor.ParseData();
-                DataContext = dataProcessor.Distributions.OrderBy(d => d.Name);
+                DataContext = dataProcessor;
             }
             catch
             {
@@ -48,27 +48,25 @@ namespace UI
             }
            
         }
-        private void Rooms_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+
+        private void Distributions_Click(object sender, RoutedEventArgs e)
         {
-            if (Rooms.SelectedItem is Distribution selectedDistribution)
-            {
-                List<object> list = new List<object>();
-                list.Add(selectedDistribution.ToFullString());
-                list.AddRange(selectedDistribution.Containers);
-                Containers.ItemsSource = list;
-                ContainerControl.DataContext = null;
-            }
-        }
+            distributionList.IsVisible = !distributionList.IsVisible;
 
-        private void Containers_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+
+        }
+        private void Errors_Click(object sender, RoutedEventArgs e) 
         {
-            if (Containers.SelectedItem is Container selectedContainer)
-            {
-                ContainerControl.DataContext = selectedContainer;
-
-            }
+            errorList.IsVisible = !errorList.IsVisible;
         }
-
+        private void Properties_Click(object sender, RoutedEventArgs e) 
+        {
+            properties.IsVisible = !properties.IsVisible;
+        }
+        private void Code_Click(object sender, RoutedEventArgs e) 
+        {
+           
+        }
 
 
 

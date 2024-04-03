@@ -95,12 +95,14 @@ namespace DataInput
 
 
         };
-        public List<Distribution> Distributions = new();
+        public List<Distribution>  Distributions { get; private set; } = new List<Distribution>();
+        public List<Error> Errors { get; set; } = new List<Error>();
         private List<Distribution> ProceduralDistributions = new();
         public void ParseData(string folderPath = @"C:\Program Files (x86)\Steam\steamapps\common\ProjectZomboid")
         {
             ParseProceduralDistributions(folderPath);
             ParseDistributions(folderPath);
+            Distributions.AddRange(ProceduralDistributions);
         }
         private void ParseProceduralDistributions(string folderPath)
         {
@@ -302,7 +304,7 @@ namespace DataInput
                                                         ProcListEntry procListEntry = new();
                                                         if (procListEntryKvp.Value.GetType() == typeof(LuaTable))
                                                         {
-                                                            foreach (KeyValuePair<object, object> kvp5 in (LuaTable)procListEntryKvp.Value)//procListEntrieData
+                                                            foreach (KeyValuePair<object, object> kvp5 in (LuaTable)procListEntryKvp.Value)//procListEntryData
                                                             {
                                                                 switch (kvp5.Key.ToString())
                                                                 {
@@ -314,7 +316,12 @@ namespace DataInput
                                                                             procedural = ProceduralDistributions.Find(d => d.Name.ToLower() == procListEntry.Name.ToLower());
                                                                             if (procedural == null)
                                                                             {
-                                                                                Debug.WriteLine(procListEntry.Name);
+                                                                                Errors.Add(new Error()
+                                                                                {
+                                                                                    Code = 1,
+                                                                                    Description = "No procedural distribution with name \"" + procListEntry.Name + "\" found.",
+                                                                                    FileName = "ProceduralDistributions.lua"
+                                                                                });
                                                                             }
                                                                         }
                                                                         else
