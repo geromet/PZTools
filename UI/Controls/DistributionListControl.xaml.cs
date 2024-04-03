@@ -41,5 +41,18 @@ namespace UI.Controls
             var filtered = allDistributions.FindAll(d => d.DistributionType == filter);
             Distributions.ItemsSource = filtered;
         }
+        private void Distributions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Distributions.SelectedItem != null)
+            {
+                var selectedDistribution = Distributions.SelectedItem as Distribution;
+
+                if (Window.GetWindow(this) is MainWindow mainWindow)
+                {
+                    mainWindow.Properties.SelectedObject = selectedDistribution;
+                }
+            }
+        }
+        
     }
 }

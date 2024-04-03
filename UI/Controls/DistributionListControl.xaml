@@ -6,26 +6,28 @@
              xmlns:local="clr-namespace:UI.Controls"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800" Background="#FF1F1F1F" Foreground="#FFC2C2C2">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ToolBar Grid.Row="0">
-            <Button Content="Rooms" Tag="Room" Click="FilterButtonClick"/>
-            <Button Content="Professions" Tag="Profession" Click="FilterButtonClick"/>
-            <Button Content="Bags" Tag="Bag" Click="FilterButtonClick"/>
-            <Button Content="Caches" Tag="Cache" Click="FilterButtonClick"/>
-            <Button Content="Procedural" Tag="Procedural" Click="FilterButtonClick"/>
+        <ToolBar Grid.Row="0" Background="#FF383838">
+            <Button Content="Rooms" Tag="Room" Click="FilterButtonClick" Background="#FF333333" BorderBrush="{x:Null}" Foreground="#FFD6D6D6"/>
+            <Button Content="Professions" Tag="Profession" Click="FilterButtonClick" Background="#FF333333" BorderBrush="{x:Null}" Foreground="#FFD6D6D6"/>
+            <Button Content="Bags" Tag="Bag" Click="FilterButtonClick" Background="#FF333333" BorderBrush="{x:Null}" Foreground="#FFD6D6D6"/>
+            <Button Content="Caches" Tag="Cache" Click="FilterButtonClick" Background="#FF333333" BorderBrush="{x:Null}" Foreground="#FFD6D6D6"/>
+            <Button Content="Procedural" Tag="Procedural" Click="FilterButtonClick" Background="#FF333333" BorderBrush="{x:Null}" Foreground="#FFD6D6D6"/>
         </ToolBar>
-        <ListBox x:Name="Distributions" Grid.Row="1" ItemsSource="{Binding Distributions}">
+        <ListBox x:Name="Distributions" Grid.Row="1" ItemsSource="{Binding Distributions}" 
+                 Background="#FF1F1F1F" BorderBrush="{x:Null}" Foreground="#FFC2C2C2"
+                 SelectionChanged="Distributions_SelectionChanged">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Name}"/>
+                    <TextBlock Text="{Binding Name}" Foreground="#FFC2C2C2"/>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        
+
     </Grid>
 </UserControl>

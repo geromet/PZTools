@@ -33,7 +33,7 @@
         </ToolBar>
         <xcad:DockingManager Grid.Row="1"
                            AllowMixedOrientation="True"
-                           BorderThickness="1"
+                           BorderThickness="1" Background="#FF1F1F1F" Foreground="#FFFAFAFA"
                            >
             <xcad:DockingManager.DocumentHeaderTemplate>
                 <DataTemplate>
@@ -42,6 +42,7 @@
                     </StackPanel>
                 </DataTemplate>
             </xcad:DockingManager.DocumentHeaderTemplate>
+
             <xcad:LayoutRoot x:Name="LayoutRoot">
 
                 <xcad:LayoutRoot.LeftSide>
@@ -49,7 +50,7 @@
                         <xcad:LayoutAnchorGroup>
                             <xcad:LayoutAnchorable x:Name="distributionList" ContentId="distributionList" Title="Distributions" CanClose="False"
                                                    AutoHideWidth="240">
-                                <controls:DistributionListControl DataContext="{Binding}"/>
+                                <controls:DistributionListControl DataContext="{Binding}" Background="#FF1F1F1F" Foreground="#FFFAFAFA"/>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorGroup>
                     </xcad:LayoutAnchorSide>
@@ -61,8 +62,7 @@
                             <xcad:LayoutAnchorable x:Name="properties" ContentId="properties" Title="Properties" CanClose="False"
                             AutoHideWidth="240">
 
-                                <xctk:PropertyGrid NameColumnWidth="110"
-        SelectedObject="{Binding ElementName=LayoutRoot, Path=LastFocusedDocument.Content}"/>
+                                <xctk:PropertyGrid x:Name="Properties" NameColumnWidth="110" Background="#FF1F1F1F" Foreground="#FF333333"/>
 
 
                             </xcad:LayoutAnchorable>
@@ -75,7 +75,7 @@
                         <xcad:LayoutAnchorGroup>
                             <xcad:LayoutAnchorable x:Name="errorList" ContentId="ErrorList" Title="Error List" CanClose="False"
                                                    AutoHideWidth="240">
-                                <controls:ErrorListControl  DataContext="{Binding}" Errors="{Binding Errors}" />
+                                <controls:ErrorListControl  DataContext="{Binding}" Errors="{Binding Errors}" Background="#FF1F1F1F" Foreground="#FFFAFAFA" />
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorGroup>
                     </xcad:LayoutAnchorSide>
