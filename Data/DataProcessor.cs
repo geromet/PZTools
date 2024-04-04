@@ -1,12 +1,16 @@
 ﻿using DataInput.Models;
+using DataInput.Models.Interfaces;
 using NLua;
 using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace DataInput
+namespace DataInput;
+
+public class DataProcessor
 {
-    public class DataProcessor
-    {
-        private readonly List<string> CacheNames = new List<string>()
+    public List<Distribution> Distributions { get; private set; } = new List<Distribution>();
+    public List<Models.Error> Errors { get; set; } = new List<Models.Error>();
+    private readonly List<string> CacheNames = new List<string>()
         {
             "FoodCache1",
             "GunCache1",
@@ -20,7 +24,7 @@ namespace DataInput
             "ToolsCache1"
 
         };
-        private readonly List<string> ProfessionNames = new List<string>()
+    private readonly List<string> ProfessionNames = new List<string>()
         {
             "BandPractice",
             "Carpenter",
@@ -29,7 +33,7 @@ namespace DataInput
             "Farmer",
             "Nurse"
         };
-        private readonly List<string> BagNames = new List<string>()
+    private readonly List<string> BagNames = new List<string>()
         {
             "Bag_ALICEpack",
             "Bag_ALICEpack_Army",
@@ -95,119 +99,73 @@ namespace DataInput
 
 
         };
-        public List<Distribution>  Distributions { get; private set; } = new List<Distribution>();
-        public List<Error> Errors { get; set; } = new List<Error>();
-        private List<Distribution> ProceduralDistributions = new();
-        public void ParseData(string folderPath = @"C:\Program Files (x86)\Steam\steamapps\common\ProjectZomboid")
+    private List<Distribution> ProceduralDistributions = new();
+    public void ParseData(string folderPath = @"C:\Program Files (x86)\Steam\steamapps\common\ProjectZomboid")
+    {
+        ParseProceduralDistributions(folderPath);
+        ParseDistributions(folderPath);
+        Distributions.AddRange(ProceduralDistributions);
+    }
+   
+   
+    private List<Distribution> ConvertLuaTableValues(LuaTable table)
+    {
+        List<Distribution> result = new List<Distribution>();
+        foreach (KeyValuePair<object, object> distributionKvp in table)//Room, bag, profession, cache
         {
-            ParseProceduralDistributions(folderPath);
-            ParseDistributions(folderPath);
-            Distributions.AddRange(ProceduralDistributions);
-        }
-        private void ParseProceduralDistributions(string folderPath)
-        {
-            List<Distribution> result = new();
-            Lua lua = new Lua() { MaximumRecursion = 20 };
-            lua.DoFile(folderPath + "\\media\\lua\\server\\Items\\ProceduralDistributions.lua");
-            var tableValues = lua.GetTable("ProceduralDistributions.list");
-            if (tableValues.GetType() == typeof(LuaTable))
+            Distribution distribution = new Distribution() { Name = distributionKvp.Key.ToString() };
+            if (distributionKvp.Value.GetType() == typeof(LuaTable))
             {
-                result = ConvertLuaTableValues(tableValues);
-            }
-            foreach (Distribution distribution in result)
-            {
-                distribution.DistributionType = "Procedural";
-            }
-            ProceduralDistributions = result;
-
-
-
-
-        }
-        private List<Distribution> ConvertLuaTableValues(LuaTable table)
-        {
-            List<Distribution> result = new List<Distribution>();
-
-            foreach (KeyValuePair<object, object> distributionKvp in table)//Room, bag, profession, cache
-            {
-                Distribution distribution = new Distribution() { Name = distributionKvp.Key.ToString() };
-                if (distributionKvp.Value.GetType() == typeof(LuaTable))
+                foreach (KeyValuePair<object, object> distributionValueKvp in (LuaTable)distributionKvp.Value)//Properties. Booleans, containers, lists...
                 {
-                    foreach (KeyValuePair<object, object> distributionValueKvp in (LuaTable)distributionKvp.Value)//Properties. Booleans, containers, lists...
+                    switch (distributionValueKvp.Key.ToString())
                     {
-                        switch (distributionValueKvp.Key.ToString())
-                        {
-                            case "isShop":
-                                distribution.IsShop = true;
-                                break;
-                            case "DontSpawnAmmo":
+                        case "isShop":
+                            distribution.IsShop = true;
+                            break;
+                        case "DontSpawnAmmo":
+                            
                                 distribution.DontSpawnAmmo = true;
                                 break;
-                            case "MaxMap":
+                            
+                        case "MaxMap":
+                            
                                 distribution.MaxMap = int.Parse(distributionValueKvp.Value.ToString());
                                 break;
-                            case "StashChance":
+                            
+                        case "StashChance":
+                            
                                 distribution.StashChance = int.Parse(distributionValueKvp.Value.ToString());
                                 break;
-                            case "FillRand":
-                                distribution.FillRand = int.Parse(distributionValueKvp.Value.ToString());
+                            
+                        case "FillRand":
+                            
+                                if ((distributionValueKvp.Value.ToString()) == "0")
+                                {
+                                    distribution.FillRand = false;
+                                }
+                                else
+                                {
+                                    distribution.FillRand = true;
+                                }
                                 break;
-                            case "rolls":
+                            
+                        case "rolls":
+                            
                                 distribution.ItemRolls = int.Parse(distributionValueKvp.Value.ToString());
                                 break;
-                            case "items":
-                                if (distributionValueKvp.Value.GetType() == typeof(LuaTable))
-                                {
-                                    Item item = new();
-                                    foreach (KeyValuePair<object, object> itemKvp in (LuaTable)distributionValueKvp.Value)//Items
-                                    {
-                                        if (char.IsNumber(itemKvp.Value.ToString()[0]) && char.IsNumber(itemKvp.Value.ToString().Last()))
-                                        {
-                                            item.Chance = double.Parse(itemKvp.Value.ToString());
-                                            distribution.ItemChances.Add(item);
-                                        }
-                                        else
-                                        {
-                                            item = new() { Name = itemKvp.Value.ToString() };
-                                        }
-                                    }
-                                }
+                            
+                        case "items":
+                                ReadItemChances(distribution, distributionValueKvp.Value);
                                 break;
-                            case "junk":
-                                if (distributionValueKvp.Value.GetType() == typeof(LuaTable))
-                                {
-                                    foreach (KeyValuePair<object, object> junkKvp in (LuaTable)distributionValueKvp.Value)//Junk
-                                    {
-                                        if (junkKvp.Key.ToString() == "rolls")
-                                        {
-                                            distribution.JunkRolls = int.Parse(junkKvp.Value.ToString());
-                                        }
-                                        else
-                                        {
-                                            if (junkKvp.Value.GetType() == typeof(LuaTable))
-                                            {
-                                                Item junkItem = new();
-                                                foreach(KeyValuePair<object,object> junkItemKvp in (LuaTable) junkKvp.Value)
-                                                {
-                                                    
-                                                    if (char.IsNumber(junkItemKvp.Value.ToString()[0]))
-                                                    {
-                                                        junkItem.Chance = double.Parse(junkItemKvp.Value.ToString());
-                                                        distribution.JunkChances.Add(junkItem);
-                                                    }
-                                                    else
-                                                    {
-                                                        junkItem = new() { Name = junkItemKvp.Key.ToString() };
-                                                    }
-                                                }
-                                            }
-                                           
-                                        }
-
-                                    }
-                                }
+                            
+                        case "junk":
+                            
+                                ReadJunkChances(distribution, distributionValueKvp.Value);
                                 break;
-                            default:
+                            
+                        default:
+                            {
                                 if (distributionValueKvp.Value.GetType() == typeof(LuaTable))
                                 {
                                     Container container = new Container() { Name = distributionValueKvp.Key.ToString() };
@@ -216,255 +174,313 @@ namespace DataInput
                                         switch (containerKvp.Key.ToString())
                                         {
                                             case "fillRand":
-                                                if (containerKvp.Value.ToString() == "1")
                                                 {
-                                                    container.FillRand = false;
+                                                    container.FillRand = containerKvp.Value.ToString() == "1" && false;
+                                                    break;
                                                 }
-                                                else
-                                                {
-                                                    container.FillRand = false;
-                                                }
-
-                                                break;
                                             case "rolls":
-                                                container.ItemRolls = int.Parse(containerKvp.Value.ToString());
-                                                break;
+                                                {
+                                                    container.ItemRolls = int.Parse(containerKvp.Value.ToString());
+                                                    break;
+                                                }
                                             case "items":
-                                                if (containerKvp.Value.GetType() == typeof(LuaTable))
                                                 {
-                                                    Item item = new();
-                                                    foreach (KeyValuePair<object, object> itemKvp in (LuaTable)containerKvp.Value)//Items
-                                                    {
-                                                        if (char.IsNumber(itemKvp.Value.ToString()[0]) && char.IsNumber(itemKvp.Value.ToString().Last()))
-                                                        {
-                                                            if (item == null) continue;
-                                                            item.Chance = double.Parse(itemKvp.Value.ToString());
-                                                            container.ItemChances?.Add(item);
-                                                        }
-                                                        else
-                                                        {
-                                                            item = new Item { Name = itemKvp.Value.ToString() };
-                                                        }
-                                                    }
+                                                    ReadItemChances(container, containerKvp.Value);
+                                                    break;
                                                 }
-                                                break;
                                             case "junk":
-                                                
-                                                if (containerKvp.Value.GetType() == typeof(LuaTable))
                                                 {
-                                                    foreach (KeyValuePair<object, object> junkKvp in (LuaTable)containerKvp.Value)//Junk
-                                                    {
-                                                        if (junkKvp.Key.ToString() == "rolls")
-                                                        {
-                                                            container.JunkRolls = int.Parse(junkKvp.Value.ToString());
-                                                        }
-                                                        else
-                                                        {
-                                                            if (junkKvp.Value.GetType() == typeof(LuaTable))
-                                                            {
-                                                                Item junkItem = new();
-                                                                foreach(KeyValuePair<object,object> junkItemKvp in (LuaTable) junkKvp.Value)
-                                                                {
-                                                                    
-                                                                    if (char.IsNumber(junkItemKvp.Value.ToString()[0]))
-                                                                    {
-                                                                        junkItem.Chance = double.Parse(junkItemKvp.Value.ToString());
-                                                                        container.JunkChances.Add(junkItem);
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        junkItem = new() { Name = junkItemKvp.Key.ToString() };
-                                                                    }
-                                                                }
-                                                            }
-                                           
-                                                        }
-
-                                                    }
+                                                    ReadJunkChances(container, containerKvp.Value);
+                                                    break;
                                                 }
-                                              
-                                                break;
                                             case "procedural":
-                                                if (containerKvp.Value.ToString() == "True")
                                                 {
-                                                    container.Procedural = true;
+                                                    if (containerKvp.Value.ToString() == "True")
+                                                    {
+                                                        container.Procedural = true;
+                                                    }
+                                                    break;
                                                 }
-                                                break;
                                             case "dontSpawnAmmo":
-                                                if (containerKvp.Value.ToString() == "True")
                                                 {
-                                                    container.DontSpawnAmmo = true;
-                                                }
-                                                break;
-                                            case "procList":
-                                                if (containerKvp.Value.GetType() == typeof(LuaTable))
-                                                {
-                                                    foreach (KeyValuePair<object, object> procListEntryKvp in (LuaTable)containerKvp.Value)//procListEntries
+                                                    if (containerKvp.Value.ToString() == "True")
                                                     {
-                                                        ProcListEntry procListEntry = new();
-                                                        if (procListEntryKvp.Value.GetType() == typeof(LuaTable))
-                                                        {
-                                                            foreach (KeyValuePair<object, object> kvp5 in (LuaTable)procListEntryKvp.Value)//procListEntryData
-                                                            {
-                                                                switch (kvp5.Key.ToString())
-                                                                {
-                                                                    case "name":
-                                                                        procListEntry.Name = kvp5.Value.ToString();
-                                                                        Distribution procedural = ProceduralDistributions.Find(d => d.Name == procListEntry.Name);
-                                                                        if (procedural == null)
-                                                                        {
-                                                                            procedural = ProceduralDistributions.Find(d => d.Name.ToLower() == procListEntry.Name.ToLower());
-                                                                            if (procedural == null)
-                                                                            {
-                                                                                Errors.Add(new Error()
-                                                                                {
-                                                                                    Code = 1,
-                                                                                    Description = "No procedural distribution with name \"" + procListEntry.Name + "\" found.",
-                                                                                    FileName = "ProceduralDistributions.lua"
-                                                                                });
-                                                                            }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                         
-                                                                            procListEntry.ProceduralDistribution = procedural;
-                                                                            
-                                                                        }
-                                                                        break;
-
-                                                                    case "min":
-                                                                        procListEntry.Min = int.Parse(kvp5.Value.ToString());
-                                                                        break;
-                                                                    case "max":
-                                                                        procListEntry.Max = int.Parse(kvp5.Value.ToString());
-                                                                        break;
-                                                                    case "weightChance":
-                                                                        procListEntry.WeightChance = int.Parse(kvp5.Value.ToString());
-                                                                        break;
-                                                                    case "forceForTiles":
-                                                                        procListEntry.ForceForTiles = kvp5.Value.ToString();
-                                                                        break;
-                                                                    case "forceForRooms":
-                                                                        procListEntry.ForceForRooms = kvp5.Value.ToString();
-                                                                        break;
-                                                                    case "forceForZones":
-                                                                        procListEntry.ForceForZones = kvp5.Value.ToString();
-                                                                        break;
-                                                                    case "forceForItems":
-                                                                        procListEntry.ForceForItems = kvp5.Value.ToString();
-                                                                        break;
-                                                                    default:
-                                                                        break;
-                                                                }
-
-                                                            }
-                                                            container.ProcListEntries.Add(procListEntry);
-                                                        }
+                                                        container.DontSpawnAmmo = true;
                                                     }
+                                                    break;
                                                 }
-                                                break;
                                             default:
-                                                if (containerKvp.Value.GetType() == typeof(LuaTable))
                                                 {
-                                                    foreach (KeyValuePair<object, object> procListEntryKvp in (LuaTable)containerKvp.Value)//procListEntries
-                                                    {
-                                                        ProcListEntry procListEntry = new();
-
-                                                        switch (procListEntryKvp.Key.ToString())
-                                                        {
-                                                            case "name":
-                                                                procListEntry.Name = procListEntryKvp.Value.ToString();
-                                                                Distribution procedural = ProceduralDistributions.Find(d => d.Name == procListEntry.Name);
-                                                                if (procedural == null)
-                                                                {
-                                                                    procedural = ProceduralDistributions.Find(d => d.Name.ToLower() == procListEntry.Name.ToLower());
-                                                                    if (procedural == null)
-                                                                    {
-                                                                        Debug.WriteLine(procListEntry.Name);
-                                                                    }
-                                                                }
-                                                                else
-                                                                {
-                                                                    procListEntry.ProceduralDistribution = procedural;
-                                                                }
-
-
-                                                                break;
-                                                            case "min":
-
-                                                                procListEntry.Min = int.Parse(procListEntryKvp.Value.ToString());
-                                                                break;
-                                                            case "max":
-                                                                procListEntry.Max = int.Parse(procListEntryKvp.Value.ToString());
-                                                                break;
-                                                            case "weightChance":
-                                                                procListEntry.WeightChance = int.Parse(procListEntryKvp.Value.ToString());
-                                                                break;
-                                                            case "forceForTiles":
-
-                                                                procListEntry.ForceForTiles = procListEntryKvp.Value.ToString();
-                                                                break;
-                                                            case "forceForRooms":
-                                                                procListEntry.ForceForRooms = procListEntryKvp.Value.ToString();
-                                                                break;
-                                                            case "forceForZones":
-                                                                procListEntry.ForceForZones = procListEntryKvp.Value.ToString();
-                                                                break;
-                                                            case "forceForItems":
-                                                                procListEntry.ForceForItems = procListEntryKvp.Value.ToString();
-                                                                break;
-                                                            default:
-                                                                Debug.Fail("Something changed and the programs needs updating");
-                                                                break;
-                                                        }
-                                                        container.ProcListEntries.Add(procListEntry);
-                                                    }
-
+                                                    ReadProcLists(container, containerKvp.Value);
+                                                    break;
                                                 }
-                                                break;
                                         }
                                     }
                                     distribution.Containers.Add(container);
                                 }
                                 break;
-                        }
+                            }
                     }
                 }
+            }
 
-                try
-                {
-                    if (CacheNames.Contains(distribution.Name)) distribution.DistributionType = "Cache";
-                    else if (BagNames.Contains(distribution.Name)) distribution.DistributionType = "Bag";
-                    else if (ProfessionNames.Contains(distribution.Name)) distribution.DistributionType = "Profession";
-                    else distribution.DistributionType = "Room";
-                    result.Add(distribution);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-               
-            }
-            return result;
-        }
-        private void ParseDistributions(string folderPath)
-        {
-            List<Distribution> result = new();
-            Lua lua = new Lua() { MaximumRecursion = 20 };
-            lua.DoFile(folderPath + "\\media\\lua\\server\\Items\\Distributions.lua");
-            var tableValues = lua.GetTable("Distributions").Values;
-            var luaTable = default(LuaTable);
-            foreach (var item in tableValues)//One item but can't use [0] !?
+            try
             {
-                if (item is LuaTable)
+                if (CacheNames.Contains(distribution.Name)) distribution.DistributionType = "Cache";
+                else if (BagNames.Contains(distribution.Name)) distribution.DistributionType = "Bag";
+                else if (ProfessionNames.Contains(distribution.Name)) distribution.DistributionType = "Profession";
+                else distribution.DistributionType = "Room";
+                result.Add(distribution);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+        }
+        return result;
+    }
+    private void ParseProceduralDistributions(string folderPath)
+    {
+        List<Distribution> result = new();
+        Lua lua = new Lua() { MaximumRecursion = 20 };
+        lua.DoFile(folderPath + "\\media\\lua\\server\\Items\\ProceduralDistributions.lua");
+        var tableValues = lua.GetTable("ProceduralDistributions.list");
+        if (tableValues.GetType() == typeof(LuaTable))
+        {
+            result = ConvertLuaTableValues(tableValues);
+        }
+        foreach (Distribution distribution in result)
+        {
+            distribution.DistributionType = "Procedural";
+        }
+        ProceduralDistributions = result;
+
+
+
+
+    }
+    private void ParseDistributions(string folderPath)
+    {
+        List<Distribution> result = new();
+        Lua lua = new Lua() { MaximumRecursion = 20 };
+        lua.DoFile(folderPath + "\\media\\lua\\server\\Items\\Distributions.lua");
+        var tableValues = lua.GetTable("Distributions").Values;
+        var luaTable = default(LuaTable);
+        foreach (var item in tableValues)//One item but can't use [0] !?
+        {
+            if (item is LuaTable)
+            {
+                luaTable = (LuaTable)item;
+                result.AddRange(ConvertLuaTableValues(luaTable));
+                break;
+            }
+        }
+        Distributions = result;
+    }
+    private bool IsLuaTable(object Object)
+    {
+        return Object.GetType() == typeof(LuaTable);
+    }
+    private void ReadItemChances(IItemParent parent, object children)
+    {
+        if (!IsLuaTable(children)) return;
+        Item item = new();
+        foreach (KeyValuePair<object, object> itemKvp in (LuaTable)children)
+        {
+#pragma warning disable CS8602, CS8604
+            if (char.IsNumber(itemKvp.Value.ToString()[0]) && char.IsNumber(itemKvp.Value.ToString().Last()))
+            {
+                item.Chance = double.Parse(itemKvp.Value.ToString());
+                parent.ItemChances.Add(item);
+            }
+            else
+            {
+                item.Name = itemKvp.Value.ToString();
+            }
+#pragma warning restore CS8602, CS8604
+        }
+    }
+    private void ReadJunkChances(IItemParent parent, object children)
+    {
+        if (!IsLuaTable(children)) return;
+        foreach (KeyValuePair<object, object> junkKvp in (LuaTable)children)
+        {
+            if (junkKvp.Key.ToString() == "rolls")
+            {
+#pragma warning disable CS8604
+                parent.JunkRolls = int.Parse(junkKvp.Value.ToString());
+#pragma warning restore CS8604
+            }
+            else
+            {
+                ReadItemChances(parent, junkKvp.Value);
+            }
+        }
+    }
+    private void ReadProcLists(Container container, object children)
+    {
+        if (!IsLuaTable(children)) return;
+        ProcListEntry procListEntry = new();
+        foreach (KeyValuePair<object, object> kvp in (LuaTable)children)
+        {
+            if (!IsLuaTable(kvp.Value))
+            {
+                switch (kvp.Key.ToString())
                 {
-                    luaTable = (LuaTable)item;
-                    result.AddRange(ConvertLuaTableValues(luaTable));
-                    break;
+                    case "name":
+                        {
+                            procListEntry.Name = kvp.Value.ToString();
+                            Distribution procedural = ProceduralDistributions.Find(d => d.Name == procListEntry.Name);
+                            if (procedural == null)
+                            {
+                                procedural =
+                                    ProceduralDistributions.Find(d => d.Name.ToLower() == procListEntry.Name.ToLower());
+                                if (procedural == null)
+                                {
+                                    Errors.Add(new Models.Error()
+                                    {
+                                        Code = 1,
+                                        Description = "No procedural distribution with name \"" + procListEntry.Name +
+                                                      "\" found.",
+                                        FileName = "ProceduralDistributions.lua"
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                procListEntry.ProceduralDistribution = procedural;
+                            }
+
+                            break;
+                        }
+                    case "min":
+                        {
+                            procListEntry.Min = int.Parse(kvp.Value.ToString());
+                            break;
+                        }
+                    case "max":
+                        {
+                            procListEntry.Max = int.Parse(kvp.Value.ToString());
+                            break;
+                        }
+                    case "weightChance":
+                        {
+                            procListEntry.WeightChance = int.Parse(kvp.Value.ToString());
+                            break;
+                        }
+                    case "forceForTiles":
+                        {
+                            procListEntry.ForceForTiles = kvp.Value.ToString();
+                            break;
+                        }
+                    case "forceForRooms":
+                        {
+                            procListEntry.ForceForRooms = kvp.Value.ToString();
+                            break;
+                        }
+                    case "forceForZones":
+                        {
+                            procListEntry.ForceForZones = kvp.Value.ToString();
+                            break;
+                        }
+                    case "forceForItems":
+                        {
+                            procListEntry.ForceForItems = kvp.Value.ToString();
+                            break;
+                        }
+                    default:
+                        {
+                            Debug.Fail("Something changed and the programs needs updating");
+                            break;
+                        }
                 }
             }
-            Distributions = result;
+            else
+            {
+                foreach (KeyValuePair<object, object> procListEntryKvp in (LuaTable)kvp.Value)
+                {
+                    switch (procListEntryKvp.Key.ToString())
+                    {
+                        case "name":
+                            {
+                                procListEntry.Name = procListEntryKvp.Value.ToString();
+                                Distribution procedural = ProceduralDistributions.Find(d => d.Name == procListEntry.Name);
+                                if (procedural == null)
+                                {
+                                    procedural =
+                                        ProceduralDistributions.Find(d => d.Name.ToLower() == procListEntry.Name.ToLower());
+                                    if (procedural == null)
+                                    {
+                                        Errors.Add(new Models.Error()
+                                        {
+                                            Code = 1,
+                                            Description = "No procedural distribution with name \"" + procListEntry.Name +
+                                                          "\" found.",
+                                            FileName = "ProceduralDistributions.lua"
+                                        });
+                                    }
+                                }
+                                else
+                                {
+                                    procListEntry.ProceduralDistribution = procedural;
+                                }
+
+                                break;
+                            }
+                        case "min":
+                            {
+                                procListEntry.Min = int.Parse(procListEntryKvp.Value.ToString());
+                                break;
+                            }
+                        case "max":
+                            {
+                                procListEntry.Max = int.Parse(procListEntryKvp.Value.ToString());
+                                break;
+                            }
+                        case "weightChance":
+                            {
+                                procListEntry.WeightChance = int.Parse(procListEntryKvp.Value.ToString());
+                                break;
+                            }
+                        case "forceForTiles":
+                            {
+                                procListEntry.ForceForTiles = procListEntryKvp.Value.ToString();
+                                break;
+                            }
+                        case "forceForRooms":
+                            {
+                                procListEntry.ForceForRooms = procListEntryKvp.Value.ToString();
+                                break;
+                            }
+                        case "forceForZones":
+                            {
+                                procListEntry.ForceForZones = procListEntryKvp.Value.ToString();
+                                break;
+                            }
+                        case "forceForItems":
+                            {
+                                procListEntry.ForceForItems = kvp.Value.ToString();
+                                break;
+                            }
+                        default:
+                            {
+                                Debug.Fail("Something changed and the programs needs updating");
+                                break;
+                            }
+                    }
+
+                }
+                container.ProcListEntries.Add(procListEntry);
+                procListEntry = new();
+            }
+
+            if (procListEntry.Name != null)
+            {
+                container.ProcListEntries.Add(procListEntry);
+            }
+
         }
     }
 }

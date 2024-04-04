@@ -1,18 +1,26 @@
 ﻿using System.Text;
+using DataInput.Models.Interfaces;
 
 namespace DataInput.Models
 {
-    public class Container
+    public class Container : IItemParent
     {
         public string? Name { get; set; }
         public bool? FillRand { get; set; }
-        public bool? Procedural { get; set; }
-        public bool? DontSpawnAmmo { get; set; }
         public int? ItemRolls { get; set; }
         public int? JunkRolls { get; set; }
         public List<Item>? ItemChances { get; set; } = new();
         public List<Item>? JunkChances { get; set; } = new();
+        public bool? DontSpawnAmmo { get; set; }
+
+
+        public bool? Procedural { get; set; }
         public List<ProcListEntry>? ProcListEntries { get; set; } = new();
+
+
+
+
+
         public override string ToString()
         {
             return Name;

@@ -1,21 +1,27 @@
 ﻿using System.Text;
+using DataInput.Models.Interfaces;
 
 namespace DataInput.Models
 {
-    public class Distribution
+    public class Distribution : IItemParent
     {
         public string? Name { get; set; }
-        public string? DistributionType { get; set; }
-        public bool? IsShop { get; set; }
         public bool? DontSpawnAmmo { get; set; }
-        public int? MaxMap { get; set; }
-        public int? StashChance { get; set; }
-        public int? FillRand { get; set; }
+        public bool? FillRand { get; set; }
         public int? ItemRolls { get; set; }
         public int? JunkRolls { get; set; }
         public List<Item>? ItemChances { get; set; } = new();
         public List<Item>? JunkChances { get; set; } = new();
+
+
+        public string? DistributionType { get; set; }
+        public bool? IsShop { get; set; }
+        public int? MaxMap { get; set; }
+        public int? StashChance { get; set; }
         public List<Container>? Containers { get; set; } = new();
+
+
+
 
         public string ToFullString()
         {

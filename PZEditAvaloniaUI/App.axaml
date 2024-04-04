@@ -1,0 +1,24 @@
+<Application
+    x:Class="PZEditAvaloniaUI.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PZEditAvaloniaUI">
+
+    <Application.DataTemplates>
+        <local:ViewLocator />
+    </Application.DataTemplates>
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+    <Application.Resources>
+        <SolidColorBrush x:Key="DarkBackGround">#FF1D1E1D</SolidColorBrush>
+        <SolidColorBrush x:Key="ContentBackGround">#FF271F27</SolidColorBrush>
+        <SolidColorBrush x:Key="Border">#FF363336</SolidColorBrush>
+        <SolidColorBrush x:Key="Lighter">#FF4A464A</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderBackground">#FF342E34</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderForeground">#FF574D57</SolidColorBrush>
+        <SolidColorBrush x:Key="MediumForeground">#FFB4BCB4</SolidColorBrush>
+        <SolidColorBrush x:Key="LightForeground">#FFDCDCDC</SolidColorBrush>
+    </Application.Resources>
+</Application>

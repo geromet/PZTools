@@ -1,6 +1,8 @@
-﻿namespace DataInput.Models
+﻿using DataInput.Models.Interfaces;
+
+namespace DataInput.Models
 {
-    public class Item
+    public class Item : ICommon
     {
         public double? Chance { get; set; }
         public string? Name { get; set; }

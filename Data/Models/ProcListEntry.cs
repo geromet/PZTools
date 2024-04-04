@@ -1,10 +1,13 @@
 ﻿using System.Text;
+using DataInput.Models.Interfaces;
 
 namespace DataInput.Models
 {
-    public class ProcListEntry
+    public class ProcListEntry : ICommon
     {
         public string? Name { get; set; }
+
+
         public int? WeightChance { get; set; }
         public int? Min { get; set; }
         public int? Max { get; set; }
