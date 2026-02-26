@@ -1,9 +1,9 @@
 namespace UI.UndoRedo;
 
 /// <summary>
-/// Represents a reversible user action.
-/// Execute applies the change; Undo reverses it.
-/// Both must leave the application in a consistent state.
+///     Represents a reversible user action.
+///     Execute applies the change; Undo reverses it.
+///     Both must leave the application in a consistent state.
 /// </summary>
 public interface IUndoableAction
 {

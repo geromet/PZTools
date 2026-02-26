@@ -1,14 +1,31 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:rxui="http://reactiveui.net"
-        xmlns:vm="using:UI.ViewModels"
         xmlns:controls="using:UI.Controls"
         x:Class="UI.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="False"
         Title="PZ Distribution Viewer"
         Width="1280" Height="800" MinWidth="900" MinHeight="500"
         Background="{StaticResource BgBase}"
         FontFamily="Inter,Segoe UI,system-ui,sans-serif">
+
+    <Window.Styles>
+        <Style Selector="Button.PanelClose">
+            <Setter Property="Content" Value="×" />
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="0 4 4 0" />
+            <Setter Property="ZIndex" Value="10" />
+            <Setter Property="ToolTip.Tip" Value="Close panel" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </Window.Styles>
 
     <Grid RowDefinitions="Auto,*,Auto">
 
@@ -24,38 +41,47 @@
                            Foreground="{StaticResource TextPrimary}"
                            FontSize="13" FontWeight="SemiBold"
                            VerticalAlignment="Center"
-                           Margin="0 0 20 0"/>
+                           Margin="0 0 16 0"/>
 
                 <!-- File actions -->
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="4">
-                    <Button Content="📂  Open Folder"
-                            Click="SelectFolder_Click"/>
+                    <Button Content="📂  Open Folder" Click="SelectFolder_Click"/>
                     <Button Content="⟳  Reload"
-                            Command="{Binding ReloadCommand}"
+                            Click="Reload_Click"
                             ToolTip.Tip="Re-parse current folder"/>
                 </StackPanel>
 
-                <!-- Undo / Redo — driven directly by UndoRedoStack commands -->
+                <!-- Undo / Redo -->
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"
-                            Spacing="4" Margin="16 0 0 0">
-                    <Button Command="{Binding UndoCommand}"
-                            ToolTip.Tip="{Binding UndoRedo.NextUndoDescription,
-                                StringFormat='Undo: {0}', FallbackValue='Nothing to undo'}">
-                        <TextBlock Text="↩  Undo"
-                                   Foreground="{StaticResource TextSecondary}"/>
+                            Spacing="4" Margin="12 0 0 0">
+                    <Button x:Name="UndoBtn"
+                            IsEnabled="False"
+                            Click="UndoBtn_Click"
+                            ToolTip.Tip="Nothing to undo">
+                        <TextBlock Text="↩  Undo" Foreground="{StaticResource TextSecondary}"/>
                     </Button>
-                    <Button Command="{Binding RedoCommand}"
-                            ToolTip.Tip="{Binding UndoRedo.NextRedoDescription,
-                                StringFormat='Redo: {0}', FallbackValue='Nothing to redo'}">
-                        <TextBlock Text="↪  Redo"
-                                   Foreground="{StaticResource TextSecondary}"/>
+                    <Button x:Name="RedoBtn"
+                            IsEnabled="False"
+                            Click="RedoBtn_Click"
+                            ToolTip.Tip="Nothing to redo">
+                        <TextBlock Text="↪  Redo" Foreground="{StaticResource TextSecondary}"/>
                     </Button>
                 </StackPanel>
 
+                <!-- View menu -->
+                <Menu DockPanel.Dock="Left" VerticalAlignment="Center" Margin="12 0 0 0">
+                    <MenuItem Header="View">
+                        <MenuItem x:Name="ViewListItem"  Header="✓ Distribution List" Click="ViewListItem_Click" />
+                        <MenuItem x:Name="ViewErrorItem" Header="✓ Error List"        Click="ViewErrorItem_Click" />
+                        <MenuItem x:Name="ViewRightItem" Header="✓ Properties"        Click="ViewRightItem_Click" />
+                    </MenuItem>
+                </Menu>
+
                 <!-- Loading indicator -->
-                <ProgressBar DockPanel.Dock="Right"
+                <ProgressBar x:Name="LoadingBar"
+                             DockPanel.Dock="Right"
                              IsIndeterminate="True"
-                             IsVisible="{Binding IsLoading}"
+                             IsVisible="False"
                              Width="80" Height="4"
                              Foreground="{StaticResource Accent}"
                              Background="Transparent"
@@ -64,66 +90,72 @@
         </Border>
 
         <!-- ══ THREE-PANE BODY ══ -->
-        <Grid Grid.Row="1"
+        <Grid x:Name="MainGrid"
+              Grid.Row="1"
               ColumnDefinitions="260,4,*,4,260"
               RowDefinitions="*,4,160">
 
             <!-- LEFT — Distribution list -->
-            <Border Grid.Column="0" Grid.RowSpan="3"
-                    Background="{StaticResource BgPanel}"
-                    BorderBrush="{StaticResource BorderSubtle}"
-                    BorderThickness="0 0 1 0">
-                <controls:DistributionListControl
-                    DataContext="{Binding DistributionList}"/>
-            </Border>
+            <Grid x:Name="LeftPanelGrid" Grid.Column="0" Grid.RowSpan="3">
+                <Border Background="{StaticResource BgPanel}"
+                        BorderBrush="{StaticResource BorderSubtle}"
+                        BorderThickness="0 0 1 0">
+                    <controls:DistributionListControl x:Name="DistributionList" />
+                </Border>
+                <Button Classes="PanelClose" Click="CloseListBtn_Click" />
+            </Grid>
 
-            <GridSplitter Grid.Column="1" Grid.RowSpan="3"
+            <GridSplitter x:Name="LeftSplitter"
+                          Grid.Column="1" Grid.RowSpan="3"
                           ResizeDirection="Columns"
                           Background="{StaticResource BorderSubtle}"
                           HorizontalAlignment="Stretch"/>
 
-            <!-- CENTER — RoutedViewHost: shows whatever VM is on top of the router -->
+            <!-- CENTER — Detail panel -->
             <Border Grid.Column="2" Grid.Row="0"
                     Background="{StaticResource BgBase}">
-                <rxui:RoutedViewHost Router="{Binding Router}"
-                                     Background="Transparent"/>
+                <ContentControl x:Name="DetailPane" />
             </Border>
 
-            <GridSplitter Grid.Column="2" Grid.Row="1"
+            <GridSplitter x:Name="ErrorSplitter"
+                          Grid.Column="2" Grid.Row="1"
                           ResizeDirection="Rows"
                           Background="{StaticResource BorderSubtle}"
                           HorizontalAlignment="Stretch"/>
 
             <!-- BOTTOM — Error list -->
-            <Border Grid.Column="2" Grid.Row="2"
-                    Background="{StaticResource BgPanel}"
-                    BorderBrush="{StaticResource BorderSubtle}"
-                    BorderThickness="0 1 0 0">
-                <controls:ErrorListControl
-                   DataContext="{Binding ErrorList}"/>
-            </Border>
+            <Grid x:Name="ErrorPanelGrid" Grid.Column="2" Grid.Row="2">
+                <Border Background="{StaticResource BgPanel}"
+                        BorderBrush="{StaticResource BorderSubtle}"
+                        BorderThickness="0 1 0 0">
+                    <controls:ErrorListControl x:Name="ErrorList" />
+                </Border>
+                <Button Classes="PanelClose" Click="CloseErrorBtn_Click" />
+            </Grid>
 
-            <GridSplitter Grid.Column="3" Grid.RowSpan="3"
+            <GridSplitter x:Name="RightSplitter"
+                          Grid.Column="3" Grid.RowSpan="3"
                           ResizeDirection="Columns"
                           Background="{StaticResource BorderSubtle}"
                           HorizontalAlignment="Stretch"/>
 
-            <!-- RIGHT — Context-sensitive property panel (future: bind to routed VM) -->
-            <Border Grid.Column="4" Grid.RowSpan="3"
-                    Background="{StaticResource BgPanel}"
-                    BorderBrush="{StaticResource BorderSubtle}"
-                    BorderThickness="1 0 0 0">
-                <!-- Placeholder — bind to router's current screen in a future pass -->
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
-                    <TextBlock Text="Properties"
-                               Foreground="{StaticResource TextMuted}"
-                               FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
-                               HorizontalAlignment="Center"/>
-                    <TextBlock Text="Select a distribution"
-                               Foreground="{StaticResource TextMuted}"
-                               FontSize="12" HorizontalAlignment="Center"/>
-                </StackPanel>
-            </Border>
+            <!-- RIGHT — Properties placeholder -->
+            <Grid x:Name="RightPanelGrid" Grid.Column="4" Grid.RowSpan="3">
+                <Border Background="{StaticResource BgPanel}"
+                        BorderBrush="{StaticResource BorderSubtle}"
+                        BorderThickness="1 0 0 0">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+                        <TextBlock Text="Properties"
+                                   Foreground="{StaticResource TextMuted}"
+                                   FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Select a distribution"
+                                   Foreground="{StaticResource TextMuted}"
+                                   FontSize="12" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                <Button Classes="PanelClose" Click="CloseRightBtn_Click" />
+            </Grid>
         </Grid>
 
         <!-- ══ STATUS BAR ══ -->
@@ -133,13 +165,12 @@
                 BorderThickness="0 1 0 0"
                 Padding="12 4">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="{Binding DistributionList.FilteredCount,
-                               StringFormat='{}{0} shown'}"
+                <TextBlock x:Name="CountText"
+                           DockPanel.Dock="Right"
                            Foreground="{StaticResource TextMuted}"
                            FontSize="11" VerticalAlignment="Center"
                            Margin="0 0 8 0"/>
-                <TextBlock Text="{Binding StatusText}"
+                <TextBlock x:Name="StatusText"
                            Foreground="{StaticResource TextMuted}"
                            FontSize="11" VerticalAlignment="Center"/>
             </DockPanel>

@@ -1,10 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="using:UI.ViewModels"
-             xmlns:data="using:DataInput.Data"
              xmlns:controls="using:UI.Controls"
              x:Class="UI.Controls.ContainerControl"
-             x:DataType="vm:ContainerViewModel">
+             x:CompileBindings="False">
 
     <Border Margin="8 2"
             CornerRadius="6"
@@ -18,81 +16,171 @@
             <!-- Header: name + quick stats badges -->
             <Expander.Header>
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="4 0">
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding Name}"
+                    <TextBlock x:Name="NameText"
+                               Grid.Column="0"
                                FontSize="12.5" FontWeight="Medium"
                                Foreground="{StaticResource TextPrimary}"
-                               VerticalAlignment="Center"/>
+                               VerticalAlignment="Center" />
                     <Border Grid.Column="1" CornerRadius="3" Padding="6 2" Margin="6 0 0 0"
                             Background="{StaticResource BgInput}"
                             ToolTip.Tip="Item rolls">
-                        <TextBlock Text="{Binding ItemRolls, StringFormat='↻ {0}'}"
-                                   FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                        <TextBlock x:Name="ItemRollsBadge"
+                                   FontSize="11" Foreground="{StaticResource TextMuted}" />
                     </Border>
                     <Border Grid.Column="2" CornerRadius="3" Padding="6 2" Margin="4 0 0 0"
                             Background="{StaticResource BgInput}"
                             ToolTip.Tip="Unique items">
-                        <TextBlock Text="{Binding ItemChances.Count, StringFormat='⊞ {0}'}"
-                                   FontSize="11" Foreground="{StaticResource TextMuted}"/>
+                        <TextBlock x:Name="ItemCountBadge"
+                                   FontSize="11" Foreground="{StaticResource TextMuted}" />
                     </Border>
-                    <Border Grid.Column="3"
-                            IsVisible="{Binding Procedural}"
+                    <Border x:Name="ProceduralBadge"
+                            Grid.Column="3"
+                            IsVisible="False"
                             CornerRadius="3" Padding="6 2" Margin="4 0 0 0"
                             Background="#4F4A2A">
                         <TextBlock Text="PROC" FontSize="10"
-                                   Foreground="{StaticResource TextSecondary}"/>
+                                   Foreground="{StaticResource TextSecondary}" />
                     </Border>
                 </Grid>
             </Expander.Header>
 
-            <!-- Tabs: all edits flow back to ContainerViewModel and are undoable -->
-            <TabControl Margin="0">
+            <!-- Flat content: Settings | Items | Junk (optional) | Proc Lists (optional) -->
+            <Grid x:Name="ContentGrid" ColumnDefinitions="145,*,0,0">
 
-                <TabItem Header="Settings">
-                    <Grid ColumnDefinitions="Auto,*"
-                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
-                          Margin="12 8" ColumnSpacing="12" RowSpacing="6">
+                <!-- ── Settings ── -->
+                <Border Grid.Column="0"
+                        BorderBrush="{StaticResource BorderSubtle}"
+                        BorderThickness="0 0 1 0"
+                        Padding="10 8">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="SETTINGS"
+                                   FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
+                                   Foreground="{StaticResource TextMuted}"
+                                   Margin="0 0 0 4" />
+                        <Grid ColumnDefinitions="Auto,*"
+                              RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                              ColumnSpacing="8" RowSpacing="5">
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Rolls"       Classes="FieldLabel"/>
-                        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding ItemRolls}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Rolls" Classes="FieldLabel" />
+                            <TextBox x:Name="ItemRollsBox" Grid.Row="0" Grid.Column="1"
+                                     LostFocus="ItemRollsBox_LostFocus" />
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Junk Rolls"  Classes="FieldLabel"/>
-                        <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding JunkRolls}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Junk Rolls" Classes="FieldLabel" />
+                            <TextBox x:Name="JunkRollsBox" Grid.Row="1" Grid.Column="1"
+                                     LostFocus="JunkRollsBox_LostFocus" />
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Fill Random" Classes="FieldLabel"/>
-                        <CheckBox  Grid.Row="2" Grid.Column="1" IsChecked="{Binding FillRand}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Fill Rand" Classes="FieldLabel" />
+                            <CheckBox x:Name="FillRandCheck" Grid.Row="2" Grid.Column="1"
+                                      IsCheckedChanged="FillRandCheck_IsCheckedChanged" />
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Procedural"  Classes="FieldLabel"/>
-                        <CheckBox  Grid.Row="3" Grid.Column="1" IsChecked="{Binding Procedural}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Procedural" Classes="FieldLabel" />
+                            <CheckBox x:Name="ProceduralCheck" Grid.Row="3" Grid.Column="1"
+                                      IsCheckedChanged="ProceduralCheck_IsCheckedChanged" />
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="No Ammo"     Classes="FieldLabel"/>
-                        <CheckBox  Grid.Row="4" Grid.Column="1" IsChecked="{Binding DontSpawnAmmo}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="No Ammo" Classes="FieldLabel" />
+                            <CheckBox x:Name="DontSpawnAmmoCheck" Grid.Row="4" Grid.Column="1"
+                                      IsCheckedChanged="DontSpawnAmmoCheck_IsCheckedChanged" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── Items ── -->
+                <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+                    <Border Grid.Row="0"
+                            Padding="4 4"
+                            Background="{StaticResource BgElevated}"
+                            BorderBrush="{StaticResource BorderSubtle}"
+                            BorderThickness="0 0 0 1">
+                        <TextBlock Text="ITEMS"
+                                   FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
+                                   Foreground="{StaticResource TextMuted}" />
+                    </Border>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,65"
+                          Background="{StaticResource BgElevated}">
+                        <TextBlock Grid.Column="0" Text="Item"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextMuted}"
+                                   Margin="4 3" />
+                        <TextBlock Grid.Column="1" Text="Chance"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextMuted}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0 3 4 3" />
                     </Grid>
-                </TabItem>
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Visible"
+                                  MaxHeight="260">
+                        <StackPanel x:Name="ItemRowsPanel" />
+                    </ScrollViewer>
+                </Grid>
 
-                <TabItem Header="Items">
-                    <controls:ItemListControl ItemsSource="{Binding ItemChances}"/>
-                </TabItem>
+                <!-- ── Junk (hidden when empty) ── -->
+                <Grid x:Name="JunkPanel" Grid.Column="2"
+                      RowDefinitions="Auto,Auto,*" IsVisible="False"
+                      MinWidth="160">
+                    <Border Grid.Row="0"
+                            Padding="4 4"
+                            Background="{StaticResource BgElevated}"
+                            BorderBrush="{StaticResource BorderSubtle}"
+                            BorderThickness="1 0 0 1">
+                        <TextBlock Text="JUNK"
+                                   FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
+                                   Foreground="{StaticResource TextMuted}" />
+                    </Border>
+                    <Grid Grid.Row="1" ColumnDefinitions="*,65"
+                          Background="{StaticResource BgElevated}">
+                        <TextBlock Grid.Column="0" Text="Item"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextMuted}"
+                                   Margin="4 3" />
+                        <TextBlock Grid.Column="1" Text="Chance"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextMuted}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0 3 4 3" />
+                    </Grid>
+                    <ScrollViewer Grid.Row="2"
+                                  VerticalScrollBarVisibility="Visible"
+                                  MaxHeight="260">
+                        <StackPanel x:Name="JunkRowsPanel" />
+                    </ScrollViewer>
+                </Grid>
 
-                <TabItem Header="Junk">
-                    <controls:ItemListControl ItemsSource="{Binding JunkChances}"/>
-                </TabItem>
+                <!-- ── Proc Lists (hidden when empty) ── -->
+                <Border x:Name="ProcListPanel" Grid.Column="3"
+                        IsVisible="False" MinWidth="220"
+                        BorderBrush="{StaticResource BorderSubtle}"
+                        BorderThickness="1 0 0 0">
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0"
+                                Padding="4 4"
+                                Background="{StaticResource BgElevated}"
+                                BorderBrush="{StaticResource BorderSubtle}"
+                                BorderThickness="0 0 0 1">
+                            <TextBlock Text="PROC LISTS"
+                                       FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
+                                       Foreground="{StaticResource TextMuted}" />
+                        </Border>
+                        <ScrollViewer Grid.Row="1"
+                                      VerticalScrollBarVisibility="Visible"
+                                      MaxHeight="260">
+                            <controls:ProcListListControl x:Name="ProcListControl" />
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
 
-                <TabItem Header="Proc Lists">
-                    <controls:ProcListListControl ItemsSource="{Binding ProcListEntries}"/>
-                </TabItem>
-            </TabControl>
+            </Grid>
         </Expander>
     </Border>
 
     <UserControl.Styles>
         <Style Selector="TextBlock.FieldLabel">
-            <Setter Property="Foreground"        Value="{StaticResource TextMuted}"/>
-            <Setter Property="FontSize"          Value="12"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="Expander /template/ ToggleButton">
-            <Setter Property="Padding" Value="10 8"/>
+            <Setter Property="Padding" Value="10 8" />
         </Style>
     </UserControl.Styles>
 </UserControl>

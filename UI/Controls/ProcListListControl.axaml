@@ -3,13 +3,13 @@
              xmlns:data="using:DataInput.Data"
              xmlns:controls="using:UI.Controls"
              x:Class="UI.Controls.ProcListListControl"
-             x:DataType="x:Null">
+             x:CompileBindings="False">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400">
-        <ItemsControl x:Name="ItemsHost" Spacing="4" Margin="8">
+        <ItemsControl x:Name="ItemsHost" Margin="8">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="data:ProcListEntry">
-                    <controls:ProcListEntryControl/>
+                    <controls:ProcListEntryControl />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

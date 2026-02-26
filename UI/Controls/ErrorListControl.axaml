@@ -1,12 +1,7 @@
-<rxui:ReactiveUserControl
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:rxui="http://reactiveui.net"
-    xmlns:vm="using:UI.ViewModels"
-    xmlns:errors="using:DataInput.Errors"
-    x:TypeArguments="vm:ErrorListViewModel"
-    x:Class="UI.Controls.ErrorListControl"
-    x:DataType="vm:ErrorListViewModel">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="UI.Controls.ErrorListControl"
+             x:CompileBindings="False">
 
     <Grid RowDefinitions="Auto,*">
 
@@ -15,71 +10,74 @@
                 Background="{StaticResource BgElevated}"
                 BorderBrush="{StaticResource BorderSubtle}"
                 BorderThickness="0 0 0 1"
-                Padding="10 5">
+                Padding="4 5">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
                            Text="ERROR LIST"
                            FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
                            Foreground="{StaticResource TextMuted}"
-                           VerticalAlignment="Center"/>
+                           VerticalAlignment="Center" />
 
-                <!-- Error/warning counts -->
+                <!-- Error/warning filter toggles -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12">
-                    <ToggleButton IsChecked="{Binding ShowErrors}"
-                                  Padding="8 3" FontSize="11">
+                    <ToggleButton x:Name="ShowErrorsBtn"
+                                  IsChecked="True"
+                                  Padding="8 3" FontSize="11"
+                                  Click="ShowErrors_Click">
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
-                                     Fill="{StaticResource StatusError}"/>
-                            <TextBlock>
-                                <Run Text="{Binding ErrorCount}"/>
-                                <Run Text=" errors"/>
-                            </TextBlock>
+                                     Fill="{StaticResource StatusError}" />
+                            <TextBlock x:Name="ErrorCountText" Text="0 errors" />
                         </StackPanel>
                     </ToggleButton>
-                    <ToggleButton IsChecked="{Binding ShowWarnings}"
-                                  Padding="8 3" FontSize="11">
+                    <ToggleButton x:Name="ShowWarningsBtn"
+                                  IsChecked="True"
+                                  Padding="8 3" FontSize="11"
+                                  Click="ShowWarnings_Click">
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
-                                     Fill="{StaticResource StatusWarning}"/>
-                            <TextBlock>
-                                <Run Text="{Binding WarningCount}"/>
-                                <Run Text=" warnings"/>
-                            </TextBlock>
+                                     Fill="{StaticResource StatusWarning}" />
+                            <TextBlock x:Name="WarningCountText" Text="0 warnings" />
                         </StackPanel>
                     </ToggleButton>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- DataGrid binds to DynamicData filtered collection -->
-        <DataGrid Grid.Row="1"
-                  ItemsSource="{Binding FilteredErrors}"
+        <DataGrid x:Name="ErrorGrid"
+                  Grid.Row="1"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
+                  SelectionMode="Extended"
                   CanUserReorderColumns="True"
                   CanUserResizeColumns="True"
                   CanUserSortColumns="True">
 
-            <DataGrid.Columns>
-                <!-- Severity dot -->
-                <DataGridTemplateColumn Header="" Width="28" CanUserSort="False">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="errors:ParseError">
-                            <Ellipse Width="7" Height="7"
-                                     HorizontalAlignment="Center"
-                                     VerticalAlignment="Center"
-                                     Fill="{Binding IsFatal,
-                                         Converter={x:Static BoolConverters.And},
-                                         ConverterParameter={StaticResource StatusError}}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Copy selected" Click="CopyRow_Click" InputGesture="Ctrl+C" />
+                    <MenuItem Header="Copy all" Click="CopyAll_Click" />
+                </ContextMenu>
+            </DataGrid.ContextMenu>
 
-                <DataGridTextColumn Header="Code"    Binding="{Binding Code}"       Width="150"/>
-                <DataGridTextColumn Header="Context" Binding="{Binding Context}"    Width="200"/>
-                <DataGridTextColumn Header="Message" Binding="{Binding Message}"    Width="*"/>
-                <DataGridTextColumn Header="File"    Binding="{Binding SourceFile}" Width="160"/>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="60"  />
+                <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="150" />
+                <DataGridTextColumn Header="Context" Binding="{Binding Context}" Width="200"/>
+                <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" />
+                <DataGridTextColumn Header="File" Binding="{Binding DisplayFile}" Width="160" />
             </DataGrid.Columns>
+            <DataGrid.Styles>
+                <Style Selector="DataGridColumnHeader">
+                    <Setter Property="Padding" Value="4 0" />
+                </Style>
+                <Style Selector="DataGridCell">
+                    <Setter Property="Padding" Value="0" />
+                </Style>
+                <Style Selector="DataGridCell TextBlock">
+                    <Setter Property="Margin" Value="4 0 0 0" />
+                </Style>
+            </DataGrid.Styles>
         </DataGrid>
     </Grid>
-</rxui:ReactiveUserControl>
+</UserControl>

@@ -1,38 +1,80 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.ReactiveUI;
-using UI.ViewModels;
+using DataInput.Data;
 
 namespace UI.Controls;
 
-/// <summary>
-/// ReactiveUserControl so DataContext is typed to DistributionListViewModel.
-/// Filter pill clicks delegate to the VM's SetFilter method; the code-behind
-/// only handles the CSS class toggle (active/inactive visual state).
-/// </summary>
-public partial class DistributionListControl : ReactiveUserControl<DistributionListViewModel>
+public partial class DistributionListControl : UserControl
 {
-    public DistributionListControl() => InitializeComponent();
+    private List<Distribution> _all = [];
+    private string? _activeFilter; // null = "All"
 
-    private void FilterPill_Click(object sender, RoutedEventArgs e)
+    public event Action<Distribution?>? SelectionChanged;
+
+    public DistributionListControl()
     {
-        if (sender is not Button btn || ViewModel is null) return;
-
-        var filter = btn.Tag as string; // null = "All"
-        ViewModel.SetFilter(filter);
-        UpdatePillStyles(ViewModel.ActiveFilter);
+        InitializeComponent();
+        SearchBox.TextChanged += (_, _) => ApplyFilter();
     }
 
-    private void UpdatePillStyles(string? activeFilter)
+    public void Load(IReadOnlyList<Distribution> distributions)
+    {
+        _all = [.. distributions];
+        _activeFilter = null;
+        SearchBox.Text = string.Empty;
+        UpdatePillStyles();
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var query = SearchBox.Text?.Trim() ?? string.Empty;
+
+        IEnumerable<Distribution> result = _all;
+
+        if (_activeFilter is not null)
+            result = result.Where(d => d.Type.ToString() == _activeFilter);
+
+        if (query.Length > 0)
+            result = result.Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+
+        var filtered = result.ToList();
+        DistList.ItemsSource = filtered;
+        CountText.Text = $"{filtered.Count} / {_all.Count}";
+    }
+
+    private void FilterPill_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn) return;
+
+        var tag = btn.Tag as string; // null = "All"
+        // Toggle off if already active, otherwise switch to new filter
+        _activeFilter = (_activeFilter == tag) ? null : tag;
+        // "All" pill (tag=null) always sets null
+        if (tag is null) _activeFilter = null;
+
+        UpdatePillStyles();
+        ApplyFilter();
+    }
+
+    private void UpdatePillStyles()
     {
         foreach (var child in FilterPills.Children)
         {
             if (child is not Button btn) continue;
-            var tag = btn.Tag as string; // null = "All"
-
-            bool isActive = activeFilter == tag;   // null == null for "All" pill
-            if (isActive) btn.Classes.Add("active");
-            else          btn.Classes.Remove("active");
+            var tag = btn.Tag as string;
+            if (_activeFilter == tag)
+                btn.Classes.Add("active");
+            else
+                btn.Classes.Remove("active");
         }
+    }
+
+    private void DistList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        SelectionChanged?.Invoke(DistList.SelectedItem as Distribution);
     }
 }

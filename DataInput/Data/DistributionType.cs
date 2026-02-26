@@ -1,6 +1,10 @@
 ﻿namespace DataInput.Data;
 
-public class DistributionType
+public enum DistributionType
 {
-    
+    Room,
+    Bag,
+    Cache,
+    Profession,
+    Procedural
 }
