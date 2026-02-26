@@ -12,10 +12,10 @@ PZTools is a desktop tool for viewing and editing Project Zomboid loot distribut
 # Build the whole solution
 dotnet build PZTools.sln
 
-# Run the active UI project
+# Run the UI
 dotnet run --project UI/UI.csproj
 
-# Build a specific project
+# Build parsing library only
 dotnet build DataInput/DataInput.csproj
 ```
 
@@ -26,12 +26,9 @@ Target framework is **net10.0**. There are no automated tests in the solution.
 | Project | Role |
 |---|---|
 | `DataInput` | Parsing library — Lua loading, domain model, validation. No UI dependencies. |
-| `UI` | Active Avalonia frontend (in-progress migration from WPF). References `DataInput`. |
-| `OldUI` | Legacy WPF frontend — kept for reference during migration, not built actively. |
-| `Data` (DataOld) | Old data layer — superseded by `DataInput`. |
-| `PZEditAvaloniaUI` | Earlier Avalonia prototype — also superseded by `UI`. |
+| `UI` | Active Avalonia frontend. References `DataInput`. |
 
-**Only `DataInput` and `UI` are under active development.**
+**Only `DataInput` and `UI` are under active development.** Legacy projects (`OldUI`, `Data`, `PZEditAvaloniaUI`) have been removed.
 
 ## DataInput architecture
 
@@ -63,24 +60,23 @@ Error handling is non-fatal by default: field parse failures log a `ParseError` 
 
 ## UI architecture
 
-**Pattern:** ReactiveUI with `IScreen` / `IRoutableViewModel` routing. The center panel is navigation-driven; side panels are persistent.
+**Pattern:** Plain Avalonia code-behind — no ReactiveUI, no ViewModels. State lives in `MainWindow` and the controls themselves.
 
 ```
-MainWindowViewModel (IScreen, owns Router + UndoRedoStack)
-├── DistributionListViewModel  — left panel, DynamicData pipeline with filter/search/sort
-├── ErrorListViewModel         — bottom/right panel
-└── Router → DistributionDetailViewModel | EmptyStateViewModel
+MainWindow (code-behind, owns UndoRedoStack)
+├── DistributionListControl  — left panel; filter pills + text search, fires SelectionChanged event
+├── DistributionDetailControl — center panel; Load(Distribution, UndoRedoStack) / ShowEmpty()
+│   └── ContainerControl (one per container, built dynamically)
+│       └── ItemListControl, ProcListListControl
+├── ErrorListControl          — bottom panel
+└── Right panel               — Properties placeholder (not yet implemented)
 ```
 
-`MainWindow` (code-behind) handles the folder picker (`StorageProvider`) and keyboard shortcuts (Ctrl+Z/Y/Shift+Z), then delegates to VM commands.
+`MainWindow` handles the folder picker (`StorageProvider`), keyboard shortcuts (Ctrl+Z/Y/Shift+Z), and panel show/hide toggling (saves/restores `GridLength` on each column/row).
 
-**Reactive property pattern:** `[Reactive]` attribute from `ReactiveUI.SourceGenerators` generates `INotifyPropertyChanged` boilerplate at compile time. All VM subscriptions are added to `Disposables` (from `ViewModelBase`) and cleaned up on disposal.
+**Undo/redo:** `UndoRedoStack` owns two stacks of `IUndoableAction`. Controls receive the stack via their `Load(...)` method and push `PropertyChangeAction<T>` when editable fields change.
 
-**Undo/redo:** `UndoRedoStack` owns two stacks of `IUndoableAction`. ViewModels track editable fields with `WhenAnyValue(...).Skip(1).Where(_ => !_undoRedo.IsReplaying).Scan(...)` to capture old/new value pairs, then call `_undoRedo.Push(new PropertyChangeAction<T>(...))`.
-
-**DynamicData in `DistributionListViewModel`:** `SourceList<Distribution>` → filter predicate observable → sort → `Bind(out _filtered)`. Filter is debounced 120ms on the threadpool scheduler. Selecting a distribution pushes a new `DistributionDetailViewModel` onto the router, giving it a clean undo scope.
-
-**Compiled bindings:** `AvaloniaUseCompiledBindingsByDefault=true` in `UI.csproj` — all `.axaml` bindings are compile-time validated. Binding errors appear as build errors, not runtime exceptions.
+**Note:** `MainWindow.axaml` uses `x:CompileBindings="False"` — bindings there are runtime, not compile-time. Controls may differ; check per-file.
 
 ## Key conventions
 

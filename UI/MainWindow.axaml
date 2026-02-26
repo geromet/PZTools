@@ -2,8 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:rxui="http://reactiveui.net"
         xmlns:vm="using:UI.ViewModels"
+        xmlns:controls="using:UI.Controls"
         x:Class="UI.MainWindow"
-        x:DataType="vm:MainViewModel"
+        x:DataType="vm:MainWindowViewModel"
         Title="PZ Distribution Viewer"
         Width="1280" Height="800" MinWidth="900" MinHeight="500"
         Background="{StaticResource BgBase}"
@@ -73,7 +74,6 @@
                     BorderBrush="{StaticResource BorderSubtle}"
                     BorderThickness="0 0 1 0">
                 <controls:DistributionListControl
-                    xmlns:controls="using:UI.Controls"
                     DataContext="{Binding DistributionList}"/>
             </Border>
 
@@ -100,8 +100,7 @@
                     BorderBrush="{StaticResource BorderSubtle}"
                     BorderThickness="0 1 0 0">
                 <controls:ErrorListControl
-                    xmlns:controls="using:UI.Controls"
-                    DataContext="{Binding ErrorList}"/>
+                   DataContext="{Binding ErrorList}"/>
             </Border>
 
             <GridSplitter Grid.Column="3" Grid.RowSpan="3"

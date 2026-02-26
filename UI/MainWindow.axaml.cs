@@ -1,18 +1,18 @@
+using System;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using Avalonia.ReactiveUI;
-using ReactiveUI;
+using ReactiveUI.Avalonia;
 using UI.ViewModels;
 
-namespace UI;
+namespace UI.Views;
 
 /// <summary>
-/// ReactiveWindow binds the window's DataContext strongly to MainViewModel
-/// and wires keyboard shortcuts (Ctrl+Z / Ctrl+Y) to the VM's undo/redo commands.
-/// The folder picker must live here because StorageProvider requires a Window reference.
+///     ReactiveWindow binds the window's DataContext strongly to MainViewModel
+///     and wires keyboard shortcuts (Ctrl+Z / Ctrl+Y) to the VM's undo/redo commands.
+///     The folder picker must live here because StorageProvider requires a Window reference.
 /// </summary>
-public partial class MainWindow : ReactiveWindow<MainViewModel>
+public class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
     public MainWindow()
     {
@@ -32,7 +32,7 @@ public partial class MainWindow : ReactiveWindow<MainViewModel>
             e.Handled = true;
         }
         else if ((e.Key == Key.Y && e.KeyModifiers == KeyModifiers.Control)
-              || (e.Key == Key.Z && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
+                 || (e.Key == Key.Z && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
         {
             ViewModel.RedoCommand.Execute().Subscribe();
             e.Handled = true;
@@ -45,7 +45,7 @@ public partial class MainWindow : ReactiveWindow<MainViewModel>
             new FolderPickerOpenOptions { Title = "Select game or mod folder" });
 
         if (folders.Count == 0) return;
-        var path = folders[0].TryGetLocalPath();
+        var path = StorageProviderExtensions.TryGetLocalPath(folders[0]);
         if (path is null || ViewModel is null) return;
 
         ViewModel.ParseCommand.Execute(path).Subscribe();
