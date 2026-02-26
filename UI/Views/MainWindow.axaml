@@ -1,0 +1,149 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:rxui="http://reactiveui.net"
+        xmlns:vm="using:UI.ViewModels"
+        x:Class="UI.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="PZ Distribution Viewer"
+        Width="1280" Height="800" MinWidth="900" MinHeight="500"
+        Background="{StaticResource BgBase}"
+        FontFamily="Inter,Segoe UI,system-ui,sans-serif">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- ══ TOOLBAR ══ -->
+        <Border Grid.Row="0"
+                Background="{StaticResource BgPanel}"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 0 0 1"
+                Padding="12 6">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left"
+                           Text="PZ Distributions"
+                           Foreground="{StaticResource TextPrimary}"
+                           FontSize="13" FontWeight="SemiBold"
+                           VerticalAlignment="Center"
+                           Margin="0 0 20 0"/>
+
+                <!-- File actions -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="4">
+                    <Button Content="📂  Open Folder"
+                            Click="SelectFolder_Click"/>
+                    <Button Content="⟳  Reload"
+                            Command="{Binding ReloadCommand}"
+                            ToolTip.Tip="Re-parse current folder"/>
+                </StackPanel>
+
+                <!-- Undo / Redo — driven directly by UndoRedoStack commands -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"
+                            Spacing="4" Margin="16 0 0 0">
+                    <Button Command="{Binding UndoCommand}"
+                            ToolTip.Tip="{Binding UndoRedo.NextUndoDescription,
+                                StringFormat='Undo: {0}', FallbackValue='Nothing to undo'}">
+                        <TextBlock Text="↩  Undo"
+                                   Foreground="{StaticResource TextSecondary}"/>
+                    </Button>
+                    <Button Command="{Binding RedoCommand}"
+                            ToolTip.Tip="{Binding UndoRedo.NextRedoDescription,
+                                StringFormat='Redo: {0}', FallbackValue='Nothing to redo'}">
+                        <TextBlock Text="↪  Redo"
+                                   Foreground="{StaticResource TextSecondary}"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Loading indicator -->
+                <ProgressBar DockPanel.Dock="Right"
+                             IsIndeterminate="True"
+                             IsVisible="{Binding IsLoading}"
+                             Width="80" Height="4"
+                             Foreground="{StaticResource Accent}"
+                             Background="Transparent"
+                             Margin="8 0" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- ══ THREE-PANE BODY ══ -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="260,4,*,4,260"
+              RowDefinitions="*,4,160">
+
+            <!-- LEFT — Distribution list -->
+            <Border Grid.Column="0" Grid.RowSpan="3"
+                    Background="{StaticResource BgPanel}"
+                    BorderBrush="{StaticResource BorderSubtle}"
+                    BorderThickness="0 0 1 0">
+                <controls:DistributionListControl
+                    xmlns:controls="using:UI.Controls"
+                    DataContext="{Binding DistributionList}"/>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Grid.RowSpan="3"
+                          ResizeDirection="Columns"
+                          Background="{StaticResource BorderSubtle}"
+                          HorizontalAlignment="Stretch"/>
+
+            <!-- CENTER — RoutedViewHost: shows whatever VM is on top of the router -->
+            <Border Grid.Column="2" Grid.Row="0"
+                    Background="{StaticResource BgBase}">
+                <rxui:RoutedViewHost Router="{Binding Router}"
+                                     Background="Transparent"/>
+            </Border>
+
+            <GridSplitter Grid.Column="2" Grid.Row="1"
+                          ResizeDirection="Rows"
+                          Background="{StaticResource BorderSubtle}"
+                          HorizontalAlignment="Stretch"/>
+
+            <!-- BOTTOM — Error list -->
+            <Border Grid.Column="2" Grid.Row="2"
+                    Background="{StaticResource BgPanel}"
+                    BorderBrush="{StaticResource BorderSubtle}"
+                    BorderThickness="0 1 0 0">
+                <controls:ErrorListControl
+                    xmlns:controls="using:UI.Controls"
+                    DataContext="{Binding ErrorList}"/>
+            </Border>
+
+            <GridSplitter Grid.Column="3" Grid.RowSpan="3"
+                          ResizeDirection="Columns"
+                          Background="{StaticResource BorderSubtle}"
+                          HorizontalAlignment="Stretch"/>
+
+            <!-- RIGHT — Context-sensitive property panel (future: bind to routed VM) -->
+            <Border Grid.Column="4" Grid.RowSpan="3"
+                    Background="{StaticResource BgPanel}"
+                    BorderBrush="{StaticResource BorderSubtle}"
+                    BorderThickness="1 0 0 0">
+                <!-- Placeholder — bind to router's current screen in a future pass -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+                    <TextBlock Text="Properties"
+                               Foreground="{StaticResource TextMuted}"
+                               FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Select a distribution"
+                               Foreground="{StaticResource TextMuted}"
+                               FontSize="12" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ══ STATUS BAR ══ -->
+        <Border Grid.Row="2"
+                Background="{StaticResource BgPanel}"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 1 0 0"
+                Padding="12 4">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding DistributionList.FilteredCount,
+                               StringFormat='{}{0} shown'}"
+                           Foreground="{StaticResource TextMuted}"
+                           FontSize="11" VerticalAlignment="Center"
+                           Margin="0 0 8 0"/>
+                <TextBlock Text="{Binding StatusText}"
+                           Foreground="{StaticResource TextMuted}"
+                           FontSize="11" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

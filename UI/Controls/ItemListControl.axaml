@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:data="using:DataInput.Data"
+             x:Class="UI.Controls.ItemListControl"
+             x:DataType="x:Null">
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="*,80"
+              Background="{StaticResource BgElevated}" Margin="0 0 0 1">
+            <TextBlock Grid.Column="0" Text="Item"   FontSize="11" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}" Margin="12 6"/>
+            <TextBlock Grid.Column="1" Text="Chance" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}"
+                       HorizontalAlignment="Right" Margin="0 6 12 6"/>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="300">
+            <ItemsControl x:Name="ItemsHost">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="data:Item">
+                        <Grid ColumnDefinitions="*,80">
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding Name}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource TextSecondary}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Margin="12 5"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding Chance}"
+                                       FontSize="12"
+                                       Foreground="{StaticResource Accent}"
+                                       HorizontalAlignment="Right"
+                                       Margin="0 5 12 5"/>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

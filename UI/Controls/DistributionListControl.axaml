@@ -1,0 +1,80 @@
+<rxui:ReactiveUserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:rxui="http://reactiveui.net"
+    xmlns:vm="using:UI.ViewModels"
+    xmlns:data="using:DataInput.Data"
+    x:TypeArguments="vm:DistributionListViewModel"
+    x:Class="UI.Controls.DistributionListControl"
+    x:DataType="vm:DistributionListViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Panel header + search -->
+        <Border Grid.Row="0"
+                Padding="12 10 12 8"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 0 0 1">
+            <StackPanel Spacing="8">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Left"
+                               Text="DISTRIBUTIONS"
+                               FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
+                               Foreground="{StaticResource TextMuted}"
+                               VerticalAlignment="Center"/>
+                    <!-- Filtered/Total count -->
+                    <TextBlock DockPanel.Dock="Right"
+                               FontSize="10"
+                               Foreground="{StaticResource TextMuted}"
+                               VerticalAlignment="Center">
+                        <Run Text="{Binding FilteredCount}"/>
+                        <Run Text=" / "/>
+                        <Run Text="{Binding TotalCount}"/>
+                    </TextBlock>
+                </DockPanel>
+                <TextBox Text="{Binding SearchQuery}"
+                         Watermark="Search…"
+                         FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Filter pills — Click handled in code-behind to toggle active class -->
+        <Border Grid.Row="1"
+                Padding="8 6"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 0 0 1">
+            <WrapPanel x:Name="FilterPills" Orientation="Horizontal">
+                <Button Classes="FilterPill" Content="All"       Tag="{x:Null}" Click="FilterPill_Click" Margin="2"/>
+                <Button Classes="FilterPill" Content="Rooms"     Tag="Room"        Click="FilterPill_Click" Margin="2"/>
+                <Button Classes="FilterPill" Content="Bags"      Tag="Bag"         Click="FilterPill_Click" Margin="2"/>
+                <Button Classes="FilterPill" Content="Caches"    Tag="Cache"       Click="FilterPill_Click" Margin="2"/>
+                <Button Classes="FilterPill" Content="Professions" Tag="Profession" Click="FilterPill_Click" Margin="2"/>
+                <Button Classes="FilterPill" Content="Procedural" Tag="Procedural"  Click="FilterPill_Click" Margin="2"/>
+            </WrapPanel>
+        </Border>
+
+        <!-- Distribution list — binds to DynamicData ReadOnlyObservableCollection -->
+        <ListBox Grid.Row="2"
+                 ItemsSource="{Binding FilteredDistributions}"
+                 SelectedItem="{Binding SelectedDistribution}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="data:Distribution">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding Name}"
+                                   TextTrimming="CharacterEllipsis"
+                                   VerticalAlignment="Center"/>
+                        <Border Grid.Column="1"
+                                CornerRadius="3" Padding="5 2" Margin="4 0 0 0"
+                                Background="{StaticResource BgInput}">
+                            <TextBlock Text="{Binding Type}"
+                                       FontSize="10"
+                                       Foreground="{StaticResource TextMuted}"/>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</rxui:ReactiveUserControl>

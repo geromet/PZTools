@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:data="using:DataInput.Data"
+             x:Class="UI.Controls.ProcListEntryControl"
+             x:DataType="data:ProcListEntry">
+
+    <Border Background="{StaticResource BgElevated}"
+            BorderBrush="{StaticResource BorderSubtle}"
+            BorderThickness="1" CornerRadius="5"
+            Padding="10 8">
+        <Grid ColumnDefinitions="120,*"
+              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+              ColumnSpacing="8" RowSpacing="5">
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Distribution" Classes="FieldLabel"/>
+            <TextBlock Grid.Row="0" Grid.Column="1"
+                       Text="{Binding Name}"
+                       FontSize="12.5" FontWeight="Medium"
+                       Foreground="{StaticResource TextPrimary}"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Resolved" Classes="FieldLabel"/>
+            <TextBlock Grid.Row="1" Grid.Column="1"
+                       Text="{Binding ResolvedDistribution.Name, FallbackValue='⚠ Unresolved'}"
+                       FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+
+            <Separator Grid.Row="2" Grid.ColumnSpan="2"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Min / Max" Classes="FieldLabel"/>
+            <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                <TextBox Text="{Binding Min}" MaxWidth="60" MinWidth="40"/>
+                <TextBlock Text="–" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextMuted}"/>
+                <TextBox Text="{Binding Max}" MaxWidth="60" MinWidth="40"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Weight"     Classes="FieldLabel"/>
+            <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding WeightChance}" MaxWidth="80"/>
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Force Tiles" Classes="FieldLabel"
+                       IsVisible="{Binding ForceForTiles,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <TextBox   Grid.Row="5" Grid.Column="1" Text="{Binding ForceForTiles}"
+                       IsVisible="{Binding ForceForTiles,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Force Rooms" Classes="FieldLabel"
+                       IsVisible="{Binding ForceForRooms,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <TextBox   Grid.Row="6" Grid.Column="1" Text="{Binding ForceForRooms}"
+                       IsVisible="{Binding ForceForRooms,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="Force Items" Classes="FieldLabel"
+                       IsVisible="{Binding ForceForItems,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <TextBox   Grid.Row="7" Grid.Column="1" Text="{Binding ForceForItems}"
+                       IsVisible="{Binding ForceForItems,
+                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        </Grid>
+    </Border>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.FieldLabel">
+            <Setter Property="FontSize"          Value="11.5"/>
+            <Setter Property="Foreground"        Value="{StaticResource TextMuted}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>
