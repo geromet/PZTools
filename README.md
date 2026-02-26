@@ -12,3 +12,6 @@ procedural list — with search, filtering, and undo/redo 'editing'.
     using the pill buttons
   - **Distribution detail** — see item rolls, container count, flags (Shop / No Ammo), and every
     nested container with its full item/junk chance tables
+
+## Disclaimer
+  - **Doesn't** edit anything yet. Mainly made this to find and fix errors.
