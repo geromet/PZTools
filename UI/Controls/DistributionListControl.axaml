@@ -39,10 +39,10 @@
             <WrapPanel x:Name="FilterPills" Orientation="Horizontal">
                 <Button Classes="FilterPill" Content="All" Tag="{x:Null}" Click="FilterPill_Click" Margin="2" />
                 <Button Classes="FilterPill" Content="Rooms" Tag="Room" Click="FilterPill_Click" Margin="2" />
-                <Button Classes="FilterPill" Content="Bags" Tag="Bag" Click="FilterPill_Click" Margin="2" />
                 <Button Classes="FilterPill" Content="Caches" Tag="Cache" Click="FilterPill_Click" Margin="2" />
                 <Button Classes="FilterPill" Content="Professions" Tag="Profession" Click="FilterPill_Click" Margin="2" />
                 <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="FilterPill_Click" Margin="2" />
+                <Button Classes="FilterPill" Content="Items" Tag="Item" Click="FilterPill_Click" Margin="2" />
             </WrapPanel>
         </Border>
 

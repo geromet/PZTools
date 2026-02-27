@@ -60,7 +60,7 @@ public sealed class DistributionMapper
         foreach (var d in procedural)
             _proceduralIndex[d.Name] = d;
 
-        // 2. Parse main distributions (rooms, bags, caches, professions).
+        // 2. Parse main distributions (rooms, items, caches, professions).
         var distributions = MapDistributionsTable(distributionsTable, distSourceFile);
 
         // 3. Merge: AddRange avoids multiple reallocs if lists are similar sized.

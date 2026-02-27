@@ -3,7 +3,7 @@
 public enum DistributionType
 {
     Room,
-    Bag,
+    Item,
     Cache,
     Profession,
     Procedural
