@@ -50,6 +50,8 @@
         <ListBox x:Name="DistList"
                  Grid.Row="2"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Visible"
+                 ScrollViewer.AllowAutoHide="False"
                  SelectionChanged="DistList_SelectionChanged">
             <ListBox.ItemTemplate>
                 <DataTemplate DataType="data:Distribution">
