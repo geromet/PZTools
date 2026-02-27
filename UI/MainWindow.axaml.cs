@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using DataInput;
+using DataInput.Data;
+using DataInput.Serialization;
 using UI.Controls;
 using UI.UndoRedo;
 
@@ -14,6 +18,7 @@ public partial class MainWindow : Window
     private readonly UndoRedoStack _undoRedo = new();
     private readonly DistributionDetailControl _detail = new();
     private string? _lastFolder;
+    private IReadOnlyList<Distribution> _distributions = [];
 
     // Panel visibility state + saved sizes
     private bool _listVisible  = true;
@@ -23,11 +28,14 @@ public partial class MainWindow : Window
     private GridLength _savedErrorHeight = new GridLength(160);
     private GridLength _savedRightWidth  = new GridLength(260);
 
+    private const string BaseTitle = "PZ Distribution Viewer";
+
     public MainWindow()
     {
         InitializeComponent();
 
         _undoRedo.StateChanged += RefreshUndoButtons;
+        _undoRedo.StateChanged += RefreshDirtyState;
         DistributionList.SelectionChanged += OnDistributionSelected;
         KeyDown += OnKeyDown;
         AddHandler(ProcListEntryControl.NavigateRequestedEvent, OnNavigateToDistribution);
@@ -58,6 +66,9 @@ public partial class MainWindow : Window
 
     private async void SelectFolder_Click(object? sender, RoutedEventArgs e)
     {
+        if (HasUnsavedChanges() && !await ConfirmDiscardChanges())
+            return;
+
         var folders = await StorageProvider.OpenFolderPickerAsync(
             new FolderPickerOpenOptions { Title = "Select game or mod folder" });
 
@@ -70,8 +81,10 @@ public partial class MainWindow : Window
 
     private async void Reload_Click(object? sender, RoutedEventArgs e)
     {
-        if (_lastFolder is not null)
-            await ParseAsync(_lastFolder);
+        if (_lastFolder is null) return;
+        if (HasUnsavedChanges() && !await ConfirmDiscardChanges())
+            return;
+        await ParseAsync(_lastFolder);
     }
 
     private async Task ParseAsync(string folder)
@@ -84,20 +97,110 @@ public partial class MainWindow : Window
         var result = await Task.Run(() => DistributionParser.CreateDefault().Parse(folder));
 
         _undoRedo.Clear();
+        _distributions = result.Distributions;
         DistributionList.Load(result.Distributions);
         ErrorList.Load(result.Errors, folder);
         _detail.ShowEmpty();
 
         int errorCount = result.Errors.Count;
-        StatusText.Text = $"{result.Distributions.Count} distributions loaded · {errorCount} parse issues";
+        StatusText.Text = $"{result.Distributions.Count} distributions loaded \u00b7 {errorCount} parse issues";
         CountText.Text = string.Empty;
 
         LoadingBar.IsVisible = false;
+        RefreshDirtyState();
     }
+
+    // ── Save ──
+
+    private async void Save_Click(object? sender, RoutedEventArgs e)
+    {
+        await SaveAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_distributions.Count == 0) return;
+
+        SaveBtn.IsEnabled = false;
+        StatusText.Text = "Saving...";
+
+        var writer = new DistributionFileWriter();
+        var written = await Task.Run(() => writer.Save(_distributions));
+
+        if (written.Count > 0)
+            StatusText.Text = $"Saved {written.Count} file(s)";
+        else
+            StatusText.Text = "No changes to save";
+
+        RefreshDirtyState();
+    }
+
+    // ── Dirty state tracking ──
+
+    private bool HasUnsavedChanges()
+    {
+        foreach (var d in _distributions)
+        {
+            if (d.IsDirty) return true;
+            foreach (var c in d.Containers)
+            {
+                if (c.IsDirty) return true;
+                foreach (var p in c.ProcListEntries)
+                    if (p.IsDirty) return true;
+            }
+        }
+        return false;
+    }
+
+    private void RefreshDirtyState()
+    {
+        bool dirty = HasUnsavedChanges();
+        SaveBtn.IsEnabled = dirty;
+        Title = dirty ? $"{BaseTitle} *" : BaseTitle;
+    }
+
+    private async Task<bool> ConfirmDiscardChanges()
+    {
+        var dialog = new Window
+        {
+            Title = "Unsaved Changes",
+            Width = 400,
+            Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+        };
+
+        bool result = false;
+        var yesBtn = new Button { Content = "Discard", Margin = new Avalonia.Thickness(0, 0, 8, 0) };
+        var noBtn = new Button { Content = "Cancel" };
+        yesBtn.Click += (_, _) => { result = true; dialog.Close(); };
+        noBtn.Click += (_, _) => { dialog.Close(); };
+
+        dialog.Content = new StackPanel
+        {
+            Margin = new Avalonia.Thickness(20),
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = "You have unsaved changes. Discard them?", TextWrapping = Avalonia.Media.TextWrapping.Wrap },
+                new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right, Spacing = 8, Children = { yesBtn, noBtn } }
+            }
+        };
+
+        await dialog.ShowDialog(this);
+        return result;
+    }
+
+    // ── Keyboard shortcuts ──
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Z && e.KeyModifiers == KeyModifiers.Control)
+        if (e.Key == Key.S && e.KeyModifiers == KeyModifiers.Control)
+        {
+            _ = SaveAsync();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Z && e.KeyModifiers == KeyModifiers.Control)
         {
             _undoRedo.Undo();
             e.Handled = true;
@@ -158,7 +261,7 @@ public partial class MainWindow : Window
             MainGrid.ColumnDefinitions[1].Width = new GridLength(0);
         }
 
-        ViewListItem.Header = (visible ? "✓ " : "   ") + "Distribution List";
+        ViewListItem.Header = (visible ? "\u2713 " : "   ") + "Distribution List";
     }
 
     private void SetErrorVisible(bool visible)
@@ -183,7 +286,7 @@ public partial class MainWindow : Window
             MainGrid.RowDefinitions[1].Height = new GridLength(0);
         }
 
-        ViewErrorItem.Header = (visible ? "✓ " : "   ") + "Error List";
+        ViewErrorItem.Header = (visible ? "\u2713 " : "   ") + "Error List";
     }
 
     private void SetRightVisible(bool visible)
@@ -208,6 +311,6 @@ public partial class MainWindow : Window
             MainGrid.ColumnDefinitions[3].Width = new GridLength(0);
         }
 
-        ViewRightItem.Header = (visible ? "✓ " : "   ") + "Properties";
+        ViewRightItem.Header = (visible ? "\u2713 " : "   ") + "Properties";
     }
 }

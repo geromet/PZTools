@@ -42,41 +42,45 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- Flags row -->
-                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 2 0 0">
-                        <Border x:Name="ShopBadge"
-                                IsVisible="False"
-                                CornerRadius="3" Padding="6 2"
-                                Background="{StaticResource AccentMuted}">
-                            <TextBlock Text="SHOP" FontSize="10"
-                                       Foreground="{StaticResource AccentHover}" />
-                        </Border>
-                        <Border x:Name="NoAmmoBadge"
-                                IsVisible="False"
-                                CornerRadius="3" Padding="6 2"
-                                Background="{StaticResource BgElevated}">
-                            <TextBlock Text="NO AMMO" FontSize="10"
-                                       Foreground="{StaticResource TextMuted}" />
-                        </Border>
-                    </StackPanel>
+                    <!-- Editable settings row -->
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*"
+                          RowDefinitions="Auto"
+                          Margin="0 6 0 0" ColumnSpacing="10">
 
-                    <!-- Quick stats -->
-                    <StackPanel Orientation="Horizontal" Spacing="14" Margin="0 4 0 0">
-                        <TextBlock FontSize="11" Foreground="{StaticResource TextMuted}">
-                            <Run Text="Rolls: " />
-                            <Run x:Name="HeaderRolls" Foreground="{StaticResource TextSecondary}" />
-                        </TextBlock>
-                        <TextBlock FontSize="11" Foreground="{StaticResource TextMuted}">
+                        <TextBlock Grid.Column="0" Text="Rolls" Classes="HeaderLabel" />
+                        <TextBox x:Name="RollsBox" Grid.Column="1"
+                                 Width="50" FontSize="11" Padding="4 2"
+                                 LostFocus="RollsBox_LostFocus" />
+
+                        <CheckBox x:Name="ShopCheck" Grid.Column="2"
+                                  Content="Shop" FontSize="11"
+                                  IsCheckedChanged="ShopCheck_IsCheckedChanged" />
+
+                        <CheckBox x:Name="NoAmmoCheck" Grid.Column="3"
+                                  Content="No Ammo" FontSize="11"
+                                  IsCheckedChanged="NoAmmoCheck_IsCheckedChanged" />
+
+                        <TextBlock x:Name="MaxMapLabel" Grid.Column="4" Text="MaxMap" Classes="HeaderLabel" />
+                        <TextBox x:Name="MaxMapBox" Grid.Column="5"
+                                 Width="50" FontSize="11" Padding="4 2"
+                                 LostFocus="MaxMapBox_LostFocus" />
+
+                        <TextBlock x:Name="StashLabel" Grid.Column="6" Text="Stash%" Classes="HeaderLabel" />
+                        <TextBox x:Name="StashBox" Grid.Column="7"
+                                 Width="50" FontSize="11" Padding="4 2"
+                                 LostFocus="StashBox_LostFocus" />
+
+                        <TextBlock Grid.Column="8" FontSize="11" Foreground="{StaticResource TextMuted}">
                             <Run Text="Containers: " />
                             <Run x:Name="HeaderContainerCount" Foreground="{StaticResource TextSecondary}" />
                         </TextBlock>
-                        <TextBlock x:Name="HeaderDirectItems"
+                        <TextBlock x:Name="HeaderDirectItems" Grid.Column="9"
                                    FontSize="11" Foreground="{StaticResource TextMuted}"
                                    IsVisible="False">
                             <Run Text="Items: " />
                             <Run x:Name="HeaderDirectItemCount" Foreground="{StaticResource TextSecondary}" />
                         </TextBlock>
-                    </StackPanel>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -142,6 +146,11 @@
             <Setter Property="Padding" Value="10 8" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="TextBlock.HeaderLabel">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </UserControl.Styles>
 </UserControl>

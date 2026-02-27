@@ -34,9 +34,9 @@ public partial class ContainerControl : UserControl
             ProceduralCheck.IsChecked = c.Procedural;
             DontSpawnAmmoCheck.IsChecked = c.DontSpawnAmmo;
 
-            ItemRowHelper.Populate(ItemRowsPanel, c.ItemChances, undoRedo, $"{c.Name}.items");
-            ItemRowHelper.Populate(JunkRowsPanel, c.JunkChances, undoRedo, $"{c.Name}.junk");
-            ProcListControl.SetItems(c.ProcListEntries);
+            ItemRowHelper.Populate(ItemRowsPanel, c.ItemChances, undoRedo, $"{c.Name}.items", c);
+            ItemRowHelper.Populate(JunkRowsPanel, c.JunkChances, undoRedo, $"{c.Name}.junk", c);
+            ProcListControl.Load(c.ProcListEntries, undoRedo);
 
             bool hasJunk = c.JunkChances.Count > 0;
             JunkPanel.IsVisible = hasJunk;
@@ -64,7 +64,7 @@ public partial class ContainerControl : UserControl
         var old = _model.ItemRolls;
         _undoRedo.Push(new PropertyChangeAction<int>(
             $"{_model.Name}.Rolls: {old}→{newVal}",
-            v => { _model.ItemRolls = v; ItemRollsBox.Text = v.ToString(); ItemRollsBadge.Text = $"↻ {v}"; },
+            v => { _model.ItemRolls = v; ItemRollsBox.Text = v.ToString(); ItemRollsBadge.Text = $"↻ {v}"; _model.IsDirty = true; },
             old, newVal));
     }
 
@@ -80,7 +80,7 @@ public partial class ContainerControl : UserControl
         var old = _model.JunkRolls;
         _undoRedo.Push(new PropertyChangeAction<int>(
             $"{_model.Name}.JunkRolls: {old}→{newVal}",
-            v => { _model.JunkRolls = v; JunkRollsBox.Text = v.ToString(); },
+            v => { _model.JunkRolls = v; JunkRollsBox.Text = v.ToString(); _model.IsDirty = true; },
             old, newVal));
     }
 
@@ -92,7 +92,7 @@ public partial class ContainerControl : UserControl
         var old = _model.FillRand;
         _undoRedo.Push(new PropertyChangeAction<bool>(
             $"{_model.Name}.FillRand: {old}→{newVal}",
-            v => { _model.FillRand = v; FillRandCheck.IsChecked = v; },
+            v => { _model.FillRand = v; FillRandCheck.IsChecked = v; _model.IsDirty = true; },
             old, newVal));
     }
 
@@ -104,7 +104,7 @@ public partial class ContainerControl : UserControl
         var old = _model.Procedural;
         _undoRedo.Push(new PropertyChangeAction<bool>(
             $"{_model.Name}.Procedural: {old}→{newVal}",
-            v => { _model.Procedural = v; ProceduralCheck.IsChecked = v; ProceduralBadge.IsVisible = v; },
+            v => { _model.Procedural = v; ProceduralCheck.IsChecked = v; ProceduralBadge.IsVisible = v; _model.IsDirty = true; },
             old, newVal));
     }
 
@@ -116,7 +116,7 @@ public partial class ContainerControl : UserControl
         var old = _model.DontSpawnAmmo;
         _undoRedo.Push(new PropertyChangeAction<bool>(
             $"{_model.Name}.DontSpawnAmmo: {old}→{newVal}",
-            v => { _model.DontSpawnAmmo = v; DontSpawnAmmoCheck.IsChecked = v; },
+            v => { _model.DontSpawnAmmo = v; DontSpawnAmmoCheck.IsChecked = v; _model.IsDirty = true; },
             old, newVal));
     }
 }

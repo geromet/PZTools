@@ -76,6 +76,7 @@ public sealed class DistributionMapper
     private List<Distribution> MapProceduralTable(LuaTable table, string sourceFile)
     {
         var result = new List<Distribution>(table.Keys.Count);
+        int order = 0;
         foreach (KeyValuePair<object, object> kvp in table)
         {
             if (kvp.Key  is not string   name)  continue;
@@ -84,7 +85,9 @@ public sealed class DistributionMapper
             var dist = new Distribution
             {
                 Name = _namePool.Intern(name),
-                Type = DistributionType.Procedural
+                Type = DistributionType.Procedural,
+                SourceFile = sourceFile,
+                OriginalOrder = order++
             };
             MapDistributionBody(dist, inner, name, sourceFile);
             result.Add(dist);
@@ -110,6 +113,7 @@ public sealed class DistributionMapper
         }
 
         var result = new List<Distribution>(inner.Keys.Count);
+        int order = 0;
         foreach (KeyValuePair<object, object> kvp in inner)
         {
             if (kvp.Key  is not string   name) continue;
@@ -118,7 +122,9 @@ public sealed class DistributionMapper
             var dist = new Distribution
             {
                 Name = _namePool.Intern(name),
-                Type = DistributionClassifier.Classify(name)
+                Type = DistributionClassifier.Classify(name),
+                SourceFile = sourceFile,
+                OriginalOrder = order++
             };
             MapDistributionBody(dist, body, name, sourceFile);
             result.Add(dist);

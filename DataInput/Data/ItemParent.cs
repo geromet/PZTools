@@ -21,4 +21,11 @@ public abstract class ItemParent
     public int ItemRolls { get; set; }
     public int JunkRolls { get; set; }
     public bool FillRand  { get; set; }
+
+    /// <summary>
+    /// Set by the UI when any field on this object (or its item lists) is modified.
+    /// The serializer uses this to decide whether to include this object in write-back.
+    /// Reset after a successful save.
+    /// </summary>
+    public bool IsDirty { get; set; }
 }

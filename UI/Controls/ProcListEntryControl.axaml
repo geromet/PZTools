@@ -1,8 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:data="using:DataInput.Data"
              x:Class="UI.Controls.ProcListEntryControl"
-             x:DataType="data:ProcListEntry">
+             x:CompileBindings="False">
 
     <Border Background="{StaticResource BgElevated}"
             BorderBrush="{StaticResource BorderSubtle}"
@@ -17,49 +16,40 @@
                     Classes="NavLink"
                     Click="DistributionName_Click"
                     ToolTip.Tip="Open in Properties panel">
-                <TextBlock Text="{Binding Name}"
+                <TextBlock x:Name="NameText"
                            FontSize="12.5" FontWeight="Medium"
                            Foreground="{StaticResource Accent}" />
             </Button>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Resolved" Classes="FieldLabel" />
-            <TextBlock Grid.Row="1" Grid.Column="1"
-                       Text="{Binding ResolvedDistribution.Name, FallbackValue='⚠ Unresolved'}"
+            <TextBlock x:Name="ResolvedText" Grid.Row="1" Grid.Column="1"
                        FontSize="12" Foreground="{StaticResource TextSecondary}" />
 
             <Separator Grid.Row="2" Grid.ColumnSpan="2" />
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Min / Max" Classes="FieldLabel" />
             <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                <TextBox Width="60" Text="{Binding Min}" />
-                <TextBlock HorizontalAlignment="Center" Text="–" VerticalAlignment="Center"
+                <TextBox x:Name="MinBox" Width="60" LostFocus="MinBox_LostFocus" />
+                <TextBlock HorizontalAlignment="Center" Text="&#x2013;" VerticalAlignment="Center"
                            Foreground="{StaticResource TextMuted}" Width="20"/>
-                <TextBox HorizontalAlignment="Right" Width="60" Text="{Binding Max}"  />
+                <TextBox x:Name="MaxBox" HorizontalAlignment="Right" Width="60" LostFocus="MaxBox_LostFocus" />
             </StackPanel>
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Weight" Classes="FieldLabel" />
-            <TextBox Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Width="156" Text="{Binding WeightChance}" />
+            <TextBox x:Name="WeightBox" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left"
+                     Width="156" LostFocus="WeightBox_LostFocus" />
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Force Tiles" Classes="FieldLabel"
-                       IsVisible="{Binding ForceForTiles,
-                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ForceForTiles}"
-                     IsVisible="{Binding ForceForTiles,
-                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock x:Name="ForceTilesLabel" Grid.Row="5" Grid.Column="0" Text="Force Tiles" Classes="FieldLabel" />
+            <TextBox x:Name="ForceTilesBox" Grid.Row="5" Grid.Column="1"
+                     LostFocus="ForceTilesBox_LostFocus" />
 
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="Force Rooms" Classes="FieldLabel"
-                       IsVisible="{Binding ForceForRooms,
-                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding ForceForRooms}"
-                     IsVisible="{Binding ForceForRooms,
-                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock x:Name="ForceRoomsLabel" Grid.Row="6" Grid.Column="0" Text="Force Rooms" Classes="FieldLabel" />
+            <TextBox x:Name="ForceRoomsBox" Grid.Row="6" Grid.Column="1"
+                     LostFocus="ForceRoomsBox_LostFocus" />
 
-            <TextBlock Grid.Row="7" Grid.Column="0" Text="Force Items" Classes="FieldLabel"
-                       IsVisible="{Binding ForceForItems,
-                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding ForceForItems}"
-                     IsVisible="{Binding ForceForItems,
-                           Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            <TextBlock x:Name="ForceItemsLabel" Grid.Row="7" Grid.Column="0" Text="Force Items" Classes="FieldLabel" />
+            <TextBox x:Name="ForceItemsBox" Grid.Row="7" Grid.Column="1"
+                     LostFocus="ForceItemsBox_LostFocus" />
         </Grid>
     </Border>
 

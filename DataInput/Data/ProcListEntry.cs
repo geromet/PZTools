@@ -23,4 +23,9 @@ public sealed class ProcListEntry
     /// Null means the reference was unresolved; a corresponding ParseError will exist.
     /// </summary>
     public Distribution? ResolvedDistribution { get; set; }
+
+    /// <summary>
+    /// Set by the UI when any field on this entry is modified.
+    /// </summary>
+    public bool IsDirty { get; set; }
 }

@@ -1,5 +1,7 @@
-using System.Collections;
+using System.Collections.Generic;
 using Avalonia.Controls;
+using DataInput.Data;
+using UI.UndoRedo;
 
 namespace UI.Controls;
 
@@ -10,8 +12,14 @@ public partial class ProcListListControl : UserControl
         InitializeComponent();
     }
 
-    public void SetItems(IEnumerable? items)
+    public void Load(List<ProcListEntry> entries, UndoRedoStack undoRedo)
     {
-        ItemsHost.ItemsSource = items;
+        EntriesPanel.Children.Clear();
+        foreach (var entry in entries)
+        {
+            var ctrl = new ProcListEntryControl();
+            ctrl.Load(entry, undoRedo);
+            EntriesPanel.Children.Add(ctrl);
+        }
     }
 }

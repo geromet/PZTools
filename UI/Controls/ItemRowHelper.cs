@@ -10,8 +10,8 @@ using UI.UndoRedo;
 namespace UI.Controls;
 
 /// <summary>
-/// Shared logic for generating editable Item rows (name + chance TextBoxes) into a StackPanel.
-/// Used by both ContainerControl and ItemListControl to avoid duplication.
+/// Shared logic for generating editable Item rows (name + chance TextBoxes + delete button)
+/// into a StackPanel. Used by both ContainerControl and ItemListControl to avoid duplication.
 /// </summary>
 internal static class ItemRowHelper
 {
@@ -19,7 +19,8 @@ internal static class ItemRowHelper
         StackPanel panel,
         List<Item> items,
         UndoRedoStack undoRedo,
-        string context)
+        string context,
+        ItemParent owner)
     {
         panel.Children.Clear();
 
@@ -51,6 +52,20 @@ internal static class ItemRowHelper
             };
             Grid.SetColumn(chanceBox, 1);
 
+            var deleteBtn = new Button
+            {
+                Content = "\u00d7",
+                FontSize = 11,
+                Padding = new Thickness(2, 0),
+                MinWidth = 20,
+                MinHeight = 0,
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Gray,
+            };
+            Grid.SetColumn(deleteBtn, 2);
+
             nameBox.LostFocus += (_, _) =>
             {
                 var newName = nameBox.Text ?? string.Empty;
@@ -59,8 +74,8 @@ internal static class ItemRowHelper
                 var old = current;
                 var updated = new Item(newName, current.Chance);
                 undoRedo.Push(new PropertyChangeAction<Item>(
-                    $"{context}[{idx}].Name: {old.Name}→{newName}",
-                    v => { items[idx] = v; nameBox.Text = v.Name; chanceBox.Text = FormatChance(v.Chance); },
+                    $"{context}[{idx}].Name: {old.Name}\u2192{newName}",
+                    v => { items[idx] = v; nameBox.Text = v.Name; chanceBox.Text = FormatChance(v.Chance); owner.IsDirty = true; },
                     old, updated));
             };
 
@@ -76,14 +91,24 @@ internal static class ItemRowHelper
                 var old = current;
                 var updated = new Item(current.Name, newChance);
                 undoRedo.Push(new PropertyChangeAction<Item>(
-                    $"{context}[{idx}].Chance: {old.Chance}→{newChance}",
-                    v => { items[idx] = v; nameBox.Text = v.Name; chanceBox.Text = FormatChance(v.Chance); },
+                    $"{context}[{idx}].Chance: {old.Chance}\u2192{newChance}",
+                    v => { items[idx] = v; nameBox.Text = v.Name; chanceBox.Text = FormatChance(v.Chance); owner.IsDirty = true; },
                     old, updated));
             };
 
-            var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,65") };
+            deleteBtn.Click += (_, _) =>
+            {
+                var item = items[idx];
+                undoRedo.Push(new ListRemoveAction<Item>(
+                    $"{context}: remove '{item.Name}'",
+                    items, idx, item,
+                    () => { Populate(panel, items, undoRedo, context, owner); owner.IsDirty = true; }));
+            };
+
+            var row = new Grid { ColumnDefinitions = new ColumnDefinitions("*,65,20") };
             row.Children.Add(nameBox);
             row.Children.Add(chanceBox);
+            row.Children.Add(deleteBtn);
             panel.Children.Add(row);
         }
     }

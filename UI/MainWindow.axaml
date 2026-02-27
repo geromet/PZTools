@@ -45,8 +45,13 @@
 
                 <!-- File actions -->
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="4">
-                    <Button Content="📂  Open Folder" Click="SelectFolder_Click"/>
-                    <Button Content="⟳  Reload"
+                    <Button Content="&#x1F4C2;  Open Folder" Click="SelectFolder_Click"/>
+                    <Button x:Name="SaveBtn"
+                            Content="&#x1F4BE;  Save"
+                            Click="Save_Click"
+                            IsEnabled="False"
+                            ToolTip.Tip="Save modified files (Ctrl+S)"/>
+                    <Button Content="&#x27F3;  Reload"
                             Click="Reload_Click"
                             ToolTip.Tip="Re-parse current folder"/>
                 </StackPanel>
