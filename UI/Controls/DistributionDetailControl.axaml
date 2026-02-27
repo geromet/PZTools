@@ -100,7 +100,7 @@
                             BorderBrush="{StaticResource BorderSubtle}"
                             BorderThickness="1"
                             ClipToBounds="True">
-                        <Expander IsExpanded="True" Padding="0" HorizontalContentAlignment="Stretch">
+                        <Expander IsExpanded="True" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                             <Expander.Header>
                                 <Grid ColumnDefinitions="*,Auto,Auto" Margin="4 0">
                                     <TextBlock Grid.Column="0"

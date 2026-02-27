@@ -11,7 +11,7 @@
             BorderThickness="1"
             ClipToBounds="True">
 
-        <Expander IsExpanded="False" Padding="0" HorizontalContentAlignment="Stretch">
+        <Expander IsExpanded="False" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
 
             <!-- Header: name + quick stats badges -->
             <Expander.Header>
