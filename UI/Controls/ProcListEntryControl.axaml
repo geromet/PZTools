@@ -41,15 +41,15 @@
 
             <TextBlock x:Name="ForceTilesLabel" Grid.Row="5" Grid.Column="0" Text="Force Tiles" Classes="FieldLabel" />
             <TextBox x:Name="ForceTilesBox" Grid.Row="5" Grid.Column="1"
-                     LostFocus="ForceTilesBox_LostFocus" />
+                     TextWrapping="Wrap" LostFocus="ForceTilesBox_LostFocus" />
 
             <TextBlock x:Name="ForceRoomsLabel" Grid.Row="6" Grid.Column="0" Text="Force Rooms" Classes="FieldLabel" />
             <TextBox x:Name="ForceRoomsBox" Grid.Row="6" Grid.Column="1"
-                     LostFocus="ForceRoomsBox_LostFocus" />
+                     TextWrapping="Wrap" LostFocus="ForceRoomsBox_LostFocus" />
 
             <TextBlock x:Name="ForceItemsLabel" Grid.Row="7" Grid.Column="0" Text="Force Items" Classes="FieldLabel" />
             <TextBox x:Name="ForceItemsBox" Grid.Row="7" Grid.Column="1"
-                     LostFocus="ForceItemsBox_LostFocus" />
+                     TextWrapping="Wrap" LostFocus="ForceItemsBox_LostFocus" />
         </Grid>
     </Border>
 

@@ -148,7 +148,7 @@
 
                 <!-- ── Proc Lists (hidden when empty) ── -->
                 <Border x:Name="ProcListPanel" Grid.Column="3"
-                        IsVisible="False" MinWidth="220"
+                        IsVisible="False"
                         BorderBrush="{StaticResource BorderSubtle}"
                         BorderThickness="1 0 0 0">
                     <Grid RowDefinitions="Auto,*">
