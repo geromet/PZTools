@@ -6,9 +6,9 @@
              x:CompileBindings="False">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400">
-        <ItemsControl x:Name="ItemsHost" Margin="8">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="data:ProcListEntry">
+        <ItemsControl x:Name="ItemsHost" Margin="0 0 0 0" Padding="0 0 0 0">
+            <ItemsControl.ItemTemplate >
+                <DataTemplate DataType="data:ProcListEntry" >
                     <controls:ProcListEntryControl />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>

@@ -6,17 +6,21 @@
 
     <Border Background="{StaticResource BgElevated}"
             BorderBrush="{StaticResource BorderSubtle}"
-            BorderThickness="1" CornerRadius="5"
-            Padding="10 8">
+            BorderThickness="1"
+            Padding="0  0 4 0">
         <Grid ColumnDefinitions="120,*"
               RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
-              ColumnSpacing="8" RowSpacing="5">
+              ColumnSpacing="4" RowSpacing="4" Margin="2" >
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Distribution" Classes="FieldLabel" />
-            <TextBlock Grid.Row="0" Grid.Column="1"
-                       Text="{Binding Name}"
-                       FontSize="12.5" FontWeight="Medium"
-                       Foreground="{StaticResource TextPrimary}" />
+            <Button Grid.Row="0" Grid.Column="1"
+                    Classes="NavLink"
+                    Click="DistributionName_Click"
+                    ToolTip.Tip="Open in Properties panel">
+                <TextBlock Text="{Binding Name}"
+                           FontSize="12.5" FontWeight="Medium"
+                           Foreground="{StaticResource Accent}" />
+            </Button>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Resolved" Classes="FieldLabel" />
             <TextBlock Grid.Row="1" Grid.Column="1"
@@ -27,14 +31,14 @@
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Min / Max" Classes="FieldLabel" />
             <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                <TextBox Text="{Binding Min}" MaxWidth="60" MinWidth="40" />
-                <TextBlock Text="–" VerticalAlignment="Center"
-                           Foreground="{StaticResource TextMuted}" />
-                <TextBox Text="{Binding Max}" MaxWidth="60" MinWidth="40" />
+                <TextBox Width="60" Text="{Binding Min}" />
+                <TextBlock HorizontalAlignment="Center" Text="–" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextMuted}" Width="20"/>
+                <TextBox HorizontalAlignment="Right" Width="60" Text="{Binding Max}"  />
             </StackPanel>
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Weight" Classes="FieldLabel" />
-            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding WeightChance}" MaxWidth="80" />
+            <TextBox Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Width="156" Text="{Binding WeightChance}" />
 
             <TextBlock Grid.Row="5" Grid.Column="0" Text="Force Tiles" Classes="FieldLabel"
                        IsVisible="{Binding ForceForTiles,
@@ -64,6 +68,17 @@
             <Setter Property="FontSize" Value="11.5" />
             <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
             <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.NavLink">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.NavLink:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="TextBlock.TextDecorations" Value="Underline" />
         </Style>
     </UserControl.Styles>
 </UserControl>

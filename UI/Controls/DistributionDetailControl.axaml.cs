@@ -34,7 +34,9 @@ public partial class DistributionDetailControl : UserControl
             DirectCountBadge.Text = $"⊞ {d.ItemChances.Count}";
             HeaderDirectItemCount.Text = d.ItemChances.Count.ToString();
             DistItemsControl.Load(d.ItemChances, undoRedo, $"{d.Name}.items");
-            DistJunkControl.Load(d.JunkChances, undoRedo, $"{d.Name}.junk");
+            JunkTab.IsVisible = d.JunkChances.Count > 0;
+            if (d.JunkChances.Count > 0)
+                DistJunkControl.Load(d.JunkChances, undoRedo, $"{d.Name}.junk");
         }
 
         ContainersPanel.Children.Clear();

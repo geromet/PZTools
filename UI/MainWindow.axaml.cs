@@ -30,14 +30,24 @@ public partial class MainWindow : Window
         _undoRedo.StateChanged += RefreshUndoButtons;
         DistributionList.SelectionChanged += OnDistributionSelected;
         KeyDown += OnKeyDown;
+        AddHandler(ProcListEntryControl.NavigateRequestedEvent, OnNavigateToDistribution);
 
         DetailPane.Content = _detail;
         _detail.ShowEmpty();
+        RightDetail.ShowEmpty();
+    }
+
+    private void OnNavigateToDistribution(object? sender, NavigateToDistributionEventArgs e)
+    {
+        RightDetail.Load(e.Distribution, _undoRedo);
+        // Make the right panel visible if it was hidden
+        if (!_rightVisible) SetRightVisible(true);
     }
 
     private void OnDistributionSelected(DataInput.Data.Distribution? d)
     {
         _undoRedo.Clear();
+        RightDetail.ShowEmpty();
         if (d is null)
         {
             _detail.ShowEmpty();

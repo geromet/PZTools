@@ -24,17 +24,17 @@
 
             <!-- Distribution header -->
             <Border Grid.Row="0"
-                    Padding="16 12"
+                    Padding="16 4"
                     BorderBrush="{StaticResource BorderSubtle}"
-                    BorderThickness="0 0 0 1"
+                    BorderThickness="2 2 2 2"
                     Background="{StaticResource BgPanel}">
                 <StackPanel Spacing="4">
                     <!-- Name + type badge -->
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock x:Name="HeaderName"
                                    FontSize="16" FontWeight="SemiBold"
                                    Foreground="{StaticResource TextPrimary}" />
-                        <Border CornerRadius="4" Padding="7 3"
+                        <Border CornerRadius="4" Padding="4 4"
                                 Background="{StaticResource BgElevated}">
                             <TextBlock x:Name="HeaderType"
                                        FontSize="11"
@@ -83,6 +83,7 @@
             <!-- Body: direct items + containers -->
             <ScrollViewer Grid.Row="1"
                           VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
                           Padding="0 4 0 0">
                 <StackPanel Margin="0 0 0 16">
 
@@ -95,7 +96,7 @@
                             BorderBrush="{StaticResource BorderSubtle}"
                             BorderThickness="1"
                             ClipToBounds="True">
-                        <Expander IsExpanded="True" Padding="0">
+                        <Expander IsExpanded="True" Padding="0" HorizontalContentAlignment="Stretch">
                             <Expander.Header>
                                 <Grid ColumnDefinitions="*,Auto,Auto" Margin="4 0">
                                     <TextBlock Grid.Column="0"
@@ -122,7 +123,7 @@
                                 <TabItem Header="Items">
                                     <controls:ItemListControl x:Name="DistItemsControl" />
                                 </TabItem>
-                                <TabItem Header="Junk">
+                                <TabItem x:Name="JunkTab" Header="Junk">
                                     <controls:ItemListControl x:Name="DistJunkControl" />
                                 </TabItem>
                             </TabControl>
@@ -139,6 +140,8 @@
     <UserControl.Styles>
         <Style Selector="Expander /template/ ToggleButton">
             <Setter Property="Padding" Value="10 8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
     </UserControl.Styles>
 </UserControl>

@@ -114,7 +114,9 @@
             <!-- CENTER — Detail panel -->
             <Border Grid.Column="2" Grid.Row="0"
                     Background="{StaticResource BgBase}">
-                <ContentControl x:Name="DetailPane" />
+                <ContentControl x:Name="DetailPane"
+                               HorizontalContentAlignment="Stretch"
+                               VerticalContentAlignment="Stretch" />
             </Border>
 
             <GridSplitter x:Name="ErrorSplitter"
@@ -139,20 +141,21 @@
                           Background="{StaticResource BorderSubtle}"
                           HorizontalAlignment="Stretch"/>
 
-            <!-- RIGHT — Properties placeholder -->
+            <!-- RIGHT — Properties panel -->
             <Grid x:Name="RightPanelGrid" Grid.Column="4" Grid.RowSpan="3">
                 <Border Background="{StaticResource BgPanel}"
                         BorderBrush="{StaticResource BorderSubtle}"
                         BorderThickness="1 0 0 0">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
-                        <TextBlock Text="Properties"
-                                   Foreground="{StaticResource TextMuted}"
-                                   FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
-                                   HorizontalAlignment="Center"/>
-                        <TextBlock Text="Select a distribution"
-                                   Foreground="{StaticResource TextMuted}"
-                                   FontSize="12" HorizontalAlignment="Center"/>
-                    </StackPanel>
+                    <Grid RowDefinitions="Auto,*">
+                        <Border Grid.Row="0" Padding="12 7"
+                                BorderBrush="{StaticResource BorderSubtle}"
+                                BorderThickness="0 0 0 1">
+                            <TextBlock Text="PROPERTIES"
+                                       FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
+                                       Foreground="{StaticResource TextMuted}" />
+                        </Border>
+                        <controls:DistributionDetailControl x:Name="RightDetail" Grid.Row="1" />
+                    </Grid>
                 </Border>
                 <Button Classes="PanelClose" Click="CloseRightBtn_Click" />
             </Grid>

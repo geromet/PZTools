@@ -11,7 +11,7 @@
             BorderThickness="1"
             ClipToBounds="True">
 
-        <Expander IsExpanded="False" Padding="0">
+        <Expander IsExpanded="False" Padding="0" HorizontalContentAlignment="Stretch">
 
             <!-- Header: name + quick stats badges -->
             <Expander.Header>
@@ -45,7 +45,7 @@
             </Expander.Header>
 
             <!-- Flat content: Settings | Items | Junk (optional) | Proc Lists (optional) -->
-            <Grid x:Name="ContentGrid" ColumnDefinitions="145,*,0,0">
+            <Grid x:Name="ContentGrid" ColumnDefinitions="*,*,0,0" HorizontalAlignment="Stretch">
 
                 <!-- ── Settings ── -->
                 <Border Grid.Column="0"
@@ -181,6 +181,12 @@
         </Style>
         <Style Selector="Expander /template/ ToggleButton">
             <Setter Property="Padding" Value="10 8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="Expander /template/ ContentPresenter">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
     </UserControl.Styles>
 </UserControl>
