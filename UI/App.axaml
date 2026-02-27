@@ -28,6 +28,9 @@
                 <SolidColorBrush x:Key="StatusSuccess" Color="#4A9E6A" />
             </Styles.Resources>
 
+            <Style Selector="ScrollViewer">
+                <Setter Property="AllowAutoHide" Value="False" />
+            </Style>
             <Style Selector="ScrollBar">
                 <Setter Property="Width" Value="6" />
                 <Setter Property="MinWidth" Value="6" />

@@ -41,7 +41,7 @@ public partial class DistributionListControl : UserControl
         if (query.Length > 0)
             result = result.Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
 
-        var filtered = result.ToList();
+        var filtered = result.OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase).ToList();
         DistList.ItemsSource = filtered;
         CountText.Text = $"{filtered.Count} / {_all.Count}";
     }
