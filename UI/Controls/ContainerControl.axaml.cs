@@ -40,11 +40,11 @@ public partial class ContainerControl : UserControl
 
             bool hasJunk = c.JunkChances.Count > 0;
             JunkPanel.IsVisible = hasJunk;
-            ContentGrid.ColumnDefinitions[2].Width = hasJunk ? new GridLength(1, GridUnit.Star) : new GridLength(0);
+            ContentGrid.ColumnDefinitions[2].Width = hasJunk ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
 
             bool hasProc = c.ProcListEntries.Count > 0;
             ProcListPanel.IsVisible = hasProc;
-            ContentGrid.ColumnDefinitions[3].Width = hasProc ? new GridLength(1, GridUnit.Star) : new GridLength(0);
+            ContentGrid.ColumnDefinitions[3].Width = hasProc ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
         }
         finally
         {
