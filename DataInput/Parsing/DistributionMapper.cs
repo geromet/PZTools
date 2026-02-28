@@ -33,6 +33,10 @@ public sealed class DistributionMapper
     private Dictionary<string, Distribution> _proceduralIndex =
         new(0, StringComparer.OrdinalIgnoreCase);
 
+    // Active reference lookup for the current parse pass (proc or dist).
+    // Calls into Lua where table identity comparison works natively.
+    private Func<LuaTable, LuaRefInfo?> _refLookup = _ => null;
+
     // -------------------------------------------------------------------------
     // Public entry point
     // -------------------------------------------------------------------------
@@ -46,12 +50,15 @@ public sealed class DistributionMapper
         LuaTable proceduralTable,
         LuaTable distributionsTable,
         string   procSourceFile,
-        string   distSourceFile)
+        string   distSourceFile,
+        Func<LuaTable, LuaRefInfo?>? procRefLookup = null,
+        Func<LuaTable, LuaRefInfo?>? distRefLookup = null)
     {
         _errors.Clear();
         _namePool.Clear();
 
         // 1. Parse procedurals first so the index is ready for proc-reference resolution.
+        _refLookup = procRefLookup ?? (_ => null);
         var procedural = MapProceduralTable(proceduralTable, procSourceFile);
 
         // Build O(1) lookup from the parsed list — stores references, no copies.
@@ -61,6 +68,7 @@ public sealed class DistributionMapper
             _proceduralIndex[d.Name] = d;
 
         // 2. Parse main distributions (rooms, items, caches, professions).
+        _refLookup = distRefLookup ?? (_ => null);
         var distributions = MapDistributionsTable(distributionsTable, distSourceFile);
 
         // 3. Merge: AddRange avoids multiple reallocs if lists are similar sized.
@@ -152,6 +160,10 @@ public sealed class DistributionMapper
                     dist.IsShop = true;
                     break;
 
+                case "isWorn":
+                    dist.IsWorn = true;
+                    break;
+
                 case "DontSpawnAmmo":
                     dist.DontSpawnAmmo = true;
                     break;
@@ -177,19 +189,52 @@ public sealed class DistributionMapper
                         dist.StashChance = stash;
                     break;
 
+                case "ignoreZombieDensity":
+                    dist.IgnoreZombieDensity = true;
+                    break;
+
                 case "items":
                     MapItemChances(dist, kvp.Value, context, sourceFile, isJunk: false);
                     break;
 
                 case "junk":
+                    if (kvp.Value is LuaTable junkTable)
+                    {
+                        var junkRef = _refLookup(junkTable);
+                        if (junkRef is not null)
+                        {
+                            dist.JunkReference = junkRef.RefPath;
+                            dist.JunkReferenceFile = junkRef.SourceFile;
+                        }
+                    }
                     MapJunkChances(dist, kvp.Value, context, sourceFile);
+                    break;
+                case "bags":
+                    if (kvp.Value is LuaTable bagsTable)
+                    {
+                        var bagsRef = _refLookup(bagsTable);
+                        if (bagsRef is not null)
+                        {
+                            dist.BagsReference = bagsRef.RefPath;
+                            dist.BagsFileReference = bagsRef.SourceFile;
+                        }
+                    }
+                    MapBagChances(dist, kvp.Value, context, sourceFile);
                     break;
 
                 default:
                     // Any unknown key that holds a table is treated as a nested container.
                     if (kvp.Value is LuaTable containerTable)
-                        dist.Containers.Add(
-                            MapContainer(key, containerTable, context, sourceFile));
+                    {
+                        var c = MapContainer(key, containerTable, context, sourceFile);
+                        var cRef = _refLookup(containerTable);
+                        if (cRef is not null)
+                        {
+                            c.SourceReference     = cRef.RefPath;
+                            c.SourceReferenceFile = cRef.SourceFile;
+                        }
+                        dist.Containers.Add(c);
+                    }
                     // Non-table unknown keys are silently ignored at distribution level —
                     // vanilla files occasionally have unused metadata fields.
                     break;
@@ -244,6 +289,25 @@ public sealed class DistributionMapper
                         container.DontSpawnAmmo = dsa;
                     break;
 
+                case "ignoreZombieDensity":
+                    container.IgnoreZombieDensity = true;
+                    break;
+
+                case "onlyOne":
+                    if (LuaValueParser.TryGetBool(kvp.Value, out bool oo))
+                        container.OnlyOne = oo;
+                    break;
+
+                case "maxMap":
+                    if (TryParseIntField(kvp.Value, key, context, sourceFile, out int mm))
+                        container.MaxMap = mm;
+                    break;
+
+                case "stashChance":
+                    if (TryParseIntField(kvp.Value, key, context, sourceFile, out int sc))
+                        container.StashChance = sc;
+                    break;
+
                 default:
                     // Unknown table values inside a container are proc list blocks.
                     // Unknown non-table values are game-engine metadata (cookFood, isTrash,
@@ -292,9 +356,13 @@ public sealed class DistributionMapper
             {
                 if (pendingName is null)
                 {
+                    // Orphaned chance value (e.g. "Jacket_WhiteTINT", 10,7 — the 7
+                    // has no preceding name). Preserve it so roundtrip keeps the
+                    // original data intact; store with empty name as sentinel.
                     _errors.Add(Warn(ErrorCode.MalformedItemList,
-                        $"Chance value {chance} has no preceding item name — skipping.",
+                        $"Chance value {chance} has no preceding item name — preserving as-is.",
                         context, sourceFile));
+                    targetList.Add(new Item("", chance));
                     continue;
                 }
 
@@ -345,16 +413,134 @@ public sealed class DistributionMapper
 
         foreach (KeyValuePair<object, object> kvp in table)
         {
-            if (kvp.Key?.ToString() == "rolls")
+            var junkKey = kvp.Key?.ToString();
+            if (junkKey == "rolls")
             {
                 if (TryParseIntField(kvp.Value, "junk.rolls", context, sourceFile, out int jr))
                     parent.JunkRolls = jr;
+            }
+            else if (junkKey == "ignoreZombieDensity")
+            {
+                parent.JunkIgnoreZombieDensity = true;
+            }
+            else if (junkKey == "items")
+            {
+                // Track if items themselves are a named reference (e.g. ClutterTables.DeskItems).
+                if (kvp.Value is LuaTable itemsTable)
+                {
+                    var itemsRef = _refLookup(itemsTable);
+                    if (itemsRef is not null)
+                        parent.JunkItemsReference = itemsRef.RefPath;
+                }
+                MapItemChances(parent, kvp.Value, $"{context}.junk", sourceFile, isJunk: true);
             }
             else
             {
                 MapItemChances(parent, kvp.Value, $"{context}.junk", sourceFile, isJunk: true);
             }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Bags
+    // -------------------------------------------------------------------------
+
+    private void MapBagChances(
+        Distribution dist,
+        object?      value,
+        string       context,
+        string       sourceFile)
+    {
+        if (value is not LuaTable table) return;
+
+        var container = new Container { Name = _namePool.Intern("bags") };
+
+        // Propagate the whole-block reference tracked by the caller.
+        if (dist.BagsReference is not null)
+        {
+            container.SourceReference     = dist.BagsReference;
+            container.SourceReferenceFile = dist.BagsFileReference;
+        }
+
+        string ctx = $"{context}.bags";
+
+        foreach (KeyValuePair<object, object> kvp in table)
+        {
+            if (kvp.Key is not string key) continue;
+
+            switch (key)
+            {
+                case "rolls":
+                    if (TryParseIntField(kvp.Value, key, ctx, sourceFile, out int rolls))
+                        container.ItemRolls = rolls;
+                    break;
+
+                case "items":
+                    // Track items reference (e.g. BagsAndContainers.BanditItems)
+                    if (kvp.Value is LuaTable itemsTable)
+                    {
+                        var itemsRef = _refLookup(itemsTable);
+                        if (itemsRef is not null)
+                            container.ItemsReference = itemsRef.RefPath;
+                    }
+                    MapItemChances(container, kvp.Value, ctx, sourceFile, isJunk: false);
+                    break;
+
+                case "junk":
+                    if (kvp.Value is LuaTable junkTable)
+                    {
+                        var junkRef = _refLookup(junkTable);
+                        if (junkRef is not null)
+                        {
+                            container.JunkReference     = junkRef.RefPath;
+                            container.JunkReferenceFile = junkRef.SourceFile;
+                        }
+                    }
+                    MapJunkChances(container, kvp.Value, ctx, sourceFile);
+                    break;
+
+                case "onlyOne":
+                    if (LuaValueParser.TryGetBool(kvp.Value, out bool onlyOne))
+                        container.OnlyOne = onlyOne;
+                    break;
+
+                case "maxMap":
+                    if (TryParseIntField(kvp.Value, key, ctx, sourceFile, out int maxMap))
+                        container.MaxMap = maxMap;
+                    break;
+
+                case "stashChance":
+                    if (TryParseIntField(kvp.Value, key, ctx, sourceFile, out int stash))
+                        container.StashChance = stash;
+                    break;
+
+                case "fillRand":
+                    if (LuaValueParser.TryGetBool(kvp.Value, out bool fr))
+                        container.FillRand = fr;
+                    break;
+
+                case "procedural":
+                    if (LuaValueParser.TryGetBool(kvp.Value, out bool proc))
+                        container.Procedural = proc;
+                    break;
+
+                case "ignoreZombieDensity":
+                    container.IgnoreZombieDensity = true;
+                    break;
+
+                case "dontSpawnAmmo":
+                    if (LuaValueParser.TryGetBool(kvp.Value, out bool dsa))
+                        container.DontSpawnAmmo = dsa;
+                    break;
+
+                default:
+                    if (kvp.Value is LuaTable procTable)
+                        MapProcListEntries(container, procTable, ctx, sourceFile);
+                    break;
+            }
+        }
+
+        dist.Containers.Add(container);
     }
 
     // -------------------------------------------------------------------------

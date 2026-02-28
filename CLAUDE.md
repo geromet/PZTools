@@ -25,7 +25,7 @@ Target framework is **net10.0**. There are no automated tests in the solution.
 
 | Project | Role |
 |---|---|
-| `DataInput` | Parsing library — Lua loading, domain model, validation. No UI dependencies. |
+| `DataInput` | Parsing library — Lua loading, domain model, validation, serialization, comment preservation. No UI dependencies. |
 | `UI` | Active Avalonia frontend. References `DataInput`. |
 
 **Only `DataInput` and `UI` are under active development.** Legacy projects (`OldUI`, `Data`, `PZEditAvaloniaUI`) have been removed.
@@ -48,7 +48,7 @@ ParseResult { IReadOnlyList<Distribution>, IReadOnlyList<ParseError> }
 
 **Domain model hierarchy:**
 - `Distribution : ItemParent` — top-level entry (room, bag, cache, profession, or procedural)
-- `Container : ItemParent` — shelf/counter nested inside a Distribution
+- `Container : ItemParent` — shelf/counter nested inside a Distribution; also used for `bags` entries
 - `Item` — value struct (`Name`, `Chance`); stored in `List<Item>` on `ItemParent`
 - `ProcListEntry` — references a procedural `Distribution` by name and carries resolved pointer
 
@@ -58,21 +58,54 @@ ParseResult { IReadOnlyList<Distribution>, IReadOnlyList<ParseError> }
 
 Error handling is non-fatal by default: field parse failures log a `ParseError` and continue. Fatal errors (file not found, table not found) cause early return from `DistributionParser.Parse`.
 
+### Serialization
+
+`LuaWriter` serializes domain objects back to Lua source text. Key constraints driven by the game's `ItemPickerJava`:
+- Non-procedural containers **must** always have both `rolls` and `items` keys (even when 0 / empty).
+- Junk blocks **must** always have `rolls` (Java casts unconditionally, no null check).
+- Distribution-level `rolls` and `items` are emitted together (if rolls exists, items must too).
+- Procedural containers emit an empty `procList = {}` when they have no entries.
+
+### Comment preservation
+
+`LuaCommentExtractor` is a line-by-line state machine (Preamble → InTable → Postamble) that extracts comments keyed by structural path. `CommentMap` stores these and blank-line metadata. The Postamble captures everything after the main table close verbatim (utility functions, event registrations, `mergeDistributions` calls) and writes it back via `EmitVerbatim`.
+
+### Reference tracking
+
+Lua files use cross-table references (e.g. `bags = BagsAndContainers.SomeBag`, `items = BagsAndContainers.BanditItems`, `junk = ClutterTables.DeskJunk`). These are tracked via `LuaRefInfo` and stored on domain objects:
+- `Container.SourceReference` / `SourceReferenceFile` — whole container is a reference
+- `ItemParent.ItemsReference` — items list is a reference
+- `ItemParent.JunkReference` / `JunkReferenceFile` — junk block is a reference
+- `ItemParent.JunkItemsReference` — items inside junk is a reference
+- `ItemParent.BagsReference` / `BagsFileReference` — bags block is a reference
+
 ## UI architecture
 
 **Pattern:** Plain Avalonia code-behind — no ReactiveUI, no ViewModels. State lives in `MainWindow` and the controls themselves.
 
 ```
-MainWindow (code-behind, owns UndoRedoStack)
-├── DistributionListControl  — left panel; filter pills + text search, fires SelectionChanged event
-├── DistributionDetailControl — center panel; Load(Distribution, UndoRedoStack) / ShowEmpty()
-│   └── ContainerControl (one per container, built dynamically)
-│       └── ItemListControl, ProcListListControl
+MainWindow (code-behind, owns TabControl + per-tab UndoRedoStack)
+├── DistributionListControl  — left panel; filter pills + text search, fires OpenRequested event
+├── TabControl (TabBar)      — center panel; each tab wraps a DistributionDetailControl
+│   └── DistributionDetailControl — Load(Distribution, UndoRedoStack) / ShowEmpty()
+│       └── ContainerControl (one per container, built dynamically)
+│           └── ItemListControl, ProcListListControl
 ├── ErrorListControl          — bottom panel
-└── Right panel               — Properties placeholder (not yet implemented)
+└── Right panel               — Properties: shows read-only detail when clicking proc reference links
 ```
 
-`MainWindow` handles the folder picker (`StorageProvider`), keyboard shortcuts (Ctrl+Z/Y/Shift+Z), and panel show/hide toggling (saves/restores `GridLength` on each column/row).
+### Tabbed detail view
+
+Distributions open in tabs (double-click or context menu). Each tab has its own `TabState`:
+- Independent `UndoRedoStack` (undo/redo is per-tab)
+- Dirty indicator dot on tab header
+- Close button with save confirmation for dirty tabs
+- Pin support (pinned tabs resist close operations)
+- LRU eviction: max 10 cached tab controls; older tabs dispose their UI and recreate from the `Distribution` model on reactivation
+
+Tab context menu: Close / Close All / Close Others / Close Left / Close Right / Pin.
+
+`MainWindow` handles the folder picker (`StorageProvider`), keyboard shortcuts (Ctrl+Z/Y/Shift+Z/W), and panel show/hide toggling (saves/restores `GridLength` on each column/row).
 
 **Undo/redo:** `UndoRedoStack` owns two stacks of `IUndoableAction`. Controls receive the stack via their `Load(...)` method and push `PropertyChangeAction<T>` when editable fields change.
 
@@ -85,3 +118,4 @@ MainWindow (code-behind, owns UndoRedoStack)
 - `Item` is a struct to keep `List<Item>` allocation-friendly.
 - Lua item lists arrive as flat alternating `name, chance, name, chance` sequences — see `MapItemChances` in `DistributionMapper`.
 - The Lua files are loaded from fixed relative paths under the game folder: `media/lua/server/Items/ProceduralDistributions.lua` and `Distributions.lua`.
+- Container properties `OnlyOne`, `MaxMap`, `StashChance` are used by BagsAndContainers entries.

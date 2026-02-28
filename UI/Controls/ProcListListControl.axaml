@@ -4,6 +4,6 @@
              x:CompileBindings="False">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400">
-        <StackPanel x:Name="EntriesPanel" Spacing="4" />
+        <StackPanel x:Name="EntriesPanel" Spacing="4" Margin="0 4 4 0"/>
     </ScrollViewer>
 </UserControl>

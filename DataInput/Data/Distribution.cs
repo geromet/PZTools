@@ -9,6 +9,7 @@ public sealed class Distribution : ItemParent
     public DistributionType Type { get; set; }
 
     public bool IsShop        { get; set; }
+    public bool IsWorn        { get; set; }
     public bool DontSpawnAmmo { get; set; }
     public int? MaxMap        { get; set; }
     public int? StashChance   { get; set; }

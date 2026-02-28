@@ -8,7 +8,8 @@
         <!-- Empty state -->
         <StackPanel x:Name="EmptyPanel"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Spacing="8">
+                    Spacing="8"
+                    Margin="0 4 4 0">
             <TextBlock Text="No distribution selected"
                        FontSize="14"
                        Foreground="{StaticResource TextMuted}"
@@ -20,14 +21,15 @@
         </StackPanel>
 
         <!-- Detail view -->
-        <Grid x:Name="DetailPanel" IsVisible="False" RowDefinitions="Auto,*">
+        <Grid x:Name="DetailPanel" IsVisible="False" RowDefinitions="Auto,Auto,*">
 
             <!-- Distribution header -->
             <Border Grid.Row="0"
-                    Padding="16 4"
+                    Padding="4"
                     BorderBrush="{StaticResource BorderSubtle}"
-                    BorderThickness="2 2 2 2"
-                    Background="{StaticResource BgPanel}">
+                    BorderThickness="0"
+                    Background="{StaticResource BgPanel}"
+                    Margin="0 ">
                 <StackPanel Spacing="4">
                     <!-- Name + type badge -->
                     <StackPanel Orientation="Horizontal" Spacing="4">
@@ -45,7 +47,7 @@
                     <!-- Editable settings row -->
                     <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*"
                           RowDefinitions="Auto"
-                          Margin="0 6 0 0" ColumnSpacing="10">
+                          Margin="0 4 0 0" ColumnSpacing="10">
 
                         <TextBlock Grid.Column="0" Text="Rolls" Classes="HeaderLabel" />
                         <TextBox x:Name="RollsBox" Grid.Column="1"
@@ -84,8 +86,35 @@
                 </StackPanel>
             </Border>
 
+            <!-- Toolbar: expand/collapse + container filters -->
+            <Border x:Name="ToolbarPanel" Grid.Row="1"
+                    Padding="8 4"
+                    BorderBrush="{StaticResource BorderSubtle}"
+                    BorderThickness="0 0 0 1">
+                <WrapPanel Orientation="Horizontal">
+                    <Button Classes="FilterPill" Content="Expand All" Click="ExpandAll_Click" Margin="2" />
+                    <Button Classes="FilterPill" Content="Collapse All" Click="CollapseAll_Click" Margin="2" />
+                    <Button x:Name="ShowEmptyBtn" Classes="FilterPill" Content="Show Empty" Click="ShowEmpty_Click" Margin="2"
+                            ToolTip.Tip="Show empty Items/Junk/ProcList columns for editing" />
+                    <Border Width="1" Background="{StaticResource BorderSubtle}" Margin="6 2" />
+                    <Button x:Name="AutoFilterBtn" Classes="FilterPill" Content="Auto Filter" Click="AutoFilter_Click" Margin="2"
+                            ToolTip.Tip="Mirror content filters from distribution list" />
+                    <Button Classes="FilterPill" Content="Clear" Click="ClearFilters_Click" Margin="2"
+                            ToolTip.Tip="Clear all container filters" />
+                    <Border Width="1" Background="{StaticResource BorderSubtle}" Margin="6 2" />
+                    <WrapPanel x:Name="ContainerFilterPills" Orientation="Horizontal">
+                        <Button Classes="FilterPill" Content="Proc List" Tag="ProcList" Click="ContainerFilterPill_Click" Margin="2" />
+                        <Button Classes="FilterPill" Content="Rolls" Tag="Rolls" Click="ContainerFilterPill_Click" Margin="2" />
+                        <Button Classes="FilterPill" Content="Items" Tag="Items" Click="ContainerFilterPill_Click" Margin="2" />
+                        <Button Classes="FilterPill" Content="Junk" Tag="Junk" Click="ContainerFilterPill_Click" Margin="2" />
+                        <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="ContainerFilterPill_Click" Margin="2" />
+                        <Button Classes="FilterPill" Content="Invalid" Tag="Invalid" Click="ContainerFilterPill_Click" Margin="2" />
+                    </WrapPanel>
+                </WrapPanel>
+            </Border>
+
             <!-- Body: direct items + containers -->
-            <ScrollViewer Grid.Row="1"
+            <ScrollViewer Grid.Row="2"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
                           Padding="0 4 0 0">

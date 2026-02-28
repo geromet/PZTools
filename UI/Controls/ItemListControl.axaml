@@ -6,11 +6,11 @@
     <Grid RowDefinitions="Auto,*,Auto">
         <Grid Grid.Row="0" ColumnDefinitions="*,65"
               Background="{StaticResource BgElevated}" Margin="0 0 0 1">
-            <TextBlock Grid.Column="0" Text="Item" FontSize="11" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextMuted}" Margin="4 6" />
-            <TextBlock Grid.Column="1" Text="Chance" FontSize="11" FontWeight="SemiBold"
+            <TextBlock Grid.Column="0" Text="Item" FontSize="10" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}" Margin="4 3" />
+            <TextBlock Grid.Column="1" Text="Chance" FontSize="10" FontWeight="SemiBold"
                        Foreground="{StaticResource TextMuted}"
-                       HorizontalAlignment="Right" Margin="0 6 4 6" />
+                       HorizontalAlignment="Right" Margin="0 3 4 3" />
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" MaxHeight="300">

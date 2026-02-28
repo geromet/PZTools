@@ -106,6 +106,14 @@
                 <Setter Property="Background" Value="{StaticResource AccentMuted}" />
                 <Setter Property="Foreground" Value="{StaticResource AccentHover}" />
             </Style>
+            <Style Selector="Button.FilterPill.include">
+                <Setter Property="Background" Value="{StaticResource AccentMuted}" />
+                <Setter Property="Foreground" Value="{StaticResource AccentHover}" />
+            </Style>
+            <Style Selector="Button.FilterPill.exclude">
+                <Setter Property="Background" Value="#3A2020" />
+                <Setter Property="Foreground" Value="{StaticResource StatusError}" />
+            </Style>
 
             <Style Selector="TabControl">
                 <Setter Property="Background" Value="Transparent" />
@@ -145,6 +153,30 @@
             <Style Selector="DataGridCell">
                 <Setter Property="Padding" Value="12 0" />
                 <Setter Property="BorderThickness" Value="0" />
+            </Style>
+
+            <Style Selector="TreeView">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="Padding" Value="0" />
+            </Style>
+            <Style Selector="TreeViewItem">
+                <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded, Mode=TwoWay}" />
+                <Setter Property="Padding" Value="6 4" />
+                <Setter Property="Foreground" Value="{StaticResource TextSecondary}" />
+                <Setter Property="FontSize" Value="12.5" />
+                <Setter Property="Margin" Value="0" />
+            </Style>
+            <Style Selector="TreeViewItem:selected /template/ ContentPresenter#PART_HeaderPresenter">
+                <Setter Property="Background" Value="{StaticResource AccentMuted}" />
+                <Setter Property="TextBlock.Foreground" Value="{StaticResource TextPrimary}" />
+            </Style>
+            <Style Selector="TreeViewItem:pointerover /template/ ContentPresenter#PART_HeaderPresenter">
+                <Setter Property="Background" Value="{StaticResource BgHover}" />
+            </Style>
+            <Style Selector="TreeViewItem.droptarget /template/ ContentPresenter#PART_HeaderPresenter">
+                <Setter Property="Background" Value="{StaticResource AccentMuted}" />
+                <Setter Property="TextBlock.Foreground" Value="{StaticResource TextPrimary}" />
             </Style>
 
             <Style Selector="Separator">

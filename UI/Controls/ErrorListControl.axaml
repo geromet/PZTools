@@ -10,7 +10,7 @@
                 Background="{StaticResource BgElevated}"
                 BorderBrush="{StaticResource BorderSubtle}"
                 BorderThickness="0 0 0 1"
-                Padding="4 5">
+                Padding="12 7">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
                            Text="ERROR LIST"

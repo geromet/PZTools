@@ -1,4 +1,5 @@
-﻿using DataInput.Errors;
+﻿using DataInput.Comments;
+using DataInput.Errors;
 using DataInput.Parsing;
 using DataInput.Validation;
 
@@ -59,9 +60,24 @@ public sealed class DistributionParser
         var procPath = Path.Combine(gameFolder, ProceduralRelPath);
         var distPath = Path.Combine(gameFolder, DistributionsRelPath);
 
+        // Extract comments from raw source before NLua parsing strips them.
+        CommentMap? procComments = null;
+        CommentMap? distComments = null;
+        try
+        {
+            if (File.Exists(procPath))
+                procComments = LuaCommentExtractor.Extract(File.ReadAllText(procPath));
+            if (File.Exists(distPath))
+                distComments = LuaCommentExtractor.Extract(File.ReadAllText(distPath));
+        }
+        catch
+        {
+            // Comment extraction failure is non-fatal — we just lose comments on save.
+        }
+
         // Stop early if procedurals can't load — distributions reference them.
         if (!_loader.TryLoadTable(procPath, "ProceduralDistributions.list",
-                out var procTable, out var procError))
+                out var procTable, out var procRefLookup, out var procError))
         {
             errors.Add(procError!);
             return new ParseResult(Array.Empty<Data.Distribution>(), errors.AsReadOnly());
@@ -69,14 +85,14 @@ public sealed class DistributionParser
 
         // Distributions failure is also fatal — we'd have nothing to return.
         if (!_loader.TryLoadTable(distPath, "Distributions",
-                out var distTable, out var distError))
+                out var distTable, out var distRefLookup, out var distError))
         {
             errors.Add(distError!);
             return new ParseResult(Array.Empty<Data.Distribution>(), errors.AsReadOnly());
         }
 
         var (distributions, mapErrors) =
-            _mapper.MapAll(procTable!, distTable!, procPath, distPath);
+            _mapper.MapAll(procTable!, distTable!, procPath, distPath, procRefLookup, distRefLookup);
         errors.AddRange(mapErrors);
 
         // Run post-parse validators. Each validator uses yield return so no intermediate
@@ -85,6 +101,6 @@ public sealed class DistributionParser
         foreach (var validator in _validators)
             errors.AddRange(validator.Validate(readOnly));
 
-        return new ParseResult(readOnly, errors.AsReadOnly());
+        return new ParseResult(readOnly, errors.AsReadOnly(), procComments, distComments);
     }
 }

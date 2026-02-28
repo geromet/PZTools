@@ -1,4 +1,5 @@
-﻿using DataInput.Data;
+﻿using DataInput.Comments;
+using DataInput.Data;
 
 namespace DataInput.Errors;
 
@@ -9,13 +10,21 @@ public sealed class ParseResult
 
     public IReadOnlyList<Distribution> Distributions { get; }
     public IReadOnlyList<ParseError>   Errors        { get; }
+    public CommentMap?                 ProcComments  { get; }
+    public CommentMap?                 DistComments  { get; }
 
     /// <param name="distributions">The list produced by the mapper — wrapped, not copied.</param>
     /// <param name="errors">The error list produced during parsing and validation — wrapped, not copied.</param>
-    public ParseResult(IReadOnlyList<Distribution> distributions, IReadOnlyList<ParseError> errors)
+    public ParseResult(
+        IReadOnlyList<Distribution> distributions,
+        IReadOnlyList<ParseError> errors,
+        CommentMap? procComments = null,
+        CommentMap? distComments = null)
     {
         Distributions = distributions;
         Errors        = errors;
+        ProcComments  = procComments;
+        DistComments  = distComments;
     }
 
     public bool HasFatalErrors

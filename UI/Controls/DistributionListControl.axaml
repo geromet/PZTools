@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:data="using:DataInput.Data"
+             xmlns:controls="using:UI.Controls"
              x:Class="UI.Controls.DistributionListControl"
              x:CompileBindings="False">
 
@@ -36,40 +36,139 @@
                 Padding="8 6"
                 BorderBrush="{StaticResource BorderSubtle}"
                 BorderThickness="0 0 0 1">
-            <WrapPanel x:Name="FilterPills" Orientation="Horizontal">
-                <Button Classes="FilterPill" Content="All" Tag="{x:Null}" Click="FilterPill_Click" Margin="2" />
-                <Button Classes="FilterPill" Content="Rooms" Tag="Room" Click="FilterPill_Click" Margin="2" />
-                <Button Classes="FilterPill" Content="Caches" Tag="Cache" Click="FilterPill_Click" Margin="2" />
-                <Button Classes="FilterPill" Content="Professions" Tag="Profession" Click="FilterPill_Click" Margin="2" />
-                <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="FilterPill_Click" Margin="2" />
-                <Button Classes="FilterPill" Content="Items" Tag="Item" Click="FilterPill_Click" Margin="2" />
-            </WrapPanel>
+            <StackPanel Spacing="4">
+                <!-- Type filters -->
+                <Border Padding="4" CornerRadius="4"
+                        Background="{StaticResource BgElevated}">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="TYPE" FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
+                                   Foreground="{StaticResource TextMuted}" Margin="2 0 0 0" />
+                        <WrapPanel x:Name="TypeFilterPills" Orientation="Horizontal">
+                            <Button Classes="FilterPill" Content="All" Tag="{x:Null}" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="Rooms" Tag="Room" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="Caches" Tag="Cache" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="Professions" Tag="Profession" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="Items" Tag="Item" Click="TypeFilterPill_Click" Margin="2" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Divider -->
+                <Border Height="1" Background="{StaticResource BorderSubtle}" Margin="0 2" />
+
+                <!-- Content filters (tri-state: left-click = has, right-click = doesn't have) -->
+                <Grid ColumnDefinitions="*,Auto,*">
+                    <!-- Property filters (per-container, conjunctive) -->
+                    <Border Grid.Column="0" Padding="4" CornerRadius="4"
+                            Background="{StaticResource BgElevated}">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="CONTENT  (L: has · R: no)" FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
+                                       Foreground="{StaticResource TextMuted}" Margin="2 0 0 0" />
+                            <WrapPanel x:Name="ContentFilterPills" Orientation="Horizontal">
+                                <Button Classes="FilterPill" Content="Proc List" Tag="ProcList" Click="ContentFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="Rolls" Tag="Rolls" Click="ContentFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="Items" Tag="Items" Click="ContentFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="Junk" Tag="Junk" Click="ContentFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="ContentFilterPill_Click" Margin="2" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Width="1" Background="{StaticResource BorderSubtle}" Margin="4 4" />
+                    <!-- Structural filters (distribution-level) -->
+                    <Border Grid.Column="2" Padding="4" CornerRadius="4"
+                            Background="{StaticResource BgElevated}">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="STRUCTURE" FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
+                                       Foreground="{StaticResource TextMuted}" Margin="2 0 0 0" />
+                            <WrapPanel x:Name="StructureFilterPills" Orientation="Horizontal">
+                                <Button Classes="FilterPill" Content="No Content" Tag="NoContent" Click="StructureFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="Invalid" Tag="Invalid" Click="StructureFilterPill_Click" Margin="2" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
         </Border>
 
-        <!-- Distribution list -->
-        <ListBox x:Name="DistList"
-                 Grid.Row="2"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                 ScrollViewer.VerticalScrollBarVisibility="Visible"
-                 ScrollViewer.AllowAutoHide="False"
-                 SelectionChanged="DistList_SelectionChanged">
-            <ListBox.ItemTemplate>
-                <DataTemplate DataType="data:Distribution">
-                    <Grid ColumnDefinitions="*,Auto">
+        <!-- Distribution tree -->
+        <TreeView x:Name="DistTree"
+                  Grid.Row="2"
+                  SelectionMode="Multiple"
+                  DragDrop.AllowDrop="True"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible"
+                  ScrollViewer.AllowAutoHide="False"
+                  SelectionChanged="DistTree_SelectionChanged">
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate ItemsSource="{Binding Children}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="22">
+                        <!-- Folder icon (visible only for folders) -->
                         <TextBlock Grid.Column="0"
+                                   Text="&#x1F4C1; "
+                                   FontSize="12"
+                                   IsVisible="{Binding IsFolder}"
+                                   VerticalAlignment="Center" />
+                        <!-- Name -->
+                        <TextBlock Grid.Column="1"
                                    Text="{Binding Name}"
                                    TextTrimming="CharacterEllipsis"
+                                   FontWeight="{Binding IsFolder, Converter={x:Static controls:BoolToFontWeightConverter.Instance}}"
                                    VerticalAlignment="Center" />
-                        <Border Grid.Column="1"
+                        <!-- Type badge (distributions only) -->
+                        <Border Grid.Column="2"
                                 CornerRadius="3" Padding="5 2" Margin="4 0 0 0"
-                                Background="{StaticResource BgInput}">
-                            <TextBlock Text="{Binding Type}"
+                                Background="{StaticResource BgInput}"
+                                IsVisible="{Binding IsNotFolder}">
+                            <TextBlock Text="{Binding TypeBadge}"
                                        FontSize="10"
                                        Foreground="{StaticResource TextMuted}" />
                         </Border>
+                        <!-- Child count (folders only) -->
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding ChildCountText}"
+                                   FontSize="10"
+                                   Foreground="{StaticResource TextMuted}"
+                                   IsVisible="{Binding IsFolder}"
+                                   VerticalAlignment="Center"
+                                   Margin="4 0 0 0" />
                     </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+            <TreeView.ContextMenu>
+                <ContextMenu x:Name="TreeContextMenu" Opening="TreeContextMenu_Opening">
+                    <MenuItem Header="Open Distribution" x:Name="OpenDistItem" Click="OpenDistribution_Click" />
+                    <MenuItem Header="Open Selected Distributions" x:Name="OpenSelectedDistsItem" Click="OpenSelectedDistributions_Click" />
+                    <Separator />
+                    <MenuItem Header="New Folder" Click="NewFolder_Click" />
+                    <MenuItem Header="New Subfolder" x:Name="NewSubfolderItem" Click="NewSubfolder_Click" />
+                    <Separator />
+                    <MenuItem Header="Move to Folder" x:Name="MoveToFolderMenu" />
+                    <MenuItem Header="Remove from Folder" x:Name="RemoveFromFolderItem" Click="RemoveFromFolder_Click" />
+                    <Separator />
+                    <MenuItem Header="Rename Folder" x:Name="RenameFolderItem" Click="RenameFolder_Click" />
+                    <MenuItem Header="Delete Folder" x:Name="DeleteFolderItem" Click="DeleteFolder_Click" />
+                </ContextMenu>
+            </TreeView.ContextMenu>
+        </TreeView>
+
+        <!-- Inline rename overlay -->
+        <Border x:Name="RenameOverlay"
+                Grid.Row="2"
+                IsVisible="False"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Margin="24 4 0 0"
+                Padding="4"
+                Background="{StaticResource BgElevated}"
+                BorderBrush="{StaticResource Accent}"
+                BorderThickness="1"
+                CornerRadius="4">
+            <TextBox x:Name="RenameBox"
+                     Width="180"
+                     FontSize="12"
+                     KeyDown="RenameBox_KeyDown"
+                     LostFocus="RenameBox_LostFocus" />
+        </Border>
     </Grid>
 </UserControl>

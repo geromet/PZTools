@@ -11,7 +11,7 @@
             BorderThickness="1"
             ClipToBounds="True">
 
-        <Expander IsExpanded="False" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+        <Expander x:Name="ContainerExpander" IsExpanded="False" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
 
             <!-- Header: name + quick stats badges -->
             <Expander.Header>
@@ -44,29 +44,31 @@
                 </Grid>
             </Expander.Header>
 
-            <!-- Flat content: Settings | Items | Junk (optional) | Proc Lists (optional) -->
-            <Grid x:Name="ContentGrid" ColumnDefinitions="*,*,0,0" HorizontalAlignment="Stretch">
+            <!-- Flat content: Settings | Splitter | Items | Splitter? | Junk? | Splitter? | ProcList? -->
+            <Grid x:Name="ContentGrid" ColumnDefinitions="*,4,*,0,0,0,0" HorizontalAlignment="Stretch">
 
-                <!-- ── Settings ── -->
+                <!-- ── Settings (col 0) ── -->
                 <Border Grid.Column="0"
-                        BorderBrush="{StaticResource BorderSubtle}"
-                        BorderThickness="0 0 1 0"
+                        Background="{StaticResource BgSurface}"
+                        ClipToBounds="True"
                         Padding="10 8">
                     <StackPanel Spacing="5">
                         <TextBlock Text="SETTINGS"
                                    FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
                                    Foreground="{StaticResource TextMuted}"
-                                   Margin="0 0 0 4" />
-                        <Grid ColumnDefinitions="Auto,*"
+                                   Margin="0 0 0 2" />
+                        <Grid ColumnDefinitions="Auto,Auto"
                               RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                               ColumnSpacing="8" RowSpacing="5">
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Rolls" Classes="FieldLabel" />
                             <TextBox x:Name="ItemRollsBox" Grid.Row="0" Grid.Column="1"
+                                     Width="60"
                                      LostFocus="ItemRollsBox_LostFocus" />
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Junk Rolls" Classes="FieldLabel" />
                             <TextBox x:Name="JunkRollsBox" Grid.Row="1" Grid.Column="1"
+                                     Width="60"
                                      LostFocus="JunkRollsBox_LostFocus" />
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Fill Rand" Classes="FieldLabel" />
@@ -84,8 +86,15 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ── Items ── -->
-                <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+                <!-- ── Settings|Items Splitter (col 1) ── -->
+                <GridSplitter x:Name="SettingsItemsSplitter" Grid.Column="1"
+                              ResizeDirection="Columns"
+                              Background="{StaticResource BorderSubtle}"
+                              Width="4" HorizontalAlignment="Stretch" />
+
+                <!-- ── Items (col 2) ── -->
+                <Grid x:Name="ItemsPanel" Grid.Column="2" RowDefinitions="Auto,Auto,*"
+                      Background="{StaticResource BgSurface}">
                     <Border Grid.Row="0"
                             Padding="4 4"
                             Background="{StaticResource BgElevated}"
@@ -114,15 +123,23 @@
                     </ScrollViewer>
                 </Grid>
 
-                <!-- ── Junk (hidden when empty) ── -->
-                <Grid x:Name="JunkPanel" Grid.Column="2"
+                <!-- ── Junk Splitter (col 3, hidden when no junk) ── -->
+                <GridSplitter x:Name="JunkSplitter" Grid.Column="3"
+                              ResizeDirection="Columns"
+                              Background="{StaticResource BorderSubtle}"
+                              Width="4" HorizontalAlignment="Stretch"
+                              IsVisible="False" />
+
+                <!-- ── Junk (col 4, hidden when empty) ── -->
+                <Grid x:Name="JunkPanel" Grid.Column="4"
                       RowDefinitions="Auto,Auto,*" IsVisible="False"
+                      Background="{StaticResource BgSurface}"
                       MinWidth="160">
                     <Border Grid.Row="0"
                             Padding="4 4"
                             Background="{StaticResource BgElevated}"
                             BorderBrush="{StaticResource BorderSubtle}"
-                            BorderThickness="1 0 0 1">
+                            BorderThickness="0 0 0 1">
                         <TextBlock Text="JUNK"
                                    FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
                                    Foreground="{StaticResource TextMuted}" />
@@ -146,11 +163,17 @@
                     </ScrollViewer>
                 </Grid>
 
-                <!-- ── Proc Lists (hidden when empty) ── -->
-                <Border x:Name="ProcListPanel" Grid.Column="3"
+                <!-- ── ProcList Splitter (col 5, hidden when no proc lists) ── -->
+                <GridSplitter x:Name="ProcListSplitter" Grid.Column="5"
+                              ResizeDirection="Columns"
+                              Background="{StaticResource BorderSubtle}"
+                              Width="4" HorizontalAlignment="Stretch"
+                              IsVisible="False" />
+
+                <!-- ── Proc Lists (col 6, hidden when empty) ── -->
+                <Border x:Name="ProcListPanel" Grid.Column="6"
                         IsVisible="False"
-                        BorderBrush="{StaticResource BorderSubtle}"
-                        BorderThickness="1 0 0 0">
+                        Background="{StaticResource BgSurface}">
                     <Grid RowDefinitions="Auto,*">
                         <Border Grid.Row="0"
                                 Padding="4 4"

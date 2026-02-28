@@ -29,5 +29,8 @@
         <DependentUpon>MainWindow.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="HelpWindow.axaml.cs">
+        <DependentUpon>HelpWindow.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>
