@@ -1,14 +1,8 @@
-#pragma warning disable CS0618 // DragDrop old API (DataObject, DoDragDrop, DragEventArgs.Data) — new DataTransfer API not worth the complexity for internal drag
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
