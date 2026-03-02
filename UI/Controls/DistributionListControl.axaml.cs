@@ -848,6 +848,7 @@ public partial class DistributionListControl : UserControl
 
     private void MoveToFolder_Click(object? sender, RoutedEventArgs e)
     {
+        e.Handled = true; // Stop bubbling to parent menu items
         if (sender is not MenuItem menuItem) return;
         var folderPath = menuItem.Tag as string;
         if (folderPath is null) return;
