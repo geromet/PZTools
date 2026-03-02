@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
@@ -348,6 +349,7 @@ public partial class DistributionListControl : UserControl
 
     private void OnTreePointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if (e.Source is Visual v && v.FindAncestorOfType<ScrollBar>() is not null) return;
         if (!e.GetCurrentPoint(DistTree).Properties.IsLeftButtonPressed) return;
         _dragStartPoint = e.GetPosition(DistTree);
 
@@ -372,6 +374,7 @@ public partial class DistributionListControl : UserControl
 
     private async void OnTreePointerMoved(object? sender, PointerEventArgs e)
     {
+        if (e.Source is Visual v && v.FindAncestorOfType<ScrollBar>() is not null) return;
         if (!_dragStartPending) return;
 
         var pos = e.GetPosition(DistTree);
