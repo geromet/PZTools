@@ -18,24 +18,10 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 {
     private List<Distribution> _all = [];
     private List<Distribution> _lastFiltered = [];
-    private string? _activeTypeFilter;
-
-    private TriState _defaultFilter;
-    private TriState _procListFilter;
-    private TriState _rollsFilter;
-    private TriState _itemsFilter;
-    private TriState _junkFilter;
-    private TriState _proceduralFilter;
-    private TriState _noContentFilter;
-    private TriState _invalidFilter;
-    private TriState _distributionItemsFilter;
-
     private List<FolderDefinition> _folders = [];
     private readonly ObservableCollection<ExplorerNode> _rootNodes = [];
-
-    private ExplorerNode? _renamingNode;
-    private bool _isCreatingNewFolder;
-    private ExplorerNode? _newFolderParent;
+    private readonly FilterState _filter = new();
+    private readonly RenameState _rename = new();
 
     public event Action<Distribution?>? SelectionChanged;
     public event Action<Distribution>? OpenRequested;
@@ -43,8 +29,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     public (TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural,
         TriState Invalid, TriState DistributionItemsFilter) ContentFilters
-        => (_procListFilter, _rollsFilter, _itemsFilter, _junkFilter, _proceduralFilter,
-            _invalidFilter, _distributionItemsFilter);
+        => _filter.ContentFilters;
 
     public DistributionListControl()
     {
@@ -75,10 +60,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
             SyncExpansionState(_rootNodes, _folders);
 
         _all = [.. distributions];
-        _activeTypeFilter = null;
-        _procListFilter = _rollsFilter = _itemsFilter = _junkFilter = _proceduralFilter =
-            _noContentFilter = _invalidFilter = _distributionItemsFilter =
-            _defaultFilter = TriState.Ignored;
+        _filter.Reset();
         SearchBox.Text = string.Empty;
         UpdateAllPillStyles();
         ApplyFilter();
@@ -86,15 +68,11 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #region Filtering
 
-    private FilterCriteria BuildFilterCriteria() => new(
-        _activeTypeFilter, _procListFilter, _rollsFilter,
-        _itemsFilter, _junkFilter, _proceduralFilter,
-        _noContentFilter, _invalidFilter, _distributionItemsFilter,
-        SearchBox.Text?.Trim() ?? string.Empty);
+    private string SearchQuery => SearchBox.Text?.Trim() ?? string.Empty;
 
     private void ApplyFilter()
     {
-        _lastFiltered = DistributionFilter.Apply(_all, BuildFilterCriteria());
+        _lastFiltered = DistributionFilter.Apply(_all, _filter.BuildCriteria(SearchQuery));
         BuildTree(_lastFiltered);
         CountText.Text = $"{_lastFiltered.Count} / {_all.Count}";
     }
@@ -102,7 +80,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     private void BuildTree(List<Distribution> filtered)
     {
         FolderTreeBuilder.Build(_rootNodes, _folders, filtered,
-            DistributionFilter.HasAnyActiveFilter(BuildFilterCriteria()));
+            DistributionFilter.HasAnyActiveFilter(_filter.BuildCriteria(SearchQuery)));
         DistTree.ItemsSource = _rootNodes;
     }
 
@@ -319,7 +297,6 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     private void ExpandAll_Click(object? sender, RoutedEventArgs e) => SetExpandAll(true);
     private void CollapseAll_Click(object? sender, RoutedEventArgs e) => SetExpandAll(false);
-
     private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e) => SetExpandSelectedFolder(true);
     private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e) => SetExpandSelectedFolder(false);
 
@@ -341,29 +318,23 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #region Folder CRUD
 
-    private void NewFolder_Click(object? sender, RoutedEventArgs e) =>
-        BeginCreateFolder(null);
+    private void NewFolder_Click(object? sender, RoutedEventArgs e)
+    {
+        _rename.BeginCreate(null);
+        ShowRenameOverlay("New Folder");
+    }
 
     private void NewSubfolder_Click(object? sender, RoutedEventArgs e)
     {
-        if (DistTree.SelectedItem is ExplorerNode { IsFolder: true } parentNode)
-            BeginCreateFolder(parentNode);
-    }
-
-    private void BeginCreateFolder(ExplorerNode? parent)
-    {
-        _isCreatingNewFolder = true;
-        _renamingNode = null;
-        _newFolderParent = parent;
+        if (DistTree.SelectedItem is not ExplorerNode { IsFolder: true } parentNode) return;
+        _rename.BeginCreate(parentNode);
         ShowRenameOverlay("New Folder");
     }
 
     private void RenameFolder_Click(object? sender, RoutedEventArgs e)
     {
         if (DistTree.SelectedItem is not ExplorerNode { IsFolder: true } node) return;
-        _isCreatingNewFolder = false;
-        _renamingNode = node;
-        _newFolderParent = null;
+        _rename.BeginRename(node);
         ShowRenameOverlay(node.Name);
     }
 
@@ -421,15 +392,15 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     {
         RenameOverlay.IsVisible = false;
         var newName = RenameBox.Text?.Trim() ?? "";
-        if (string.IsNullOrEmpty(newName)) { ResetRenameState(); return; }
+        if (string.IsNullOrEmpty(newName)) { _rename.Reset(); return; }
 
-        if (_isCreatingNewFolder)
+        if (_rename.IsCreating)
         {
             List<FolderDefinition> targetList;
-            if (_newFolderParent is not null)
+            if (_rename.NewFolderParent is not null)
             {
-                var (parentDef, _) = FindFolderDefinition(_newFolderParent);
-                if (parentDef is null) { ResetRenameState(); return; }
+                var (parentDef, _) = FindFolderDefinition(_rename.NewFolderParent);
+                if (parentDef is null) { _rename.Reset(); return; }
                 parentDef.Children ??= [];
                 targetList = parentDef.Children;
             }
@@ -439,18 +410,18 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
             }
 
             if (targetList.Any(f => string.Equals(f.Name, newName, StringComparison.OrdinalIgnoreCase)))
-            { ResetRenameState(); return; }
+            { _rename.Reset(); return; }
 
             targetList.Add(new FolderDefinition { Name = newName });
         }
-        else if (_renamingNode is not null)
+        else if (_rename.RenamingNode is not null)
         {
-            var (folder, _) = FindFolderDefinition(_renamingNode);
+            var (folder, _) = FindFolderDefinition(_rename.RenamingNode);
             if (folder is not null)
                 folder.Name = newName;
         }
 
-        ResetRenameState();
+        _rename.Reset();
         SaveFolders();
         RefreshTree();
     }
@@ -458,14 +429,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     private void CancelRename()
     {
         RenameOverlay.IsVisible = false;
-        ResetRenameState();
-    }
-
-    private void ResetRenameState()
-    {
-        _renamingNode = null;
-        _isCreatingNewFolder = false;
-        _newFolderParent = null;
+        _rename.Reset();
     }
 
     private void RenameBox_KeyDown(object? sender, KeyEventArgs e)
@@ -550,9 +514,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     private void TypeFilterPill_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button btn) return;
-        var tag = btn.Tag as string;
-        _activeTypeFilter = (_activeTypeFilter == tag) ? null : tag;
-        if (tag is null) _activeTypeFilter = null;
+        _filter.ToggleTypeFilter(btn.Tag as string);
         UpdateAllPillStyles();
         ApplyFilter();
     }
@@ -572,7 +534,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     private void ToggleTriStateFilter(object? sender, TriState targetState)
     {
         if (sender is not Button btn) return;
-        ref var state = ref GetFilterRef(btn.Tag as string);
+        ref var state = ref _filter.GetRef(btn.Tag as string);
         state = state == targetState ? TriState.Ignored : targetState;
         UpdateAllPillStyles();
         ApplyFilter();
@@ -582,24 +544,11 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     {
         if (sender is not Button btn) return;
         if (!e.GetCurrentPoint(btn).Properties.IsRightButtonPressed) return;
-        ref var state = ref GetFilterRef(btn.Tag as string);
+        ref var state = ref _filter.GetRef(btn.Tag as string);
         state = state == TriState.Exclude ? TriState.Ignored : TriState.Exclude;
         UpdateAllPillStyles();
         ApplyFilter();
         e.Handled = true;
-    }
-
-    private ref TriState GetFilterRef(string? tag)
-    {
-        if (tag == "Rolls") return ref _rollsFilter;
-        if (tag == "Items") return ref _itemsFilter;
-        if (tag == "Junk") return ref _junkFilter;
-        if (tag == "Procedural") return ref _proceduralFilter;
-        if (tag == "ProcList") return ref _procListFilter;
-        if (tag == "Invalid") return ref _invalidFilter;
-        if (tag == "NoContent") return ref _noContentFilter;
-        if (tag == "DistributionItems") return ref _distributionItemsFilter;
-        return ref _defaultFilter;
     }
 
     private void WireRightClickHandlers(Panel panel)
@@ -616,7 +565,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         foreach (var child in TypeFilterPills.Children)
         {
             if (child is not Button btn) continue;
-            if (_activeTypeFilter == btn.Tag as string)
+            if (_filter.ActiveTypeFilter == btn.Tag as string)
                 btn.Classes.Add("active");
             else
                 btn.Classes.Remove("active");
@@ -631,7 +580,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         foreach (var child in panel.Children)
         {
             if (child is not Button btn) continue;
-            var state = GetFilterRef(btn.Tag as string);
+            var state = _filter.GetRef(btn.Tag as string);
             btn.Classes.Remove("include");
             btn.Classes.Remove("exclude");
             if (state == TriState.Include) btn.Classes.Add("include");
