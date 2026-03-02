@@ -16,29 +16,9 @@ public partial class DistributionDetailControl : UserControl
     private UndoRedoStack? _undoRedo;
     private bool _loading;
     private bool _showToolbar = true;
-
-    // Shared column proportions (remembered across distribution switches)
     private readonly SharedColumnLayout _sharedColumnLayout = new();
+    private readonly ContainerFilterState _filter = new();
 
-    // Tri-state container filters (remembered across distribution switches)
-    private TriState _procListFilter;
-    private TriState _rollsFilter;
-    private TriState _itemsFilter;
-    private TriState _junkFilter;
-    private TriState _proceduralFilter;
-    private TriState _invalidFilter;
-    private TriState _distributionItemsFilter;
-
-    // Auto-filter state (remembered across distribution switches)
-    private bool _autoFilter;
-
-    // Show empty columns toggle (remembered across distribution switches)
-    private bool _showEmpty;
-
-    /// <summary>
-    /// When auto-filter is on, this func is called to get current content filters
-    /// from the distribution list control. Set by MainWindow.
-    /// </summary>
     public Func<(TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid, TriState DistributionItems)>? GetContentFilters { get; set; }
 
     public Distribution? Model => _model;
@@ -93,9 +73,7 @@ public partial class DistributionDetailControl : UserControl
 
             HeaderContainerCount.Text = d.Containers.Count.ToString();
 
-            // Show distribution-level items (common for procedural distributions which have
-            // items/junk directly on the distribution rather than in named sub-containers).
-            bool hasDirectItems = d.ItemChances.Count > 0 || d.JunkChances.Count > 0 || _showEmpty;
+            bool hasDirectItems = d.ItemChances.Count > 0 || d.JunkChances.Count > 0 || _filter.ShowEmpty;
             DirectItemsPanel.IsVisible = hasDirectItems;
             HeaderDirectItems.IsVisible = hasDirectItems;
             if (hasDirectItems)
@@ -104,8 +82,8 @@ public partial class DistributionDetailControl : UserControl
                 DirectCountBadge.Text = $"\u229e {d.ItemChances.Count}";
                 HeaderDirectItemCount.Text = d.ItemChances.Count.ToString();
                 DistItemsControl.Load(d.ItemChances, undoRedo, $"{d.Name}.items", d);
-                JunkTab.IsVisible = d.JunkChances.Count > 0 || _showEmpty;
-                if (d.JunkChances.Count > 0 || _showEmpty)
+                JunkTab.IsVisible = d.JunkChances.Count > 0 || _filter.ShowEmpty;
+                if (d.JunkChances.Count > 0 || _filter.ShowEmpty)
                     DistJunkControl.Load(d.JunkChances, undoRedo, $"{d.Name}.junk", d);
             }
 
@@ -114,26 +92,15 @@ public partial class DistributionDetailControl : UserControl
             for (int i = 0; i < d.Containers.Count; i++)
             {
                 var ctrl = new ContainerControl();
-                ctrl.Load(d.Containers[i], undoRedo, _sharedColumnLayout, _showEmpty);
+                ctrl.Load(d.Containers[i], undoRedo, _sharedColumnLayout, _filter.ShowEmpty);
                 if (i < autoExpandLimit)
                     ctrl.ContainerExpander.IsExpanded = true;
                 ContainersPanel.Children.Add(ctrl);
             }
 
-            // If auto-filter is on, sync from distribution list
-            if (_autoFilter && GetContentFilters is not null)
-            {
-                var f = GetContentFilters();
-                _procListFilter = f.ProcList;
-                _rollsFilter = f.Rolls;
-                _itemsFilter = f.Items;
-                _junkFilter = f.Junk;
-                _proceduralFilter = f.Procedural;
-                _invalidFilter = f.Invalid;
-                _distributionItemsFilter = f.DistributionItems;
-            }
+            if (_filter.AutoFilter && GetContentFilters is not null)
+                _filter.SyncFromContentFilters(GetContentFilters());
 
-            // Re-apply remembered container filter
             UpdateContainerFilterStyles();
             ApplyContainerFilter();
         }
@@ -258,13 +225,8 @@ public partial class DistributionDetailControl : UserControl
 
     private void ShowEmpty_Click(object? sender, RoutedEventArgs e)
     {
-        _showEmpty = !_showEmpty;
-        if (_showEmpty)
-            ShowEmptyBtn.Classes.Add("active");
-        else
-            ShowEmptyBtn.Classes.Remove("active");
-
-        // Reload current distribution to apply the change
+        _filter.ShowEmpty = !_filter.ShowEmpty;
+        ShowEmptyBtn.Classes.Set("active", _filter.ShowEmpty);
         if (_model is not null && _undoRedo is not null)
             Load(_model, _undoRedo);
     }
@@ -273,29 +235,12 @@ public partial class DistributionDetailControl : UserControl
 
     private void AutoFilter_Click(object? sender, RoutedEventArgs e)
     {
-        _autoFilter = !_autoFilter;
+        _filter.AutoFilter = !_filter.AutoFilter;
 
-        if (_autoFilter && GetContentFilters is not null)
-        {
-            var f = GetContentFilters();
-            _procListFilter = f.ProcList;
-            _rollsFilter = f.Rolls;
-            _itemsFilter = f.Items;
-            _junkFilter = f.Junk;
-            _proceduralFilter = f.Procedural;
-            _invalidFilter = f.Invalid;
-            _distributionItemsFilter = f.DistributionItems;
-        }
-        else if (!_autoFilter)
-        {
-            _procListFilter = TriState.Ignored;
-            _rollsFilter = TriState.Ignored;
-            _itemsFilter = TriState.Ignored;
-            _junkFilter = TriState.Ignored;
-            _proceduralFilter = TriState.Ignored;
-            _invalidFilter = TriState.Ignored;
-            _distributionItemsFilter = TriState.Ignored;
-        }
+        if (_filter.AutoFilter && GetContentFilters is not null)
+            _filter.SyncFromContentFilters(GetContentFilters());
+        else if (!_filter.AutoFilter)
+            _filter.ClearAll();
 
         UpdateContainerFilterStyles();
         ApplyContainerFilter();
@@ -303,28 +248,17 @@ public partial class DistributionDetailControl : UserControl
 
     private void ClearFilters_Click(object? sender, RoutedEventArgs e)
     {
-        _procListFilter = TriState.Ignored;
-        _rollsFilter = TriState.Ignored;
-        _itemsFilter = TriState.Ignored;
-        _junkFilter = TriState.Ignored;
-        _proceduralFilter = TriState.Ignored;
-        _invalidFilter = TriState.Ignored;
-        _distributionItemsFilter = TriState.Ignored;
-        _autoFilter = false;
+        _filter.ClearAll();
         UpdateContainerFilterStyles();
         ApplyContainerFilter();
     }
 
-    // ── Container Filters (tri-state) ──
-
     private void ContainerFilterPill_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button btn) return;
-        var tag = btn.Tag as string;
-        // Left click: Ignored → Include → Ignored
-        ref var state = ref GetContainerFilterRef(tag);
+        ref var state = ref _filter.GetRef(btn.Tag as string);
         state = state == TriState.Include ? TriState.Ignored : TriState.Include;
-        _autoFilter = false; // manual override disables auto
+        _filter.AutoFilter = false;
         UpdateContainerFilterStyles();
         ApplyContainerFilter();
     }
@@ -332,47 +266,28 @@ public partial class DistributionDetailControl : UserControl
     private void ContainerFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Button btn) return;
-        var point = e.GetCurrentPoint(btn);
-        if (!point.Properties.IsRightButtonPressed) return;
-
-        var tag = btn.Tag as string;
-        // Right click: Ignored → Exclude → Ignored
-        ref var state = ref GetContainerFilterRef(tag);
+        if (!e.GetCurrentPoint(btn).Properties.IsRightButtonPressed) return;
+        ref var state = ref _filter.GetRef(btn.Tag as string);
         state = state == TriState.Exclude ? TriState.Ignored : TriState.Exclude;
-        _autoFilter = false; // manual override disables auto
+        _filter.AutoFilter = false;
         UpdateContainerFilterStyles();
         ApplyContainerFilter();
         e.Handled = true;
     }
 
-    private ref TriState GetContainerFilterRef(string? tag)
-    {
-        if (tag == "Rolls") return ref _rollsFilter;
-        if (tag == "Items") return ref _itemsFilter;
-        if (tag == "Junk") return ref _junkFilter;
-        if (tag == "Procedural") return ref _proceduralFilter;
-        if (tag == "Invalid") return ref _invalidFilter;
-        return ref _procListFilter;
-    }
-
     private void UpdateContainerFilterStyles()
     {
-        // Tri-state pills
         foreach (var child in ContainerFilterPills.Children)
         {
             if (child is not Button btn) continue;
-            var tag = btn.Tag as string;
-            var state = GetContainerFilterRef(tag);
+            var state = _filter.GetRef(btn.Tag as string);
             btn.Classes.Remove("include");
             btn.Classes.Remove("exclude");
-            if (state == TriState.Include)
-                btn.Classes.Add("include");
-            else if (state == TriState.Exclude)
-                btn.Classes.Add("exclude");
+            if (state == TriState.Include) btn.Classes.Add("include");
+            else if (state == TriState.Exclude) btn.Classes.Add("exclude");
         }
 
-        // Auto filter button
-        if (_autoFilter)
+        if (_filter.AutoFilter)
             AutoFilterBtn.Classes.Add("active");
         else
             AutoFilterBtn.Classes.Remove("active");
@@ -383,58 +298,7 @@ public partial class DistributionDetailControl : UserControl
         foreach (var child in ContainersPanel.Children)
         {
             if (child is not ContainerControl cc || cc.Model is null) continue;
-            var c = cc.Model;
-            bool visible = true;
-
-            if (_procListFilter != TriState.Ignored)
-            {
-                bool has = c.ProcListEntries.Count > 0;
-                visible &= (_procListFilter == TriState.Include) == has;
-            }
-            if (_rollsFilter != TriState.Ignored)
-            {
-                bool has = c.ItemRolls > 0;
-                visible &= (_rollsFilter == TriState.Include) == has;
-            }
-            if (_itemsFilter != TriState.Ignored)
-            {
-                bool has = c.ItemChances.Count > 0;
-                visible &= (_itemsFilter == TriState.Include) == has;
-            }
-            if (_junkFilter != TriState.Ignored)
-            {
-                bool has = c.JunkChances.Count > 0;
-                visible &= (_junkFilter == TriState.Include) == has;
-            }
-            if (_proceduralFilter != TriState.Ignored)
-            {
-                bool has = c.Procedural;
-                visible &= (_proceduralFilter == TriState.Include) == has;
-            }
-            if (_invalidFilter != TriState.Ignored)
-            {
-                bool invalid = IsContainerInvalid(c);
-                visible &= (_invalidFilter == TriState.Include) == invalid;
-            }
-
-            cc.IsVisible = visible;
+            cc.IsVisible = _filter.IsContainerVisible(cc.Model);
         }
-    }
-
-    private static bool IsContainerInvalid(Container c)
-    {
-        bool hasItems = c.ItemChances.Count > 0;
-        bool hasJunk = c.JunkChances.Count > 0;
-        bool hasProcList = c.ProcListEntries.Count > 0;
-        bool hasRolls = c.ItemRolls > 0;
-
-        if (!hasItems && !hasJunk && !hasProcList)
-            return true;
-        if (hasRolls && !hasItems && !hasJunk)
-            return true;
-        if (c.Procedural && !hasProcList)
-            return true;
-
-        return false;
     }
 }
