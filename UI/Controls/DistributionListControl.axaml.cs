@@ -89,7 +89,7 @@ public partial class DistributionListControl : UserControl
     public void SetSettings(UserSettings settings)
     {
         _settings = settings;
-        _folders = settings.Folders != null ? DeepCopyFolders(settings.Folders) : [];
+        _folders = DeepCopyFolders(FolderSettings.Load());
     }
 
     public void Load(IReadOnlyList<Distribution> distributions)
@@ -909,11 +909,9 @@ public partial class DistributionListControl : UserControl
 
     private void SaveFolders()
     {
-        if (_settings is null) return;
         // Sync expansion state from current tree nodes
         SyncExpansionState(_rootNodes, _folders);
-        _settings.Folders = DeepCopyFolders(_folders);
-        _settings.Save();
+        FolderSettings.Save(DeepCopyFolders(_folders));
     }
 
     private static void SyncExpansionState(

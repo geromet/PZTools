@@ -23,7 +23,6 @@ public class UserSettings
     };
 
     public string? LastFolder { get; set; }
-    public List<FolderDefinition>? Folders { get; set; }
 
     public static UserSettings Load()
     {
