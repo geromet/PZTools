@@ -61,7 +61,7 @@ public partial class DistributionListControl : UserControl
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
-        SaveFolders();
+        SaveExpansionState();
     }
 
     public DistributionListControl()
@@ -662,13 +662,13 @@ public partial class DistributionListControl : UserControl
     private void ExpandAll_Click(object? sender, RoutedEventArgs e)
     {
         SetExpandedRecursive(_rootNodes, true);
-        SaveFolders();
+        SaveExpansionState();
     }
 
     private void CollapseAll_Click(object? sender, RoutedEventArgs e)
     {
         SetExpandedRecursive(_rootNodes, false);
-        SaveFolders();
+        SaveExpansionState();
     }
 
     private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)
@@ -677,7 +677,7 @@ public partial class DistributionListControl : UserControl
         {
             folder.IsExpanded = true;
             SetExpandedRecursive(folder.Children, true);
-            SaveFolders();
+            SaveExpansionState();
         }
     }
 
@@ -687,7 +687,7 @@ public partial class DistributionListControl : UserControl
         {
             folder.IsExpanded = false;
             SetExpandedRecursive(folder.Children, false);
-            SaveFolders();
+            SaveExpansionState();
         }
     }
 
@@ -1029,6 +1029,17 @@ public partial class DistributionListControl : UserControl
         // Sync expansion state from current tree nodes
         SyncExpansionState(_rootNodes, _folders);
         FolderSettings.Save(DeepCopyFolders(_folders));
+    }
+
+    /// <summary>
+    /// Lightweight save that only syncs expansion state to the existing folder
+    /// definitions and writes them directly — no deep copy needed since the
+    /// folder structure itself hasn't changed.
+    /// </summary>
+    private void SaveExpansionState()
+    {
+        SyncExpansionState(_rootNodes, _folders);
+        FolderSettings.Save(_folders);
     }
 
     private static void SyncExpansionState(
