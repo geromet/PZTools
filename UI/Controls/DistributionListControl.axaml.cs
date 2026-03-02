@@ -58,6 +58,12 @@ public partial class DistributionListControl : UserControl
     public (TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid) ContentFilters
         => (_procListFilter, _rollsFilter, _itemsFilter, _junkFilter, _proceduralFilter, _invalidFilter);
 
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        SaveExpansionState();
+    }
+
     public DistributionListControl()
     {
         InitializeComponent();
@@ -634,8 +640,55 @@ public partial class DistributionListControl : UserControl
         RemoveFromFolderItem.IsVisible = hasDistSelection && anyInFolder;
 
         // Folder-specific items
-        RenameFolderItem.IsVisible = selected is { IsFolder: true };
-        DeleteFolderItem.IsVisible = selected is { IsFolder: true };
+        bool isFolder = selected is { IsFolder: true };
+        RenameFolderItem.IsVisible = isFolder;
+        DeleteFolderItem.IsVisible = isFolder;
+        FolderExpandSeparator.IsVisible = isFolder;
+        ExpandFolderItem.IsVisible = isFolder;
+        CollapseFolderItem.IsVisible = isFolder;
+    }
+
+    private static void SetExpandedRecursive(IEnumerable<ExplorerNode> nodes, bool expanded)
+    {
+        foreach (var node in nodes)
+        {
+            if (!node.IsFolder) continue;
+            node.IsExpanded = expanded;
+            if (node.Children.Count > 0)
+                SetExpandedRecursive(node.Children, expanded);
+        }
+    }
+
+    private void ExpandAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandedRecursive(_rootNodes, true);
+        SaveExpansionState();
+    }
+
+    private void CollapseAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandedRecursive(_rootNodes, false);
+        SaveExpansionState();
+    }
+
+    private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DistTree.SelectedItem is ExplorerNode { IsFolder: true } folder)
+        {
+            folder.IsExpanded = true;
+            SetExpandedRecursive(folder.Children, true);
+            SaveExpansionState();
+        }
+    }
+
+    private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DistTree.SelectedItem is ExplorerNode { IsFolder: true } folder)
+        {
+            folder.IsExpanded = false;
+            SetExpandedRecursive(folder.Children, false);
+            SaveExpansionState();
+        }
     }
 
     private List<ExplorerNode> GetSelectedDistributionNodes()
@@ -976,6 +1029,17 @@ public partial class DistributionListControl : UserControl
         // Sync expansion state from current tree nodes
         SyncExpansionState(_rootNodes, _folders);
         FolderSettings.Save(DeepCopyFolders(_folders));
+    }
+
+    /// <summary>
+    /// Lightweight save that only syncs expansion state to the existing folder
+    /// definitions and writes them directly — no deep copy needed since the
+    /// folder structure itself hasn't changed.
+    /// </summary>
+    private void SaveExpansionState()
+    {
+        SyncExpansionState(_rootNodes, _folders);
+        FolderSettings.Save(_folders);
     }
 
     private static void SyncExpansionState(
