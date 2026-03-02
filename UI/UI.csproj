@@ -16,8 +16,9 @@
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
         <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.12" />
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
-        <!-- Project reference -->
-        <ProjectReference Include="..\DataInput\DataInput.csproj" />
+        <!-- Project references -->
+        <ProjectReference Include="..\Data\Data.csproj" />
+        <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>

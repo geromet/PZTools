@@ -14,6 +14,8 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using Core.Filtering;
+using Core.Folders;
 using Data.Data;
 
 namespace UI.Controls;

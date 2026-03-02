@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace UI;
+namespace Core.Folders;
 
 /// <summary>
 /// Loads and saves explorer folder definitions from folders.json next to the executable.

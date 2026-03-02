@@ -4,7 +4,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using DataInput.Data;
+using Core.Filtering;
+using Data.Data;
 using UI.UndoRedo;
 
 namespace UI.Controls;
@@ -26,6 +27,7 @@ public partial class DistributionDetailControl : UserControl
     private TriState _junkFilter;
     private TriState _proceduralFilter;
     private TriState _invalidFilter;
+    private TriState _distributionItemsFilter;
 
     // Auto-filter state (remembered across distribution switches)
     private bool _autoFilter;
@@ -37,7 +39,7 @@ public partial class DistributionDetailControl : UserControl
     /// When auto-filter is on, this func is called to get current content filters
     /// from the distribution list control. Set by MainWindow.
     /// </summary>
-    public Func<(TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid)>? GetContentFilters { get; set; }
+    public Func<(TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid, TriState DistributionItems)>? GetContentFilters { get; set; }
 
     public Distribution? Model => _model;
 
@@ -128,6 +130,7 @@ public partial class DistributionDetailControl : UserControl
                 _junkFilter = f.Junk;
                 _proceduralFilter = f.Procedural;
                 _invalidFilter = f.Invalid;
+                _distributionItemsFilter = f.DistributionItems;
             }
 
             // Re-apply remembered container filter
@@ -281,6 +284,7 @@ public partial class DistributionDetailControl : UserControl
             _junkFilter = f.Junk;
             _proceduralFilter = f.Procedural;
             _invalidFilter = f.Invalid;
+            _distributionItemsFilter = f.DistributionItems;
         }
         else if (!_autoFilter)
         {
@@ -290,6 +294,7 @@ public partial class DistributionDetailControl : UserControl
             _junkFilter = TriState.Ignored;
             _proceduralFilter = TriState.Ignored;
             _invalidFilter = TriState.Ignored;
+            _distributionItemsFilter = TriState.Ignored;
         }
 
         UpdateContainerFilterStyles();
@@ -304,6 +309,7 @@ public partial class DistributionDetailControl : UserControl
         _junkFilter = TriState.Ignored;
         _proceduralFilter = TriState.Ignored;
         _invalidFilter = TriState.Ignored;
+        _distributionItemsFilter = TriState.Ignored;
         _autoFilter = false;
         UpdateContainerFilterStyles();
         ApplyContainerFilter();
