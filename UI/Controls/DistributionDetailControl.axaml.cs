@@ -19,7 +19,7 @@ public partial class DistributionDetailControl : UserControl
     private readonly SharedColumnLayout _sharedColumnLayout = new();
     private readonly ContainerFilterState _filter = new();
 
-    public Func<(TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid, TriState DistributionItems)>? GetContentFilters { get; set; }
+    public Func<ContentFilterSet>? GetContentFilters { get; set; }
 
     public Distribution? Model => _model;
 
@@ -99,7 +99,7 @@ public partial class DistributionDetailControl : UserControl
             }
 
             if (_filter.AutoFilter && GetContentFilters is not null)
-                _filter.SyncFromContentFilters(GetContentFilters());
+                _filter.SyncFrom(GetContentFilters()!);
 
             UpdateContainerFilterStyles();
             ApplyContainerFilter();
@@ -238,7 +238,7 @@ public partial class DistributionDetailControl : UserControl
         _filter.AutoFilter = !_filter.AutoFilter;
 
         if (_filter.AutoFilter && GetContentFilters is not null)
-            _filter.SyncFromContentFilters(GetContentFilters());
+            _filter.SyncFrom(GetContentFilters()!);
         else if (!_filter.AutoFilter)
             _filter.ClearAll();
 

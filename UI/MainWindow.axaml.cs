@@ -9,11 +9,12 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
-using DataInput;
-using DataInput.Comments;
-using DataInput.Data;
-using DataInput.Serialization;
+using Data;
+using Data.Comments;
+using Data.Data;
+using Data.Serialization;
 using UI.Controls;
+using UI.Controls.Helpers;
 using UI.UndoRedo;
 
 namespace UI;
@@ -38,24 +39,6 @@ public partial class MainWindow : Window
     private const string BaseTitle = "PZ Distribution Viewer";
 
     // ── Tab state ──
-
-    private class TabState
-    {
-        public Distribution Distribution { get; }
-        public UndoRedoStack UndoRedo { get; } = new();
-        public DistributionDetailControl? DetailControl { get; set; }
-        public Distribution? PropertiesDistribution { get; set; }
-        public TabItem TabItem { get; set; } = null!;
-        public long LastAccessTick { get; set; }
-
-        public bool IsPinned { get; set; }
-
-        public TabState(Distribution distribution)
-        {
-            Distribution = distribution;
-        }
-    }
-
     private readonly Dictionary<string, TabState> _openTabs = new();
     private TabState? _activeTab;
     private bool _suppressTabChanged;

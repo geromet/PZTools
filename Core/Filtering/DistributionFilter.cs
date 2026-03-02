@@ -97,35 +97,9 @@ public static class DistributionFilter
         return false;
     }
 
-    private static bool ContainerMatchesAllFilters(Container container, FilterCriteria c)
-    {
-        if (c.ProcList != TriState.Ignored)
-        {
-            bool has = container.ProcListEntries.Count > 0;
-            if ((c.ProcList == TriState.Include) != has) return false;
-        }
-        if (c.Rolls != TriState.Ignored)
-        {
-            bool has = container.ItemRolls > 0;
-            if ((c.Rolls == TriState.Include) != has) return false;
-        }
-        if (c.Items != TriState.Ignored)
-        {
-            bool has = container.ItemChances.Count > 0;
-            if ((c.Items == TriState.Include) != has) return false;
-        }
-        if (c.Junk != TriState.Ignored)
-        {
-            bool has = container.JunkChances.Count > 0;
-            if ((c.Junk == TriState.Include) != has) return false;
-        }
-        if (c.Procedural != TriState.Ignored)
-        {
-            bool has = container.Procedural;
-            if ((c.Procedural == TriState.Include) != has) return false;
-        }
-        return true;
-    }
+    private static bool ContainerMatchesAllFilters(Container container, FilterCriteria c) =>
+        ContainerFilter.IsVisible(container,
+            c.ProcList, c.Rolls, c.Items, c.Junk, c.Procedural, TriState.Ignored);
 
     private static bool VirtualContainerMatchesAllFilters(Distribution d, FilterCriteria c)
     {
@@ -167,22 +141,6 @@ public static class DistributionFilter
             && d.JunkChances.Count == 0;
     }
 
-    private static bool HasInvalidContainers(Distribution d)
-    {
-        foreach (var c in d.Containers)
-        {
-            bool hasItems = c.ItemChances.Count > 0;
-            bool hasJunk = c.JunkChances.Count > 0;
-            bool hasProcList = c.ProcListEntries.Count > 0;
-            bool hasRolls = c.ItemRolls > 0;
-
-            if (!hasItems && !hasJunk && !hasProcList)
-                return true;
-            if (hasRolls && !hasItems && !hasJunk)
-                return true;
-            if (c.Procedural && !hasProcList)
-                return true;
-        }
-        return false;
-    }
+    private static bool HasInvalidContainers(Distribution d) =>
+        d.Containers.Any(ContainerFilter.IsInvalid);
 }

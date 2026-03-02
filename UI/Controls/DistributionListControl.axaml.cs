@@ -1,5 +1,5 @@
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -16,16 +16,8 @@ namespace UI.Controls;
 
 public partial class DistributionListControl : UserControl, ITreeDragDropHost
 {
-    private readonly DistributionListState _state = new();
     private readonly RenameState _rename = new();
-
-    public event Action<Distribution?>? SelectionChanged;
-    public event Action<Distribution>? OpenRequested;
-    public event Action<List<Distribution>>? OpenMultipleRequested;
-
-    public (TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural,
-        TriState Invalid, TriState DistributionItemsFilter) ContentFilters
-        => _state.Filter.ContentFilters;
+    private readonly DistributionListState _state = new();
 
     public DistributionListControl()
     {
@@ -42,13 +34,22 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         DistTree.DoubleTapped += OnTreeDoubleTapped;
     }
 
+    public ContentFilterSet ContentFilters => _state.Filter.Content;
+
+    public event Action<Distribution?>? SelectionChanged;
+    public event Action<Distribution>? OpenRequested;
+    public event Action<List<Distribution>>? OpenMultipleRequested;
+
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
         _state.SaveExpansionState();
     }
 
-    public void SetSettings(UserSettings settings) => _state.LoadFolders();
+    public void SetSettings(UserSettings settings)
+    {
+        _state.LoadFolders();
+    }
 
     public void Load(IReadOnlyList<Distribution> distributions)
     {
@@ -57,7 +58,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         UpdateAllPillStyles();
         ApplyFilter();
     }
-
+    
     #region Filtering
 
     private string SearchQuery => SearchBox.Text?.Trim() ?? string.Empty;
@@ -74,7 +75,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         var scrollViewer = FindScrollViewer(DistTree);
         var scrollOffset = scrollViewer?.Offset ?? default;
 
-        _state.RebuildTree(SearchQuery, syncExpansion: true);
+        _state.RebuildTree(SearchQuery, true);
 
         if (selectedNames.Count > 0)
             RestoreSelection(selectedNames, _state.RootNodes);
@@ -111,6 +112,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
             var found = FindScrollViewer(child);
             if (found is not null) return found;
         }
+
         return null;
     }
 
@@ -171,26 +173,43 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     ObservableCollection<ExplorerNode> ITreeDragDropHost.RootNodes => _state.RootNodes;
     List<FolderDefinition> ITreeDragDropHost.Folders => _state.Folders;
-    void ITreeDragDropHost.SaveFolders() => _state.SaveFolders();
-    void ITreeDragDropHost.RefreshTree() => RefreshTree();
+
+    void ITreeDragDropHost.SaveFolders()
+    {
+        _state.SaveFolders();
+    }
+
+    void ITreeDragDropHost.RefreshTree()
+    {
+        RefreshTree();
+    }
 
     (FolderDefinition? folder, List<FolderDefinition> parentList) ITreeDragDropHost.FindFolderDefinition(
-        ExplorerNode node) => _state.FindFolderDefinition(node);
+        ExplorerNode node)
+    {
+        return _state.FindFolderDefinition(node);
+    }
 
-    bool ITreeDragDropHost.ShowMoveFolderConfirmation(string folderName) =>
-        ShowMoveFolderConfirmation(folderName);
+    bool ITreeDragDropHost.ShowMoveFolderConfirmation(string folderName)
+    {
+        return ShowMoveFolderConfirmation(folderName);
+    }
 
     private bool ShowMoveFolderConfirmation(string folderName)
     {
         var dialog = new Window
         {
             Title = "Move Folder", Width = 320, Height = 100,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner, CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner, CanResize = false
         };
         var result = false;
         var yesBtn = new Button { Content = "Yes", Margin = new Thickness(0, 0, 8, 0) };
         var noBtn = new Button { Content = "No" };
-        yesBtn.Click += (_, _) => { result = true; dialog.Close(); };
+        yesBtn.Click += (_, _) =>
+        {
+            result = true;
+            dialog.Close();
+        };
         noBtn.Click += (_, _) => { dialog.Close(); };
         yesBtn.IsDefault = true;
         noBtn.IsCancel = true;
@@ -224,16 +243,16 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #region Context menu
 
-    private void TreeContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
+    private void TreeContextMenu_Opening(object? sender, CancelEventArgs e)
     {
         var selected = DistTree.SelectedItem as ExplorerNode;
         var selectedDistNodes = GetSelectedDistributionNodes();
-        bool hasDistSelection = selectedDistNodes.Count > 0;
-        bool hasSingleDist = selected is { IsFolder: false, Distribution: not null };
-        bool anyInFolder = selectedDistNodes.Any(n =>
+        var hasDistSelection = selectedDistNodes.Count > 0;
+        var hasSingleDist = selected is { IsFolder: false, Distribution: not null };
+        var anyInFolder = selectedDistNodes.Any(n =>
             n.Distribution is not null &&
             FolderService.FindFolderContaining(n.Distribution.Name, _state.Folders) is not null);
-        bool isFolder = selected is { IsFolder: true };
+        var isFolder = selected is { IsFolder: true };
 
         OpenDistItem.IsVisible = hasSingleDist;
         OpenSelectedDistsItem.IsVisible = selectedDistNodes.Count > 1;
@@ -268,10 +287,25 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #region Expand / collapse
 
-    private void ExpandAll_Click(object? sender, RoutedEventArgs e) => SetExpandAll(true);
-    private void CollapseAll_Click(object? sender, RoutedEventArgs e) => SetExpandAll(false);
-    private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e) => SetExpandSelectedFolder(true);
-    private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e) => SetExpandSelectedFolder(false);
+    private void ExpandAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandAll(true);
+    }
+
+    private void CollapseAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandAll(false);
+    }
+
+    private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandSelectedFolder(true);
+    }
+
+    private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandSelectedFolder(false);
+    }
 
     private void SetExpandAll(bool expanded)
     {
@@ -362,7 +396,11 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     {
         RenameOverlay.IsVisible = false;
         var newName = RenameBox.Text?.Trim() ?? "";
-        if (string.IsNullOrEmpty(newName)) { _rename.Reset(); return; }
+        if (string.IsNullOrEmpty(newName))
+        {
+            _rename.Reset();
+            return;
+        }
 
         bool changed;
         if (_rename.IsCreating)
@@ -386,8 +424,16 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     private void RenameBox_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) { CommitRename(); e.Handled = true; }
-        else if (e.Key == Key.Escape) { CancelRename(); e.Handled = true; }
+        if (e.Key == Key.Enter)
+        {
+            CommitRename();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape)
+        {
+            CancelRename();
+            e.Handled = true;
+        }
     }
 
     private void RenameBox_LostFocus(object? sender, RoutedEventArgs e)
@@ -407,17 +453,25 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         ApplyFilter();
     }
 
-    private void ContentFilterPill_Click(object? sender, RoutedEventArgs e) =>
+    private void ContentFilterPill_Click(object? sender, RoutedEventArgs e)
+    {
         ToggleTriStateFilter(sender, TriState.Include);
+    }
 
-    private void StructureFilterPill_Click(object? sender, RoutedEventArgs e) =>
+    private void StructureFilterPill_Click(object? sender, RoutedEventArgs e)
+    {
         ToggleTriStateFilter(sender, TriState.Include);
+    }
 
-    private void ContentFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e) =>
+    private void ContentFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
         ToggleTriStateFilterRightClick(sender, e);
+    }
 
-    private void StructureFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e) =>
+    private void StructureFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
         ToggleTriStateFilterRightClick(sender, e);
+    }
 
     private void ToggleTriStateFilter(object? sender, TriState targetState)
     {
