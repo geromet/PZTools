@@ -1,121 +1,102 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Project
 
-## What this project is
+PZTools — desktop viewer/editor for Project Zomboid `Distributions.lua` and `ProceduralDistributions.lua`. Parses Lua into domain model, displays in Avalonia UI with filtering, tabbed editing, undo/redo, save to disk.
 
-PZTools is a desktop tool for viewing and editing Project Zomboid loot distribution files (`Distributions.lua` and `ProceduralDistributions.lua`). The user points it at a game or mod folder, the tool parses the Lua files into a domain model, and displays them in an Avalonia UI with filtering, selection, and undo/redo editing.
-
-## Build and run
+## Build
 
 ```bash
-# Build the whole solution
-dotnet build PZTools.sln
-
-# Run the UI
-dotnet run --project UI/UI.csproj
-
-# Build parsing library only
-dotnet build DataInput/DataInput.csproj
+dotnet build PZTools.sln        # full solution
+dotnet run --project UI/UI.csproj  # run UI
+dotnet build DataInput/DataInput.csproj  # parsing lib only
 ```
 
-Target framework is **net10.0**. There are no automated tests in the solution.
+Target: **net10.0**. No automated tests.
 
-## Solution structure
+## Structure
 
-| Project | Role |
-|---|---|
-| `DataInput` | Parsing library — Lua loading, domain model, validation, serialization, comment preservation. No UI dependencies. |
-| `UI` | Active Avalonia frontend. References `DataInput`. |
+- `DataInput` — parsing, domain model, validation, serialization, comments. No UI deps.
+- `UI` — Avalonia frontend, references DataInput.
 
-**Only `DataInput` and `UI` are under active development.** Legacy projects (`OldUI`, `Data`, `PZEditAvaloniaUI`) have been removed.
+Only these two are active. Legacy projects removed.
 
-## DataInput architecture
+## Git rules
 
-Parsing follows a strict layered pipeline with no backwards references:
+- ONLY branch: `sandbox/liability-machine`. Never commit/push elsewhere. Never ask to.
+- User cherry-picks accepted work to correct branches.
+- Commit + push frequently. Small focused commits per logical change.
 
-```
-ILuaLoader (LuaFileLoader)
-    ↓  raw NLua LuaTable
-DistributionMapper
-    ↓  domain objects
-IValidator[] (DistributionValidator, ProceduralReferenceValidator)
-    ↓  ParseError list
-DistributionParser  ← thin orchestrator, inject via CreateDefault() or ctor
-    ↓
-ParseResult { IReadOnlyList<Distribution>, IReadOnlyList<ParseError> }
-```
+## DataInput
 
-**Domain model hierarchy:**
-- `Distribution : ItemParent` — top-level entry (room, bag, cache, profession, or procedural)
-- `Container : ItemParent` — shelf/counter nested inside a Distribution; also used for `bags` entries
-- `Item` — value struct (`Name`, `Chance`); stored in `List<Item>` on `ItemParent`
-- `ProcListEntry` — references a procedural `Distribution` by name and carries resolved pointer
-
-`DistributionClassifier` maps distribution names to `DistributionType` (Room/Bag/Cache/Profession/Procedural) via static `HashSet` lookups.
-
-`NamePool` interns strings so identical item names share one heap instance across all distributions.
-
-Error handling is non-fatal by default: field parse failures log a `ParseError` and continue. Fatal errors (file not found, table not found) cause early return from `DistributionParser.Parse`.
-
-### Serialization
-
-`LuaWriter` serializes domain objects back to Lua source text. Key constraints driven by the game's `ItemPickerJava`:
-- Non-procedural containers **must** always have both `rolls` and `items` keys (even when 0 / empty).
-- Junk blocks **must** always have `rolls` (Java casts unconditionally, no null check).
-- Distribution-level `rolls` and `items` are emitted together (if rolls exists, items must too).
-- Procedural containers emit an empty `procList = {}` when they have no entries.
-
-### Comment preservation
-
-`LuaCommentExtractor` is a line-by-line state machine (Preamble → InTable → Postamble) that extracts comments keyed by structural path. `CommentMap` stores these and blank-line metadata. The Postamble captures everything after the main table close verbatim (utility functions, event registrations, `mergeDistributions` calls) and writes it back via `EmitVerbatim`.
-
-### Reference tracking
-
-Lua files use cross-table references (e.g. `bags = BagsAndContainers.SomeBag`, `items = BagsAndContainers.BanditItems`, `junk = ClutterTables.DeskJunk`). These are tracked via `LuaRefInfo` and stored on domain objects:
-- `Container.SourceReference` / `SourceReferenceFile` — whole container is a reference
-- `ItemParent.ItemsReference` — items list is a reference
-- `ItemParent.JunkReference` / `JunkReferenceFile` — junk block is a reference
-- `ItemParent.JunkItemsReference` — items inside junk is a reference
-- `ItemParent.BagsReference` / `BagsFileReference` — bags block is a reference
-
-## UI architecture
-
-**Pattern:** Plain Avalonia code-behind — no ReactiveUI, no ViewModels. State lives in `MainWindow` and the controls themselves.
+### Parse pipeline (no backwards refs)
 
 ```
-MainWindow (code-behind, owns TabControl + per-tab UndoRedoStack)
-├── DistributionListControl  — left panel; filter pills + text search, fires OpenRequested event
-├── TabControl (TabBar)      — center panel; each tab wraps a DistributionDetailControl
-│   └── DistributionDetailControl — Load(Distribution, UndoRedoStack) / ShowEmpty()
-│       └── ContainerControl (one per container, built dynamically)
-│           └── ItemListControl, ProcListListControl
-├── ErrorListControl          — bottom panel
-└── Right panel               — Properties: shows read-only detail when clicking proc reference links
+ILuaLoader → raw LuaTable → DistributionMapper → domain objects
+→ IValidator[] → ParseError list → DistributionParser → ParseResult
 ```
 
-### Tabbed detail view
+### Domain model
 
-Distributions open in tabs (double-click or context menu). Each tab has its own `TabState`:
-- Independent `UndoRedoStack` (undo/redo is per-tab)
-- Dirty indicator dot on tab header
-- Close button with save confirmation for dirty tabs
-- Pin support (pinned tabs resist close operations)
-- LRU eviction: max 10 cached tab controls; older tabs dispose their UI and recreate from the `Distribution` model on reactivation
+- `Distribution : ItemParent` — top-level (room/bag/cache/profession/procedural)
+- `Container : ItemParent` — nested shelf/counter; also `bags` entries
+- `Item` — struct (Name, Chance) in `List<Item>` on ItemParent
+- `ProcListEntry` — ref to procedural Distribution by name + resolved pointer
+- `DistributionClassifier` — name → DistributionType via HashSet lookups
+- `NamePool` — string interning across distributions
 
-Tab context menu: Close / Close All / Close Others / Close Left / Close Right / Pin.
+Errors: non-fatal by default (log ParseError, continue). Fatal = early return.
 
-`MainWindow` handles the folder picker (`StorageProvider`), keyboard shortcuts (Ctrl+Z/Y/Shift+Z/W), and panel show/hide toggling (saves/restores `GridLength` on each column/row).
+### Serialization (`LuaWriter`)
 
-**Undo/redo:** `UndoRedoStack` owns two stacks of `IUndoableAction`. Controls receive the stack via their `Load(...)` method and push `PropertyChangeAction<T>` when editable fields change.
+ItemPickerJava constraints:
+- Non-procedural containers: always emit both `rolls` + `items`
+- Junk blocks: always emit `rolls`
+- Distribution-level: `rolls` + `items` emitted together
+- Procedural without entries: emit `procList = {}`
 
-**Note:** `MainWindow.axaml` uses `x:CompileBindings="False"` — bindings there are runtime, not compile-time. Controls may differ; check per-file.
+### Comments (`LuaCommentExtractor`)
 
-## Key conventions
+State machine: Preamble → InTable → Postamble. Comments keyed by structural path. Postamble captures everything after main table close verbatim (utility funcs, event registrations, `mergeDistributions`).
 
-- `ILuaLoader` is the injection seam for `DistributionParser` — pass a stub to avoid file I/O in tests.
-- `ParseResult` is always returned (never throws); callers check `HasFatalErrors`.
-- `Item` is a struct to keep `List<Item>` allocation-friendly.
-- Lua item lists arrive as flat alternating `name, chance, name, chance` sequences — see `MapItemChances` in `DistributionMapper`.
-- The Lua files are loaded from fixed relative paths under the game folder: `media/lua/server/Items/ProceduralDistributions.lua` and `Distributions.lua`.
-- Container properties `OnlyOne`, `MaxMap`, `StashChance` are used by BagsAndContainers entries.
+### References (`LuaRefInfo`)
+
+Cross-table refs (e.g. `bags = BagsAndContainers.X`, `junk = ClutterTables.Y`):
+- `Container.SourceReference/SourceReferenceFile` — whole container
+- `ItemParent.ItemsReference` — items list
+- `ItemParent.JunkReference/JunkReferenceFile` — junk block
+- `ItemParent.JunkItemsReference` — items inside junk
+- `ItemParent.BagsReference/BagsFileReference` — bags block
+
+## UI
+
+Plain code-behind, no MVVM. State in MainWindow + controls.
+
+```
+MainWindow (TabControl + per-tab UndoRedoStack)
+├── DistributionListControl — left; filters + search, fires OpenRequested
+├── TabControl → DistributionDetailControl → ContainerControl → ItemListControl, ProcListListControl
+├── ErrorListControl — bottom
+└── Properties panel — right; read-only detail for proc ref links
+```
+
+### Tabs
+
+Per-tab `TabState`: independent UndoRedoStack, dirty dot, close w/ save confirm, pin support. LRU eviction at 10 cached controls. Context menu: Close/All/Others/Left/Right/Pin.
+
+### Undo/redo
+
+`UndoRedoStack` with `IUndoableAction`. Controls get stack via `Load()`, push `PropertyChangeAction<T>`. Shortcuts: Ctrl+Z/Y/Shift+Z/W.
+
+### Bindings
+
+`MainWindow.axaml`: `x:CompileBindings="False"` (runtime). Other controls may differ — check per-file.
+
+## Conventions
+
+- `ILuaLoader` = injection seam for tests (stub to avoid file I/O)
+- `ParseResult` never throws; check `HasFatalErrors`
+- `Item` is struct for allocation-friendly lists
+- Lua items = flat alternating `name, chance, name, chance` — see `MapItemChances`
+- Lua paths: `media/lua/server/Items/ProceduralDistributions.lua` and `Distributions.lua`
+- Container props `OnlyOne`, `MaxMap`, `StashChance` used by BagsAndContainers

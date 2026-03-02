@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
@@ -348,6 +349,7 @@ public partial class DistributionListControl : UserControl
 
     private void OnTreePointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if (e.Source is Visual v && v.FindAncestorOfType<ScrollBar>() is not null) return;
         if (!e.GetCurrentPoint(DistTree).Properties.IsLeftButtonPressed) return;
         _dragStartPoint = e.GetPosition(DistTree);
 
@@ -372,6 +374,7 @@ public partial class DistributionListControl : UserControl
 
     private async void OnTreePointerMoved(object? sender, PointerEventArgs e)
     {
+        if (e.Source is Visual v && v.FindAncestorOfType<ScrollBar>() is not null) return;
         if (!_dragStartPending) return;
 
         var pos = e.GetPosition(DistTree);
@@ -456,7 +459,7 @@ public partial class DistributionListControl : UserControl
         foreach (var node in draggedNodes)
         {
             if (node.IsFolder)
-                MoveFolderTo(node.Name, dropFolder);
+                MoveFolderTo(node, dropFolder);
             else if (node.Distribution is not null)
                 MoveDistributionTo(node.Distribution.Name, dropFolder);
         }
@@ -527,14 +530,14 @@ public partial class DistributionListControl : UserControl
         if (targetFolderNode is null) return; // move to root = just remove from folders
 
         // Find the target FolderDefinition and add
-        var (targetDef, _) = FindFolderDefinition(targetFolderNode.Name);
+        var (targetDef, _) = FindFolderDefinition(targetFolderNode);
         targetDef?.DistributionNames.Add(distName);
     }
 
-    private void MoveFolderTo(string folderName, ExplorerNode? targetFolderNode)
+    private void MoveFolderTo(ExplorerNode folderNode, ExplorerNode? targetFolderNode)
     {
         // Find and remove the folder from its current location
-        var (folderDef, oldParentList) = FindFolderDefinition(folderName);
+        var (folderDef, oldParentList) = FindFolderDefinition(folderNode);
         if (folderDef is null) return;
         oldParentList.Remove(folderDef);
 
@@ -546,7 +549,7 @@ public partial class DistributionListControl : UserControl
         else
         {
             // Nest inside target folder
-            var (targetDef, _) = FindFolderDefinition(targetFolderNode.Name);
+            var (targetDef, _) = FindFolderDefinition(targetFolderNode);
             if (targetDef is not null)
             {
                 targetDef.Children ??= [];
@@ -710,10 +713,70 @@ public partial class DistributionListControl : UserControl
     }
 
     /// <summary>
-    /// Finds the FolderDefinition matching a given ExplorerNode folder by name,
-    /// searching the entire tree. Returns the definition and its parent list.
+    /// Builds the path of folder names from root to the given node by searching the tree.
+    /// Returns null if the node is not found.
+    /// </summary>
+    private List<string>? GetNodePath(ExplorerNode target)
+    {
+        var path = new List<string>();
+        if (FindNodePath(target, _rootNodes, path))
+            return path;
+        return null;
+    }
+
+    private static bool FindNodePath(ExplorerNode target, ObservableCollection<ExplorerNode> nodes, List<string> path)
+    {
+        foreach (var node in nodes)
+        {
+            if (node == target)
+            {
+                path.Add(node.Name);
+                return true;
+            }
+            if (node.IsFolder)
+            {
+                path.Add(node.Name);
+                if (FindNodePath(target, node.Children, path))
+                    return true;
+                path.RemoveAt(path.Count - 1);
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Finds the FolderDefinition matching a given ExplorerNode by its full path in the tree.
+    /// Falls back to name-only search if path is null. Returns the definition and its parent list.
     /// </summary>
     private (FolderDefinition? folder, List<FolderDefinition> parentList) FindFolderDefinition(
+        ExplorerNode node)
+    {
+        var path = GetNodePath(node);
+        if (path is not null)
+            return FindFolderByNodePath(path);
+        // Fallback: name-only search (for cases where node isn't in tree yet)
+        return FindFolderDefinitionByName(node.Name);
+    }
+
+    private (FolderDefinition? folder, List<FolderDefinition> parentList) FindFolderByNodePath(
+        List<string> path)
+    {
+        var currentList = _folders;
+        for (var i = 0; i < path.Count; i++)
+        {
+            var name = path[i];
+            var match = currentList.FirstOrDefault(f =>
+                string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase));
+            if (match is null)
+                return (null, currentList);
+            if (i == path.Count - 1)
+                return (match, currentList);
+            currentList = match.Children ?? [];
+        }
+        return (null, currentList);
+    }
+
+    private (FolderDefinition? folder, List<FolderDefinition> parentList) FindFolderDefinitionByName(
         string folderName, List<FolderDefinition>? folders = null)
     {
         folders ??= _folders;
@@ -724,7 +787,7 @@ public partial class DistributionListControl : UserControl
 
             if (f.Children is not null)
             {
-                var found = FindFolderDefinition(folderName, f.Children);
+                var found = FindFolderDefinitionByName(folderName, f.Children);
                 if (found.folder is not null) return found;
             }
         }
@@ -777,7 +840,7 @@ public partial class DistributionListControl : UserControl
     {
         if (DistTree.SelectedItem is not ExplorerNode { IsFolder: true } node) return;
 
-        var (folder, parentList) = FindFolderDefinition(node.Name);
+        var (folder, parentList) = FindFolderDefinition(node);
         if (folder is not null)
         {
             parentList.Remove(folder);
@@ -788,6 +851,7 @@ public partial class DistributionListControl : UserControl
 
     private void MoveToFolder_Click(object? sender, RoutedEventArgs e)
     {
+        e.Handled = true; // Stop bubbling to parent menu items
         if (sender is not MenuItem menuItem) return;
         var folderPath = menuItem.Tag as string;
         if (folderPath is null) return;
@@ -847,7 +911,7 @@ public partial class DistributionListControl : UserControl
             List<FolderDefinition> targetList;
             if (_newFolderParent is not null)
             {
-                var (parentDef, _) = FindFolderDefinition(_newFolderParent.Name);
+                var (parentDef, _) = FindFolderDefinition(_newFolderParent);
                 if (parentDef is null) return;
                 parentDef.Children ??= [];
                 targetList = parentDef.Children;
@@ -865,7 +929,7 @@ public partial class DistributionListControl : UserControl
         }
         else if (_renamingNode is not null)
         {
-            var (folder, _) = FindFolderDefinition(_renamingNode.Name);
+            var (folder, _) = FindFolderDefinition(_renamingNode);
             if (folder is not null)
                 folder.Name = newName;
         }

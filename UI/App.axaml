@@ -32,8 +32,8 @@
                 <Setter Property="AllowAutoHide" Value="False" />
             </Style>
             <Style Selector="ScrollBar">
-                <Setter Property="Width" Value="6" />
-                <Setter Property="MinWidth" Value="6" />
+                <Setter Property="Width" Value="14" />
+                <Setter Property="MinWidth" Value="14" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Opacity" Value="0.6" />
             </Style>
