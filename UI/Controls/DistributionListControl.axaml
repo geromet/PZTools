@@ -24,6 +24,13 @@
                                FontSize="10"
                                Foreground="{StaticResource TextMuted}"
                                VerticalAlignment="Center" />
+                    <!-- Expand/Collapse All buttons -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0 0 6 0">
+                        <Button Classes="FilterPill" Content="⊞" ToolTip.Tip="Expand All"
+                                Click="ExpandAll_Click" Margin="2" Padding="4 2" FontSize="10" />
+                        <Button Classes="FilterPill" Content="⊟" ToolTip.Tip="Collapse All"
+                                Click="CollapseAll_Click" Margin="2" Padding="4 2" FontSize="10" />
+                    </StackPanel>
                 </DockPanel>
                 <TextBox x:Name="SearchBox"
                          Watermark="Search…"
@@ -148,6 +155,9 @@
                     <Separator />
                     <MenuItem Header="Rename Folder" x:Name="RenameFolderItem" Click="RenameFolder_Click" />
                     <MenuItem Header="Delete Folder" x:Name="DeleteFolderItem" Click="DeleteFolder_Click" />
+                    <Separator x:Name="FolderExpandSeparator" />
+                    <MenuItem Header="Expand All in Folder" x:Name="ExpandFolderItem" Click="ExpandFolderAll_Click" />
+                    <MenuItem Header="Collapse All in Folder" x:Name="CollapseFolderItem" Click="CollapseFolderAll_Click" />
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>

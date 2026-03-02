@@ -634,8 +634,51 @@ public partial class DistributionListControl : UserControl
         RemoveFromFolderItem.IsVisible = hasDistSelection && anyInFolder;
 
         // Folder-specific items
-        RenameFolderItem.IsVisible = selected is { IsFolder: true };
-        DeleteFolderItem.IsVisible = selected is { IsFolder: true };
+        bool isFolder = selected is { IsFolder: true };
+        RenameFolderItem.IsVisible = isFolder;
+        DeleteFolderItem.IsVisible = isFolder;
+        FolderExpandSeparator.IsVisible = isFolder;
+        ExpandFolderItem.IsVisible = isFolder;
+        CollapseFolderItem.IsVisible = isFolder;
+    }
+
+    private static void SetExpandedRecursive(IEnumerable<ExplorerNode> nodes, bool expanded)
+    {
+        foreach (var node in nodes)
+        {
+            if (!node.IsFolder) continue;
+            node.IsExpanded = expanded;
+            if (node.Children.Count > 0)
+                SetExpandedRecursive(node.Children, expanded);
+        }
+    }
+
+    private void ExpandAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandedRecursive(_rootNodes, true);
+    }
+
+    private void CollapseAll_Click(object? sender, RoutedEventArgs e)
+    {
+        SetExpandedRecursive(_rootNodes, false);
+    }
+
+    private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DistTree.SelectedItem is ExplorerNode { IsFolder: true } folder)
+        {
+            folder.IsExpanded = true;
+            SetExpandedRecursive(folder.Children, true);
+        }
+    }
+
+    private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DistTree.SelectedItem is ExplorerNode { IsFolder: true } folder)
+        {
+            folder.IsExpanded = false;
+            SetExpandedRecursive(folder.Children, false);
+        }
     }
 
     private List<ExplorerNode> GetSelectedDistributionNodes()
