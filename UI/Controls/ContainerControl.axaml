@@ -119,7 +119,13 @@
                     <ScrollViewer Grid.Row="2"
                                   VerticalScrollBarVisibility="Visible"
                                   MaxHeight="260">
-                        <StackPanel x:Name="ItemRowsPanel" />
+                        <StackPanel>
+                            <StackPanel x:Name="ItemRowsPanel" />
+                            <Button Content="+ Add Item" Click="AddItem_Click"
+                                    FontSize="11" Padding="6 3" Margin="4 4"
+                                    HorizontalAlignment="Left" Background="Transparent"
+                                    BorderThickness="0" Foreground="{StaticResource Accent}" />
+                        </StackPanel>
                     </ScrollViewer>
                 </Grid>
 
@@ -159,7 +165,13 @@
                     <ScrollViewer Grid.Row="2"
                                   VerticalScrollBarVisibility="Visible"
                                   MaxHeight="260">
-                        <StackPanel x:Name="JunkRowsPanel" />
+                        <StackPanel>
+                            <StackPanel x:Name="JunkRowsPanel" />
+                            <Button Content="+ Add Item" Click="AddJunkItem_Click"
+                                    FontSize="11" Padding="6 3" Margin="4 4"
+                                    HorizontalAlignment="Left" Background="Transparent"
+                                    BorderThickness="0" Foreground="{StaticResource Accent}" />
+                        </StackPanel>
                     </ScrollViewer>
                 </Grid>
 

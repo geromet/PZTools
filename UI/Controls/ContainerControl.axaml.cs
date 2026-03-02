@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -252,5 +253,31 @@ public partial class ContainerControl : UserControl
             $"{_model.Name}.DontSpawnAmmo: {old}\u2192{newVal}",
             v => { _model.DontSpawnAmmo = v; DontSpawnAmmoCheck.IsChecked = v; _model.IsDirty = true; },
             old, newVal));
+    }
+
+    private void AddItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_model is null || _undoRedo is null) return;
+        var items = _model.ItemChances;
+        var newItem = new Item("NewItem", 1);
+        var index = items.Count;
+        var context = $"{_model.Name}.items";
+        _undoRedo.Push(new ListInsertAction<Item>(
+            $"{context}: add '{newItem.Name}'",
+            items, index, newItem,
+            () => { ItemRowHelper.Populate(ItemRowsPanel, items, _undoRedo, context, _model); _model.IsDirty = true; }));
+    }
+
+    private void AddJunkItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_model is null || _undoRedo is null) return;
+        var items = _model.JunkChances;
+        var newItem = new Item("NewItem", 1);
+        var index = items.Count;
+        var context = $"{_model.Name}.junk";
+        _undoRedo.Push(new ListInsertAction<Item>(
+            $"{context}: add '{newItem.Name}'",
+            items, index, newItem,
+            () => { ItemRowHelper.Populate(JunkRowsPanel, items, _undoRedo, context, _model); _model.IsDirty = true; }));
     }
 }
