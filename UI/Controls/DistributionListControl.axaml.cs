@@ -147,73 +147,10 @@ public partial class DistributionListControl : UserControl
         CountText.Text = $"{_lastFiltered.Count} / {_all.Count}";
     }
 
-    // ── Tree building (recursive for nested folders) ──
-
     private void BuildTree(List<Distribution> filtered)
     {
-        var filteredSet = new HashSet<string>(filtered.Select(d => d.Name), StringComparer.OrdinalIgnoreCase);
-        var assigned = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        bool hideEmpty = HasAnyActiveFilter();
-
-        _rootNodes.Clear();
-
-        // Build folder nodes recursively
-        foreach (var folder in _folders)
-        {
-            var folderNode = BuildFolderNode(folder, filtered, filteredSet, assigned, hideEmpty);
-            if (folderNode is not null)
-                _rootNodes.Add(folderNode);
-        }
-
-        // Add unfoldered distributions at root level
-        foreach (var dist in filtered)
-        {
-            if (assigned.Contains(dist.Name)) continue;
-            _rootNodes.Add(ExplorerNode.CreateDistribution(dist));
-        }
-
+        FolderTreeBuilder.Build(_rootNodes, _folders, filtered, HasAnyActiveFilter());
         DistTree.ItemsSource = _rootNodes;
-    }
-
-    private ExplorerNode? BuildFolderNode(
-        FolderDefinition folder,
-        List<Distribution> filtered,
-        HashSet<string> filteredSet,
-        HashSet<string> assigned,
-        bool hideEmpty)
-    {
-        var folderNode = ExplorerNode.CreateFolder(folder.Name);
-        folderNode.IsExpanded = folder.IsExpanded;
-
-        // Add child subfolders recursively
-        if (folder.Children is not null)
-        {
-            foreach (var child in folder.Children)
-            {
-                var childNode = BuildFolderNode(child, filtered, filteredSet, assigned, hideEmpty);
-                if (childNode is not null)
-                    folderNode.Children.Add(childNode);
-            }
-        }
-
-        // Add distributions belonging to this folder
-        foreach (var distName in folder.DistributionNames)
-        {
-            if (!filteredSet.Contains(distName)) continue;
-
-            var dist = filtered.FirstOrDefault(d =>
-                string.Equals(d.Name, distName, StringComparison.OrdinalIgnoreCase));
-            if (dist is null) continue;
-
-            folderNode.Children.Add(ExplorerNode.CreateDistribution(dist));
-            assigned.Add(distName);
-        }
-
-        // Hide empty folders when filters are active
-        if (hideEmpty && folderNode.Children.Count == 0)
-            return null;
-
-        return folderNode;
     }
 
     private bool HasAnyActiveFilter() => DistributionFilter.HasAnyActiveFilter(BuildFilterCriteria());
