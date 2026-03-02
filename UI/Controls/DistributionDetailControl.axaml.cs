@@ -37,7 +37,6 @@ public partial class DistributionDetailControl : UserControl
     {
         InitializeComponent();
 
-        // Wire right-click on container filter pills
         foreach (var child in ContainerFilterPills.Children)
         {
             if (child is Button btn)
@@ -157,17 +156,15 @@ public partial class DistributionDetailControl : UserControl
 
     #endregion
 
-    // ── Expand / Collapse All ──
+    #region Expand / collapse
 
     private void SetAllExpanded(bool expanded)
     {
-        // Direct items expander
         if (DirectItemsPanel.IsVisible)
         {
             var expander = DirectItemsPanel.GetVisualDescendants().OfType<Expander>().FirstOrDefault();
             if (expander is not null) expander.IsExpanded = expanded;
         }
-        // Container expanders
         foreach (var child in ContainersPanel.Children)
         {
             if (child is not ContainerControl cc) continue;
@@ -178,7 +175,9 @@ public partial class DistributionDetailControl : UserControl
     private void ExpandAll_Click(object? sender, RoutedEventArgs e) => SetAllExpanded(true);
     private void CollapseAll_Click(object? sender, RoutedEventArgs e) => SetAllExpanded(false);
 
-    // ── Show Empty ──
+    #endregion
+
+    #region Toolbar toggles
 
     private void ShowEmpty_Click(object? sender, RoutedEventArgs e)
     {
@@ -187,8 +186,6 @@ public partial class DistributionDetailControl : UserControl
         if (_model is not null && _undoRedo is not null)
             Load(_model, _undoRedo);
     }
-
-    // ── Auto Filter / Clear ──
 
     private void AutoFilter_Click(object? sender, RoutedEventArgs e)
     {
@@ -209,6 +206,10 @@ public partial class DistributionDetailControl : UserControl
         UpdateContainerFilterStyles();
         ApplyContainerFilter();
     }
+
+    #endregion
+
+    #region Container filters
 
     private void ContainerFilterPill_Click(object? sender, RoutedEventArgs e)
     {
@@ -246,4 +247,6 @@ public partial class DistributionDetailControl : UserControl
             cc.IsVisible = _filter.IsContainerVisible(cc.Model);
         }
     }
+
+    #endregion
 }

@@ -33,7 +33,6 @@ public partial class ContainerControl : UserControl
         _loading = true;
         try
         {
-            // Unsubscribe from previous layout
             if (_sharedLayout is not null)
                 _sharedLayout.ProportionsChanged -= OnSharedProportionsChanged;
 
@@ -61,11 +60,8 @@ public partial class ContainerControl : UserControl
             _hasProc = c.ProcListEntries.Count > 0 || showEmpty;
 
             ConfigureColumns();
-
-            // Apply shared proportions
             ApplySharedProportions();
 
-            // Wire splitter drag events
             SettingsItemsSplitter.DragDelta -= OnSplitterDragDelta;
             SettingsItemsSplitter.DragDelta += OnSplitterDragDelta;
             JunkSplitter.DragDelta -= OnSplitterDragDelta;
@@ -79,12 +75,8 @@ public partial class ContainerControl : UserControl
         }
     }
 
-    /// <summary>
-    /// Resets all 7 column definitions, then packs every visible panel
-    /// into consecutive (splitter, content) pairs starting from col 1.
-    /// Each GridSplitter always has a real star-width neighbor on both sides.
-    /// Stateless — safe to call repeatedly across toggles and switches.
-    /// </summary>
+    #region Column layout
+
     private void ConfigureColumns()
     {
         var zero = new GridLength(0);
@@ -92,19 +84,13 @@ public partial class ContainerControl : UserControl
         var star = new GridLength(1, GridUnitType.Star);
         var defs = ContentGrid.ColumnDefinitions;
 
-        // 1. Reset all columns to zero
         for (int i = 0; i < 7; i++)
             defs[i].Width = zero;
 
-        // 2. Col 0 is always Settings
         defs[0].Width = star;
 
-        // 3. Pack visible panels into consecutive column pairs
-        //    Each pair is (splitter col, content col).
-        //    Layout: Settings(0) | S(n) | Panel(n+1) | S(n+2) | Panel(n+3) | ...
         int next = 1;
 
-        // Items
         ItemsPanel.IsVisible = _hasItems;
         SettingsItemsSplitter.IsVisible = _hasItems;
         if (_hasItems)
@@ -116,7 +102,6 @@ public partial class ContainerControl : UserControl
             next += 2;
         }
 
-        // Junk
         JunkPanel.IsVisible = _hasJunk;
         JunkSplitter.IsVisible = _hasJunk;
         if (_hasJunk)
@@ -128,7 +113,6 @@ public partial class ContainerControl : UserControl
             next += 2;
         }
 
-        // ProcList
         ProcListPanel.IsVisible = _hasProc;
         ProcListSplitter.IsVisible = _hasProc;
         if (_hasProc)
@@ -187,6 +171,10 @@ public partial class ContainerControl : UserControl
         ProcListSplitter.DragDelta -= OnSplitterDragDelta;
     }
 
+    #endregion
+
+    #region Property editing
+
     private void ItemRollsBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
@@ -224,6 +212,10 @@ public partial class ContainerControl : UserControl
             _model.DontSpawnAmmo, v => _model.DontSpawnAmmo = v);
     }
 
+    #endregion
+
+    #region Add items
+
     private void AddItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_model is null || _undoRedo is null) return;
@@ -249,4 +241,6 @@ public partial class ContainerControl : UserControl
             items, index, newItem,
             () => { ItemRowHelper.Populate(JunkRowsPanel, items, _undoRedo, context, _model); _model.IsDirty = true; }));
     }
+
+    #endregion
 }
