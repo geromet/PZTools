@@ -58,6 +58,12 @@ public partial class DistributionListControl : UserControl
     public (TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid) ContentFilters
         => (_procListFilter, _rollsFilter, _itemsFilter, _junkFilter, _proceduralFilter, _invalidFilter);
 
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        SaveFolders();
+    }
+
     public DistributionListControl()
     {
         InitializeComponent();
@@ -656,11 +662,13 @@ public partial class DistributionListControl : UserControl
     private void ExpandAll_Click(object? sender, RoutedEventArgs e)
     {
         SetExpandedRecursive(_rootNodes, true);
+        SaveFolders();
     }
 
     private void CollapseAll_Click(object? sender, RoutedEventArgs e)
     {
         SetExpandedRecursive(_rootNodes, false);
+        SaveFolders();
     }
 
     private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)
@@ -669,6 +677,7 @@ public partial class DistributionListControl : UserControl
         {
             folder.IsExpanded = true;
             SetExpandedRecursive(folder.Children, true);
+            SaveFolders();
         }
     }
 
@@ -678,6 +687,7 @@ public partial class DistributionListControl : UserControl
         {
             folder.IsExpanded = false;
             SetExpandedRecursive(folder.Children, false);
+            SaveFolders();
         }
     }
 
