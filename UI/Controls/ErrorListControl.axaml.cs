@@ -5,7 +5,7 @@ using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using DataInput.Errors;
+using Data.Errors;
 
 namespace UI.Controls;
 
@@ -36,14 +36,7 @@ public partial class ErrorListControl : UserControl
         ApplyFilter();
     }
 
-    private static string MakeRelative(string path, string root)
-    {
-        if (string.IsNullOrEmpty(root))
-            return Path.GetFileName(path);
-        if (path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-            return path[root.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        return Path.GetFileName(path);
-    }
+    #region Filtering
 
     private void ApplyFilter()
     {
@@ -64,6 +57,10 @@ public partial class ErrorListControl : UserControl
 
     private void ShowErrors_Click(object? sender, RoutedEventArgs e)   => ApplyFilter();
     private void ShowWarnings_Click(object? sender, RoutedEventArgs e) => ApplyFilter();
+
+    #endregion
+
+    #region Clipboard
 
     private void ErrorGrid_KeyDown(object? sender, KeyEventArgs e)
     {
@@ -106,5 +103,16 @@ public partial class ErrorListControl : UserControl
     {
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         clipboard?.SetTextAsync(text);
+    }
+
+    #endregion
+
+    private static string MakeRelative(string path, string root)
+    {
+        if (string.IsNullOrEmpty(root))
+            return Path.GetFileName(path);
+        if (path.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+            return path[root.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return Path.GetFileName(path);
     }
 }
