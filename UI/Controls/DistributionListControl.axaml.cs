@@ -2,15 +2,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.VisualTree;
-using DataInput.Data;
+using Data.Data;
 
 namespace UI.Controls;
 
@@ -19,6 +23,8 @@ public partial class DistributionListControl : UserControl
     private List<Distribution> _all = [];
     private string? _activeTypeFilter; // null = "All"
 
+    // Excluded Tri-State to handle funny stuff
+    private TriState _defaultFilter;
     // Tri-state content filters (per-container, conjunctive)
     private TriState _procListFilter;
     private TriState _rollsFilter;
@@ -29,6 +35,7 @@ public partial class DistributionListControl : UserControl
     // Tri-state structural filters (distribution-level)
     private TriState _noContentFilter;
     private TriState _invalidFilter;
+    private TriState _distributionItemsFilter;
 
     // Folder state
     private List<FolderDefinition> _folders = [];
@@ -55,8 +62,8 @@ public partial class DistributionListControl : UserControl
     public event Action<List<Distribution>>? OpenMultipleRequested;
 
     /// <summary>Exposes current content filter state so the detail panel can mirror it.</summary>
-    public (TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid) ContentFilters
-        => (_procListFilter, _rollsFilter, _itemsFilter, _junkFilter, _proceduralFilter, _invalidFilter);
+    public (TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural, TriState Invalid, TriState DistributionItemsFilter) ContentFilters
+        => (_procListFilter, _rollsFilter, _itemsFilter, _junkFilter, _proceduralFilter, _invalidFilter, _distributionItemsFilter);
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -101,6 +108,10 @@ public partial class DistributionListControl : UserControl
 
     public void Load(IReadOnlyList<Distribution> distributions)
     {
+        // Sync expansion state from current tree before rebuilding
+        if (_rootNodes.Count > 0)
+            SyncExpansionState(_rootNodes, _folders);
+
         _all = [.. distributions];
         _activeTypeFilter = null;
         _procListFilter = TriState.Ignored;
@@ -110,6 +121,8 @@ public partial class DistributionListControl : UserControl
         _proceduralFilter = TriState.Ignored;
         _noContentFilter = TriState.Ignored;
         _invalidFilter = TriState.Ignored;
+        _distributionItemsFilter = TriState.Ignored;
+        _defaultFilter = TriState.Ignored;
         SearchBox.Text = string.Empty;
         UpdateAllPillStyles();
         ApplyFilter();
@@ -127,16 +140,16 @@ public partial class DistributionListControl : UserControl
 
         // Content filters (conjunctive per-container):
         bool hasAnyContentFilter = _procListFilter != TriState.Ignored
-            || _rollsFilter != TriState.Ignored
-            || _itemsFilter != TriState.Ignored
-            || _junkFilter != TriState.Ignored
-            || _proceduralFilter != TriState.Ignored;
+                                   || _rollsFilter != TriState.Ignored
+                                   || _itemsFilter != TriState.Ignored
+                                   || _junkFilter != TriState.Ignored
+                                   || _proceduralFilter != TriState.Ignored;
 
         if (hasAnyContentFilter)
         {
             result = result.Where(d => MatchesContentFilters(d));
         }
-
+        
         // Structural filters (distribution-level)
         if (_noContentFilter != TriState.Ignored)
         {
@@ -147,6 +160,12 @@ public partial class DistributionListControl : UserControl
         {
             bool want = _invalidFilter == TriState.Include;
             result = result.Where(d => HasInvalidContainers(d) == want);
+        }
+
+        if (_distributionItemsFilter != TriState.Ignored)
+        {
+            bool want = _distributionItemsFilter == TriState.Include;
+            result = result.Where(d => HasDirectItems(d));
         }
 
         // Regex search with graceful fallback
@@ -244,7 +263,8 @@ public partial class DistributionListControl : UserControl
             || _junkFilter != TriState.Ignored
             || _proceduralFilter != TriState.Ignored
             || _noContentFilter != TriState.Ignored
-            || _invalidFilter != TriState.Ignored
+            || _invalidFilter != TriState.Ignored 
+            || _distributionItemsFilter != TriState.Ignored
             || query.Length > 0;
     }
 
@@ -400,7 +420,15 @@ public partial class DistributionListControl : UserControl
 
         var data = new DataObject();
         data.Set("ExplorerNodes", draggedNodes);
-        await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        try
+        {
+            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.Message);
+        }
+        
         ClearDropTarget();
     }
 
@@ -461,11 +489,14 @@ public partial class DistributionListControl : UserControl
         if (!IsValidDrop(draggedNodes, dropFolder, targetNode))
             return;
 
-        // Perform the move
+        // Perform the move (MoveFolderTo shows its own confirmation dialog)
         foreach (var node in draggedNodes)
         {
             if (node.IsFolder)
-                MoveFolderTo(node, dropFolder);
+            {
+                if (!MoveFolderTo(node, dropFolder))
+                    return; // user cancelled
+            }
             else if (node.Distribution is not null)
                 MoveDistributionTo(node.Distribution.Name, dropFolder);
         }
@@ -540,11 +571,19 @@ public partial class DistributionListControl : UserControl
         targetDef?.DistributionNames.Add(distName);
     }
 
-    private void MoveFolderTo(ExplorerNode folderNode, ExplorerNode? targetFolderNode)
+    /// <summary>
+    /// Moves a folder to a new parent. Shows a confirmation dialog first.
+    /// Returns false if the user cancelled.
+    /// </summary>
+    private bool MoveFolderTo(ExplorerNode folderNode, ExplorerNode? targetFolderNode)
     {
+        if (!ShowMoveFolderConfirmation(folderNode.Name))
+            return false;
+
         // Find and remove the folder from its current location
         var (folderDef, oldParentList) = FindFolderDefinition(folderNode);
-        if (folderDef is null) return;
+        if (folderDef is null) return true; // nothing to move, but not cancelled
+
         oldParentList.Remove(folderDef);
 
         if (targetFolderNode is null)
@@ -567,6 +606,7 @@ public partial class DistributionListControl : UserControl
                 _folders.Add(folderDef);
             }
         }
+        return true;
     }
 
     // ── Drag visual helpers ──
@@ -613,7 +653,56 @@ public partial class DistributionListControl : UserControl
         _currentDropTarget.Classes.Remove("droptarget");
         _currentDropTarget = null;
     }
+    /// <summary>
+    /// Shows a confirmation dialog before moving a folder. Returns true if the user confirmed.
+    /// </summary>
+    private bool ShowMoveFolderConfirmation(string folderName)
+    {
+        var dialog = new Window
+        {
+            Title = "Move Folder",
+            Width = 320,
+            Height = 100,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+        };
+        var result = false;
+        var yesBtn = new Button { Content = "Yes", Margin = new Thickness(0, 0, 8, 0) };
+        var noBtn = new Button { Content = "No" };
+        yesBtn.Click += (_, _) => { result = true; dialog.Close(); };
+        noBtn.Click += (_, _) => { dialog.Close(); };
+        yesBtn.IsDefault = true;
+        noBtn.IsCancel = true;
 
+        dialog.Content = new StackPanel
+        {
+            Margin = new Thickness(10),
+            Spacing = 16,
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = $"Are you sure you want to move the folder \"{folderName}\"?",
+                    TextWrapping = TextWrapping.Wrap,
+                    HorizontalAlignment = HorizontalAlignment.Center
+                },
+                new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Children = { yesBtn, noBtn }
+                }
+            }
+        };
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            dialog.ShowDialog(desktop.MainWindow);
+            return result;
+        }
+
+        return result;
+    }
+    
     // ── Context menu ──
 
     private void TreeContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -1145,6 +1234,11 @@ public partial class DistributionListControl : UserControl
         return true;
     }
 
+    private bool HasDirectItems(Distribution d)
+    {
+        return d.ItemChances.Any();
+    }
+
     private static bool HasNoContent(Distribution d)
     {
         return d.Containers.Count == 0
@@ -1215,6 +1309,7 @@ public partial class DistributionListControl : UserControl
         if (tag == "Items") return ref _itemsFilter;
         if (tag == "Junk") return ref _junkFilter;
         if (tag == "Procedural") return ref _proceduralFilter;
+        if (tag == "DistributionItems") return ref _distributionItemsFilter;
         return ref _procListFilter;
     }
 
@@ -1246,8 +1341,13 @@ public partial class DistributionListControl : UserControl
 
     private ref TriState GetStructureFilterRef(string? tag)
     {
-        if (tag == "Invalid") return ref _invalidFilter;
-        return ref _noContentFilter;
+        switch (tag)
+        {
+            case "Invalid" :return ref _invalidFilter;
+            case "NoContent" :return ref _noContentFilter;
+            case "DistributionItems" :return ref _distributionItemsFilter;
+            default: return ref _defaultFilter;
+        }
     }
 
     private void UpdateAllPillStyles()
