@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -61,13 +59,7 @@ public partial class ContainerControl : UserControl
 
             ConfigureColumns();
             ApplySharedProportions();
-
-            SettingsItemsSplitter.DragDelta -= OnSplitterDragDelta;
-            SettingsItemsSplitter.DragDelta += OnSplitterDragDelta;
-            JunkSplitter.DragDelta -= OnSplitterDragDelta;
-            JunkSplitter.DragDelta += OnSplitterDragDelta;
-            ProcListSplitter.DragDelta -= OnSplitterDragDelta;
-            ProcListSplitter.DragDelta += OnSplitterDragDelta;
+            WireSplitters();
         }
         finally
         {
@@ -76,6 +68,17 @@ public partial class ContainerControl : UserControl
     }
 
     #region Column layout
+
+    private GridSplitter[] Splitters => [SettingsItemsSplitter, JunkSplitter, ProcListSplitter];
+
+    private void WireSplitters()
+    {
+        foreach (var s in Splitters)
+        {
+            s.DragDelta -= OnSplitterDragDelta;
+            s.DragDelta += OnSplitterDragDelta;
+        }
+    }
 
     private void ConfigureColumns()
     {
@@ -88,41 +91,25 @@ public partial class ContainerControl : UserControl
             defs[i].Width = zero;
 
         defs[0].Width = star;
-
         int next = 1;
 
-        ItemsPanel.IsVisible = _hasItems;
-        SettingsItemsSplitter.IsVisible = _hasItems;
-        if (_hasItems)
-        {
-            Grid.SetColumn(SettingsItemsSplitter, next);
-            Grid.SetColumn(ItemsPanel, next + 1);
-            defs[next].Width = splitterWidth;
-            defs[next + 1].Width = star;
-            next += 2;
-        }
+        PlaceColumnPair(defs, SettingsItemsSplitter, ItemsPanel, _hasItems, ref next, splitterWidth, star);
+        PlaceColumnPair(defs, JunkSplitter, JunkPanel, _hasJunk, ref next, splitterWidth, star);
+        PlaceColumnPair(defs, ProcListSplitter, ProcListPanel, _hasProc, ref next, splitterWidth, star);
+    }
 
-        JunkPanel.IsVisible = _hasJunk;
-        JunkSplitter.IsVisible = _hasJunk;
-        if (_hasJunk)
-        {
-            Grid.SetColumn(JunkSplitter, next);
-            Grid.SetColumn(JunkPanel, next + 1);
-            defs[next].Width = splitterWidth;
-            defs[next + 1].Width = star;
-            next += 2;
-        }
-
-        ProcListPanel.IsVisible = _hasProc;
-        ProcListSplitter.IsVisible = _hasProc;
-        if (_hasProc)
-        {
-            Grid.SetColumn(ProcListSplitter, next);
-            Grid.SetColumn(ProcListPanel, next + 1);
-            defs[next].Width = splitterWidth;
-            defs[next + 1].Width = star;
-            next += 2;
-        }
+    private static void PlaceColumnPair(
+        ColumnDefinitions defs, Control splitter, Control panel,
+        bool visible, ref int next, GridLength splitterWidth, GridLength star)
+    {
+        splitter.IsVisible = visible;
+        panel.IsVisible = visible;
+        if (!visible) return;
+        Grid.SetColumn(splitter, next);
+        Grid.SetColumn(panel, next + 1);
+        defs[next].Width = splitterWidth;
+        defs[next + 1].Width = star;
+        next += 2;
     }
 
     private void ApplySharedProportions()
@@ -166,9 +153,8 @@ public partial class ContainerControl : UserControl
         if (_sharedLayout is not null)
             _sharedLayout.ProportionsChanged -= OnSharedProportionsChanged;
 
-        SettingsItemsSplitter.DragDelta -= OnSplitterDragDelta;
-        JunkSplitter.DragDelta -= OnSplitterDragDelta;
-        ProcListSplitter.DragDelta -= OnSplitterDragDelta;
+        foreach (var s in Splitters)
+            s.DragDelta -= OnSplitterDragDelta;
     }
 
     #endregion
@@ -219,27 +205,15 @@ public partial class ContainerControl : UserControl
     private void AddItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_model is null || _undoRedo is null) return;
-        var items = _model.ItemChances;
-        var newItem = new Item("NewItem", 1);
-        var index = items.Count;
-        var context = $"{_model.Name}.items";
-        _undoRedo.Push(new ListInsertAction<Item>(
-            $"{context}: add '{newItem.Name}'",
-            items, index, newItem,
-            () => { ItemRowHelper.Populate(ItemRowsPanel, items, _undoRedo, context, _model); _model.IsDirty = true; }));
+        UndoHelper.PushItemInsert(_undoRedo, _model,
+            _model.ItemChances, ItemRowsPanel, $"{_model.Name}.items");
     }
 
     private void AddJunkItem_Click(object? sender, RoutedEventArgs e)
     {
         if (_model is null || _undoRedo is null) return;
-        var items = _model.JunkChances;
-        var newItem = new Item("NewItem", 1);
-        var index = items.Count;
-        var context = $"{_model.Name}.junk";
-        _undoRedo.Push(new ListInsertAction<Item>(
-            $"{context}: add '{newItem.Name}'",
-            items, index, newItem,
-            () => { ItemRowHelper.Populate(JunkRowsPanel, items, _undoRedo, context, _model); _model.IsDirty = true; }));
+        UndoHelper.PushItemInsert(_undoRedo, _model,
+            _model.JunkChances, JunkRowsPanel, $"{_model.Name}.junk");
     }
 
     #endregion

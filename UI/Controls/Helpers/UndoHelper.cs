@@ -6,6 +6,18 @@ namespace UI.Controls;
 
 public static class UndoHelper
 {
+    public static void PushItemInsert(
+        UndoRedoStack undoRedo, ItemParent owner,
+        List<Item> items, StackPanel panel, string context)
+    {
+        var newItem = new Item("NewItem", 1);
+        var index = items.Count;
+        undoRedo.Push(new ListInsertAction<Item>(
+            $"{context}: add '{newItem.Name}'",
+            items, index, newItem,
+            () => { ItemRowHelper.Populate(panel, items, undoRedo, context, owner); owner.IsDirty = true; }));
+    }
+
     public static void PushIntChange(
         UndoRedoStack undoRedo, ItemParent model, TextBox box,
         string propName, int oldVal, Action<int> setModel,
