@@ -130,58 +130,19 @@ public partial class DistributionListControl : UserControl
         ApplyFilter();
     }
 
+    private FilterCriteria BuildFilterCriteria()
+    {
+        return new FilterCriteria(
+            _activeTypeFilter, _procListFilter, _rollsFilter,
+            _itemsFilter, _junkFilter, _proceduralFilter,
+            _noContentFilter, _invalidFilter, _distributionItemsFilter,
+            SearchBox.Text?.Trim() ?? string.Empty);
+    }
+
     private void ApplyFilter()
     {
-        var query = SearchBox.Text?.Trim() ?? string.Empty;
-
-        IEnumerable<Distribution> result = _all;
-
-        // Type filter (row 1)
-        if (_activeTypeFilter is not null)
-            result = result.Where(d => d.Type.ToString() == _activeTypeFilter);
-
-        // Content filters (conjunctive per-container):
-        bool hasAnyContentFilter = _procListFilter != TriState.Ignored
-                                   || _rollsFilter != TriState.Ignored
-                                   || _itemsFilter != TriState.Ignored
-                                   || _junkFilter != TriState.Ignored
-                                   || _proceduralFilter != TriState.Ignored;
-
-        if (hasAnyContentFilter)
-        {
-            result = result.Where(d => MatchesContentFilters(d));
-        }
-        
-        // Structural filters (distribution-level)
-        if (_noContentFilter != TriState.Ignored)
-        {
-            bool want = _noContentFilter == TriState.Include;
-            result = result.Where(d => HasNoContent(d) == want);
-        }
-        if (_invalidFilter != TriState.Ignored)
-        {
-            bool want = _invalidFilter == TriState.Include;
-            result = result.Where(d => HasInvalidContainers(d) == want);
-        }
-
-        if (_distributionItemsFilter != TriState.Ignored)
-        {
-            bool want = _distributionItemsFilter == TriState.Include;
-            result = result.Where(d => HasDirectItems(d));
-        }
-
-        // Regex search with graceful fallback
-        if (query.Length > 0)
-        {
-            Regex? regex = null;
-            try { regex = new Regex(query, RegexOptions.IgnoreCase); } catch { }
-
-            result = regex is not null
-                ? result.Where(d => regex.IsMatch(d.Name))
-                : result.Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
-        }
-
-        _lastFiltered = result.OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        var criteria = BuildFilterCriteria();
+        _lastFiltered = DistributionFilter.Apply(_all, criteria);
         BuildTree(_lastFiltered);
         CountText.Text = $"{_lastFiltered.Count} / {_all.Count}";
     }
@@ -255,20 +216,7 @@ public partial class DistributionListControl : UserControl
         return folderNode;
     }
 
-    private bool HasAnyActiveFilter()
-    {
-        var query = SearchBox.Text?.Trim() ?? string.Empty;
-        return _activeTypeFilter is not null
-            || _procListFilter != TriState.Ignored
-            || _rollsFilter != TriState.Ignored
-            || _itemsFilter != TriState.Ignored
-            || _junkFilter != TriState.Ignored
-            || _proceduralFilter != TriState.Ignored
-            || _noContentFilter != TriState.Ignored
-            || _invalidFilter != TriState.Ignored 
-            || _distributionItemsFilter != TriState.Ignored
-            || query.Length > 0;
-    }
+    private bool HasAnyActiveFilter() => DistributionFilter.HasAnyActiveFilter(BuildFilterCriteria());
 
     /// <summary>
     /// Rebuilds the tree from the cached filter result, preserving selection and scroll position.
@@ -1157,114 +1105,6 @@ public partial class DistributionListControl : UserControl
             Children = f.Children is not null ? DeepCopyFolders(f.Children) : null,
             IsExpanded = f.IsExpanded,
         }).ToList();
-    }
-
-    // ── Content filter logic (unchanged from original) ──
-
-    private bool MatchesContentFilters(Distribution d)
-    {
-        foreach (var c in d.Containers)
-        {
-            if (ContainerMatchesAllFilters(c))
-                return true;
-        }
-
-        if (d.ItemChances.Count > 0 || d.JunkChances.Count > 0 || d.ItemRolls > 0)
-        {
-            if (VirtualContainerMatchesAllFilters(d))
-                return true;
-        }
-
-        return false;
-    }
-
-    private bool ContainerMatchesAllFilters(Container c)
-    {
-        if (_procListFilter != TriState.Ignored)
-        {
-            bool has = c.ProcListEntries.Count > 0;
-            if ((_procListFilter == TriState.Include) != has) return false;
-        }
-        if (_rollsFilter != TriState.Ignored)
-        {
-            bool has = c.ItemRolls > 0;
-            if ((_rollsFilter == TriState.Include) != has) return false;
-        }
-        if (_itemsFilter != TriState.Ignored)
-        {
-            bool has = c.ItemChances.Count > 0;
-            if ((_itemsFilter == TriState.Include) != has) return false;
-        }
-        if (_junkFilter != TriState.Ignored)
-        {
-            bool has = c.JunkChances.Count > 0;
-            if ((_junkFilter == TriState.Include) != has) return false;
-        }
-        if (_proceduralFilter != TriState.Ignored)
-        {
-            bool has = c.Procedural;
-            if ((_proceduralFilter == TriState.Include) != has) return false;
-        }
-        return true;
-    }
-
-    private bool VirtualContainerMatchesAllFilters(Distribution d)
-    {
-        if (_procListFilter != TriState.Ignored)
-        {
-            if (_procListFilter == TriState.Include) return false;
-        }
-        if (_rollsFilter != TriState.Ignored)
-        {
-            bool has = d.ItemRolls > 0;
-            if ((_rollsFilter == TriState.Include) != has) return false;
-        }
-        if (_itemsFilter != TriState.Ignored)
-        {
-            bool has = d.ItemChances.Count > 0;
-            if ((_itemsFilter == TriState.Include) != has) return false;
-        }
-        if (_junkFilter != TriState.Ignored)
-        {
-            bool has = d.JunkChances.Count > 0;
-            if ((_junkFilter == TriState.Include) != has) return false;
-        }
-        if (_proceduralFilter != TriState.Ignored)
-        {
-            if (_proceduralFilter == TriState.Include) return false;
-        }
-        return true;
-    }
-
-    private bool HasDirectItems(Distribution d)
-    {
-        return d.ItemChances.Any();
-    }
-
-    private static bool HasNoContent(Distribution d)
-    {
-        return d.Containers.Count == 0
-            && d.ItemChances.Count == 0
-            && d.JunkChances.Count == 0;
-    }
-
-    private static bool HasInvalidContainers(Distribution d)
-    {
-        foreach (var c in d.Containers)
-        {
-            bool hasItems = c.ItemChances.Count > 0;
-            bool hasJunk = c.JunkChances.Count > 0;
-            bool hasProcList = c.ProcListEntries.Count > 0;
-            bool hasRolls = c.ItemRolls > 0;
-
-            if (!hasItems && !hasJunk && !hasProcList)
-                return true;
-            if (hasRolls && !hasItems && !hasJunk)
-                return true;
-            if (c.Procedural && !hasProcList)
-                return true;
-        }
-        return false;
     }
 
     // ── Type filter pills (row 1) — single-select toggle ──
