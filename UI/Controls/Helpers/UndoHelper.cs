@@ -19,7 +19,7 @@ public static class UndoHelper
     }
 
     public static void PushIntChange(
-        UndoRedoStack undoRedo, ItemParent model, TextBox box,
+        UndoRedoStack undoRedo, IDirtyEntry model, TextBox box,
         string propName, int oldVal, Action<int> setModel,
         Action<int>? extraApply = null)
     {
@@ -42,7 +42,7 @@ public static class UndoHelper
     }
 
     public static void PushBoolChange(
-        UndoRedoStack undoRedo, ItemParent model, CheckBox check,
+        UndoRedoStack undoRedo, IDirtyEntry model, CheckBox check,
         string propName, bool oldVal, Action<bool> setModel,
         Action<bool>? extraApply = null)
     {
@@ -58,5 +58,23 @@ public static class UndoHelper
                 model.IsDirty = true;
             },
             oldVal, newVal));
+    }
+
+    public static void PushStringChange(
+        UndoRedoStack undoRedo, IDirtyEntry model, TextBox box,
+        string propName, string? oldVal, Action<string?> setModel)
+    {
+        var newVal = box.Text ?? string.Empty;
+        var old = oldVal ?? string.Empty;
+        if (newVal == old) return;
+        undoRedo.Push(new PropertyChangeAction<string>(
+            $"{model.Name}.{propName}",
+            v =>
+            {
+                setModel(string.IsNullOrEmpty(v) ? null : v);
+                box.Text = v;
+                model.IsDirty = true;
+            },
+            old, newVal));
     }
 }

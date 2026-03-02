@@ -6,7 +6,7 @@
 /// found — tracked as an error rather than thrown, so mod files with broken references
 /// don't abort the entire parse.
 /// </summary>
-public sealed class ProcListEntry
+public sealed class ProcListEntry : IDirtyEntry
 {
     public string Name         { get; set; } = string.Empty;
     public int    Min          { get; set; }

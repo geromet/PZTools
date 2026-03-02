@@ -6,7 +6,7 @@
 /// a base class is appropriate here rather than an interface because the
 /// shared state is structural, not contractual.
 /// </summary>
-public abstract class ItemParent
+public abstract class ItemParent : IDirtyEntry
 {
     public string Name { get; set; } = string.Empty;
 
