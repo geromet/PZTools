@@ -93,7 +93,7 @@ public partial class DistributionDetailControl : UserControl
 
             // Show distribution-level items (common for procedural distributions which have
             // items/junk directly on the distribution rather than in named sub-containers).
-            bool hasDirectItems = d.ItemChances.Count > 0 || d.JunkChances.Count > 0;
+            bool hasDirectItems = d.ItemChances.Count > 0 || d.JunkChances.Count > 0 || _showEmpty;
             DirectItemsPanel.IsVisible = hasDirectItems;
             HeaderDirectItems.IsVisible = hasDirectItems;
             if (hasDirectItems)
@@ -102,8 +102,8 @@ public partial class DistributionDetailControl : UserControl
                 DirectCountBadge.Text = $"\u229e {d.ItemChances.Count}";
                 HeaderDirectItemCount.Text = d.ItemChances.Count.ToString();
                 DistItemsControl.Load(d.ItemChances, undoRedo, $"{d.Name}.items", d);
-                JunkTab.IsVisible = d.JunkChances.Count > 0;
-                if (d.JunkChances.Count > 0)
+                JunkTab.IsVisible = d.JunkChances.Count > 0 || _showEmpty;
+                if (d.JunkChances.Count > 0 || _showEmpty)
                     DistJunkControl.Load(d.JunkChances, undoRedo, $"{d.Name}.junk", d);
             }
 
