@@ -16,11 +16,7 @@ namespace UI.Controls;
 
 public partial class DistributionListControl : UserControl, ITreeDragDropHost
 {
-    private List<Distribution> _all = [];
-    private List<Distribution> _lastFiltered = [];
-    private List<FolderDefinition> _folders = [];
-    private readonly ObservableCollection<ExplorerNode> _rootNodes = [];
-    private readonly FilterState _filter = new();
+    private readonly DistributionListState _state = new();
     private readonly RenameState _rename = new();
 
     public event Action<Distribution?>? SelectionChanged;
@@ -29,12 +25,13 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     public (TriState ProcList, TriState Rolls, TriState Items, TriState Junk, TriState Procedural,
         TriState Invalid, TriState DistributionItemsFilter) ContentFilters
-        => _filter.ContentFilters;
+        => _state.Filter.ContentFilters;
 
     public DistributionListControl()
     {
         InitializeComponent();
         SearchBox.TextChanged += (_, _) => ApplyFilter();
+        DistTree.ItemsSource = _state.RootNodes;
 
         WireRightClickHandlers(ContentFilterPills);
         WireRightClickHandlers(StructureFilterPills);
@@ -48,19 +45,14 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
-        SaveExpansionState();
+        _state.SaveExpansionState();
     }
 
-    public void SetSettings(UserSettings settings) =>
-        _folders = FolderService.DeepCopy(FolderSettings.Load());
+    public void SetSettings(UserSettings settings) => _state.LoadFolders();
 
     public void Load(IReadOnlyList<Distribution> distributions)
     {
-        if (_rootNodes.Count > 0)
-            SyncExpansionState(_rootNodes, _folders);
-
-        _all = [.. distributions];
-        _filter.Reset();
+        _state.LoadDistributions(distributions);
         SearchBox.Text = string.Empty;
         UpdateAllPillStyles();
         ApplyFilter();
@@ -72,40 +64,32 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     private void ApplyFilter()
     {
-        _lastFiltered = DistributionFilter.Apply(_all, _filter.BuildCriteria(SearchQuery));
-        BuildTree(_lastFiltered);
-        CountText.Text = $"{_lastFiltered.Count} / {_all.Count}";
+        _state.ApplyFilter(SearchQuery);
+        CountText.Text = $"{_state.LastFiltered.Count} / {_state.TotalCount}";
     }
-
-    private void BuildTree(List<Distribution> filtered)
-    {
-        FolderTreeBuilder.Build(_rootNodes, _folders, filtered,
-            DistributionFilter.HasAnyActiveFilter(_filter.BuildCriteria(SearchQuery)));
-        DistTree.ItemsSource = _rootNodes;
-    }
-
-    #endregion
-
-    #region Tree refresh
 
     private void RefreshTree()
     {
-        var selectedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        if (DistTree.SelectedItems is not null)
-            foreach (var item in DistTree.SelectedItems)
-                if (item is ExplorerNode { Distribution: not null } node)
-                    selectedNames.Add(node.Distribution.Name);
-
+        var selectedNames = CaptureSelectedNames();
         var scrollViewer = FindScrollViewer(DistTree);
         var scrollOffset = scrollViewer?.Offset ?? default;
 
-        SyncExpansionState(_rootNodes, _folders);
-        BuildTree(_lastFiltered);
+        _state.RebuildTree(SearchQuery, syncExpansion: true);
 
         if (selectedNames.Count > 0)
-            RestoreSelection(selectedNames, _rootNodes);
+            RestoreSelection(selectedNames, _state.RootNodes);
         if (scrollViewer is not null)
             scrollViewer.Offset = scrollOffset;
+    }
+
+    private HashSet<string> CaptureSelectedNames()
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (DistTree.SelectedItems is not null)
+            foreach (var item in DistTree.SelectedItems)
+                if (item is ExplorerNode { Distribution: not null } node)
+                    names.Add(node.Distribution.Name);
+        return names;
     }
 
     private void RestoreSelection(HashSet<string> names, ObservableCollection<ExplorerNode> nodes)
@@ -185,13 +169,13 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #region ITreeDragDropHost
 
-    ObservableCollection<ExplorerNode> ITreeDragDropHost.RootNodes => _rootNodes;
-    List<FolderDefinition> ITreeDragDropHost.Folders => _folders;
-    void ITreeDragDropHost.SaveFolders() => SaveFolders();
+    ObservableCollection<ExplorerNode> ITreeDragDropHost.RootNodes => _state.RootNodes;
+    List<FolderDefinition> ITreeDragDropHost.Folders => _state.Folders;
+    void ITreeDragDropHost.SaveFolders() => _state.SaveFolders();
     void ITreeDragDropHost.RefreshTree() => RefreshTree();
 
     (FolderDefinition? folder, List<FolderDefinition> parentList) ITreeDragDropHost.FindFolderDefinition(
-        ExplorerNode node) => FindFolderDefinition(node);
+        ExplorerNode node) => _state.FindFolderDefinition(node);
 
     bool ITreeDragDropHost.ShowMoveFolderConfirmation(string folderName) =>
         ShowMoveFolderConfirmation(folderName);
@@ -248,7 +232,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         bool hasSingleDist = selected is { IsFolder: false, Distribution: not null };
         bool anyInFolder = selectedDistNodes.Any(n =>
             n.Distribution is not null &&
-            FolderService.FindFolderContaining(n.Distribution.Name, _folders) is not null);
+            FolderService.FindFolderContaining(n.Distribution.Name, _state.Folders) is not null);
         bool isFolder = selected is { IsFolder: true };
 
         OpenDistItem.IsVisible = hasSingleDist;
@@ -256,8 +240,8 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         NewSubfolderItem.IsVisible = isFolder;
 
         MoveToFolderMenu.Items.Clear();
-        BuildMoveToFolderMenu(MoveToFolderMenu, _folders, "");
-        MoveToFolderMenu.IsVisible = hasDistSelection && _folders.Count > 0;
+        BuildMoveToFolderMenu(MoveToFolderMenu, _state.Folders, "");
+        MoveToFolderMenu.IsVisible = hasDistSelection && _state.Folders.Count > 0;
         RemoveFromFolderItem.IsVisible = hasDistSelection && anyInFolder;
 
         RenameFolderItem.IsVisible = isFolder;
@@ -284,17 +268,6 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #region Expand / collapse
 
-    private static void SetExpandedRecursive(IEnumerable<ExplorerNode> nodes, bool expanded)
-    {
-        foreach (var node in nodes)
-        {
-            if (!node.IsFolder) continue;
-            node.IsExpanded = expanded;
-            if (node.Children.Count > 0)
-                SetExpandedRecursive(node.Children, expanded);
-        }
-    }
-
     private void ExpandAll_Click(object? sender, RoutedEventArgs e) => SetExpandAll(true);
     private void CollapseAll_Click(object? sender, RoutedEventArgs e) => SetExpandAll(false);
     private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e) => SetExpandSelectedFolder(true);
@@ -302,16 +275,16 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     private void SetExpandAll(bool expanded)
     {
-        SetExpandedRecursive(_rootNodes, expanded);
-        SaveExpansionState();
+        DistributionListState.SetExpandedRecursive(_state.RootNodes, expanded);
+        _state.SaveExpansionState();
     }
 
     private void SetExpandSelectedFolder(bool expanded)
     {
         if (DistTree.SelectedItem is not ExplorerNode { IsFolder: true } folder) return;
         folder.IsExpanded = expanded;
-        SetExpandedRecursive(folder.Children, expanded);
-        SaveExpansionState();
+        DistributionListState.SetExpandedRecursive(folder.Children, expanded);
+        _state.SaveExpansionState();
     }
 
     #endregion
@@ -341,10 +314,8 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     private void DeleteFolder_Click(object? sender, RoutedEventArgs e)
     {
         if (DistTree.SelectedItem is not ExplorerNode { IsFolder: true } node) return;
-        var (folder, parentList) = FindFolderDefinition(node);
-        if (folder is null) return;
-        parentList.Remove(folder);
-        SaveFolders();
+        _state.DeleteFolder(node);
+        _state.SaveFolders();
         RefreshTree();
     }
 
@@ -352,27 +323,26 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     {
         e.Handled = true;
         if (sender is not MenuItem { Tag: string folderPath }) return;
-        var folder = FolderService.FindFolderByPath(folderPath, _folders);
-        if (folder is null) return;
+        var distNames = GetSelectedDistributionNodes()
+            .Where(n => n.Distribution is not null)
+            .Select(n => n.Distribution!.Name)
+            .ToList();
+        if (distNames.Count == 0) return;
 
-        foreach (var node in GetSelectedDistributionNodes())
-        {
-            if (node.Distribution is null) continue;
-            FolderService.RemoveDistFromAllFolders(node.Distribution.Name, _folders);
-            folder.DistributionNames.Add(node.Distribution.Name);
-        }
-
-        SaveFolders();
+        _state.MoveDistributionsToFolder(distNames, folderPath);
+        _state.SaveFolders();
         RefreshTree();
     }
 
     private void RemoveFromFolder_Click(object? sender, RoutedEventArgs e)
     {
-        foreach (var node in GetSelectedDistributionNodes())
-            if (node.Distribution is not null)
-                FolderService.RemoveDistFromAllFolders(node.Distribution.Name, _folders);
+        var distNames = GetSelectedDistributionNodes()
+            .Where(n => n.Distribution is not null)
+            .Select(n => n.Distribution!.Name)
+            .ToList();
 
-        SaveFolders();
+        _state.RemoveDistributionsFromFolders(distNames);
+        _state.SaveFolders();
         RefreshTree();
     }
 
@@ -394,35 +364,17 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         var newName = RenameBox.Text?.Trim() ?? "";
         if (string.IsNullOrEmpty(newName)) { _rename.Reset(); return; }
 
+        bool changed;
         if (_rename.IsCreating)
-        {
-            List<FolderDefinition> targetList;
-            if (_rename.NewFolderParent is not null)
-            {
-                var (parentDef, _) = FindFolderDefinition(_rename.NewFolderParent);
-                if (parentDef is null) { _rename.Reset(); return; }
-                parentDef.Children ??= [];
-                targetList = parentDef.Children;
-            }
-            else
-            {
-                targetList = _folders;
-            }
-
-            if (targetList.Any(f => string.Equals(f.Name, newName, StringComparison.OrdinalIgnoreCase)))
-            { _rename.Reset(); return; }
-
-            targetList.Add(new FolderDefinition { Name = newName });
-        }
+            changed = _state.CommitCreate(newName, _rename.NewFolderParent);
         else if (_rename.RenamingNode is not null)
-        {
-            var (folder, _) = FindFolderDefinition(_rename.RenamingNode);
-            if (folder is not null)
-                folder.Name = newName;
-        }
+            changed = _state.CommitRenameFolder(_rename.RenamingNode, newName);
+        else
+            changed = false;
 
         _rename.Reset();
-        SaveFolders();
+        if (!changed) return;
+        _state.SaveFolders();
         RefreshTree();
     }
 
@@ -445,76 +397,12 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #endregion
 
-    #region Folder lookup (ExplorerNode → FolderDefinition bridge)
-
-    private List<string>? GetNodePath(ExplorerNode target)
-    {
-        var path = new List<string>();
-        return FindNodePath(target, _rootNodes, path) ? path : null;
-    }
-
-    private static bool FindNodePath(
-        ExplorerNode target, ObservableCollection<ExplorerNode> nodes, List<string> path)
-    {
-        foreach (var node in nodes)
-        {
-            if (node == target) { path.Add(node.Name); return true; }
-            if (!node.IsFolder) continue;
-            path.Add(node.Name);
-            if (FindNodePath(target, node.Children, path)) return true;
-            path.RemoveAt(path.Count - 1);
-        }
-        return false;
-    }
-
-    private (FolderDefinition? folder, List<FolderDefinition> parentList) FindFolderDefinition(
-        ExplorerNode node)
-    {
-        var path = GetNodePath(node);
-        return path is not null
-            ? FolderService.FindByNodePath(path, _folders)
-            : FolderService.FindByName(node.Name, _folders);
-    }
-
-    #endregion
-
-    #region Persistence
-
-    private void SaveFolders()
-    {
-        SyncExpansionState(_rootNodes, _folders);
-        FolderSettings.Save(FolderService.DeepCopy(_folders));
-    }
-
-    private void SaveExpansionState()
-    {
-        SyncExpansionState(_rootNodes, _folders);
-        FolderSettings.Save(_folders);
-    }
-
-    private static void SyncExpansionState(
-        ObservableCollection<ExplorerNode> nodes, List<FolderDefinition> folders)
-    {
-        foreach (var node in nodes)
-        {
-            if (!node.IsFolder) continue;
-            var folder = folders.FirstOrDefault(f =>
-                string.Equals(f.Name, node.Name, StringComparison.OrdinalIgnoreCase));
-            if (folder is null) continue;
-            folder.IsExpanded = node.IsExpanded;
-            if (folder.Children is not null)
-                SyncExpansionState(node.Children, folder.Children);
-        }
-    }
-
-    #endregion
-
     #region Filter pills
 
     private void TypeFilterPill_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button btn) return;
-        _filter.ToggleTypeFilter(btn.Tag as string);
+        _state.Filter.ToggleTypeFilter(btn.Tag as string);
         UpdateAllPillStyles();
         ApplyFilter();
     }
@@ -534,7 +422,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     private void ToggleTriStateFilter(object? sender, TriState targetState)
     {
         if (sender is not Button btn) return;
-        ref var state = ref _filter.GetRef(btn.Tag as string);
+        ref var state = ref _state.Filter.GetRef(btn.Tag as string);
         state = state == targetState ? TriState.Ignored : targetState;
         UpdateAllPillStyles();
         ApplyFilter();
@@ -544,7 +432,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     {
         if (sender is not Button btn) return;
         if (!e.GetCurrentPoint(btn).Properties.IsRightButtonPressed) return;
-        ref var state = ref _filter.GetRef(btn.Tag as string);
+        ref var state = ref _state.Filter.GetRef(btn.Tag as string);
         state = state == TriState.Exclude ? TriState.Ignored : TriState.Exclude;
         UpdateAllPillStyles();
         ApplyFilter();
@@ -565,7 +453,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         foreach (var child in TypeFilterPills.Children)
         {
             if (child is not Button btn) continue;
-            if (_filter.ActiveTypeFilter == btn.Tag as string)
+            if (_state.Filter.ActiveTypeFilter == btn.Tag as string)
                 btn.Classes.Add("active");
             else
                 btn.Classes.Remove("active");
@@ -580,7 +468,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         foreach (var child in panel.Children)
         {
             if (child is not Button btn) continue;
-            var state = _filter.GetRef(btn.Tag as string);
+            var state = _state.Filter.GetRef(btn.Tag as string);
             btn.Classes.Remove("include");
             btn.Classes.Remove("exclude");
             if (state == TriState.Include) btn.Classes.Add("include");
