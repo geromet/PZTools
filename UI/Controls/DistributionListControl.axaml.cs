@@ -517,18 +517,8 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         ApplyTriStatePillStyles(StructureFilterPills);
     }
 
-    private void ApplyTriStatePillStyles(Panel panel)
-    {
-        foreach (var child in panel.Children)
-        {
-            if (child is not Button btn) continue;
-            var state = _state.Filter.GetRef(btn.Tag as string);
-            btn.Classes.Remove("include");
-            btn.Classes.Remove("exclude");
-            if (state == TriState.Include) btn.Classes.Add("include");
-            else if (state == TriState.Exclude) btn.Classes.Add("exclude");
-        }
-    }
+    private void ApplyTriStatePillStyles(Panel panel) =>
+        FilterPillHelper.ApplyTriStateStyles(panel, _state.Filter.Content);
 
     #endregion
 }

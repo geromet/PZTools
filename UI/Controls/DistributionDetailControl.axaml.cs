@@ -99,7 +99,7 @@ public partial class DistributionDetailControl : UserControl
             }
 
             if (_filter.AutoFilter && GetContentFilters is not null)
-                _filter.SyncFrom(GetContentFilters()!);
+                _filter.SyncFrom(GetContentFilters());
 
             UpdateContainerFilterStyles();
             ApplyContainerFilter();
@@ -118,87 +118,44 @@ public partial class DistributionDetailControl : UserControl
         _model = null;
     }
 
-    // ── Rolls ──
+    #region Property editing
 
     private void RollsBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        if (!int.TryParse(RollsBox.Text, out var newVal))
-        {
-            RollsBox.Text = _model.ItemRolls.ToString();
-            return;
-        }
-        if (newVal == _model.ItemRolls) return;
-        var old = _model.ItemRolls;
-        _undoRedo.Push(new PropertyChangeAction<int>(
-            $"{_model.Name}.Rolls: {old}\u2192{newVal}",
-            v => { _model.ItemRolls = v; RollsBox.Text = v.ToString(); _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushIntChange(_undoRedo, _model, RollsBox, "Rolls",
+            _model.ItemRolls, v => _model.ItemRolls = v);
     }
-
-    // ── IsShop ──
 
     private void ShopCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = ShopCheck.IsChecked == true;
-        if (newVal == _model.IsShop) return;
-        var old = _model.IsShop;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.IsShop: {old}\u2192{newVal}",
-            v => { _model.IsShop = v; ShopCheck.IsChecked = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, ShopCheck, "IsShop",
+            _model.IsShop, v => _model.IsShop = v);
     }
-
-    // ── DontSpawnAmmo ──
 
     private void NoAmmoCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = NoAmmoCheck.IsChecked == true;
-        if (newVal == _model.DontSpawnAmmo) return;
-        var old = _model.DontSpawnAmmo;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.DontSpawnAmmo: {old}\u2192{newVal}",
-            v => { _model.DontSpawnAmmo = v; NoAmmoCheck.IsChecked = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, NoAmmoCheck, "DontSpawnAmmo",
+            _model.DontSpawnAmmo, v => _model.DontSpawnAmmo = v);
     }
-
-    // ── MaxMap ──
 
     private void MaxMapBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        if (!int.TryParse(MaxMapBox.Text, out var newVal))
-        {
-            MaxMapBox.Text = _model.MaxMap?.ToString() ?? string.Empty;
-            return;
-        }
-        if (newVal == _model.MaxMap) return;
-        var old = _model.MaxMap ?? 0;
-        _undoRedo.Push(new PropertyChangeAction<int>(
-            $"{_model.Name}.MaxMap: {old}\u2192{newVal}",
-            v => { _model.MaxMap = v; MaxMapBox.Text = v.ToString(); _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushIntChange(_undoRedo, _model, MaxMapBox, "MaxMap",
+            _model.MaxMap ?? 0, v => _model.MaxMap = v);
     }
-
-    // ── StashChance ──
 
     private void StashBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        if (!int.TryParse(StashBox.Text, out var newVal))
-        {
-            StashBox.Text = _model.StashChance?.ToString() ?? string.Empty;
-            return;
-        }
-        if (newVal == _model.StashChance) return;
-        var old = _model.StashChance ?? 0;
-        _undoRedo.Push(new PropertyChangeAction<int>(
-            $"{_model.Name}.StashChance: {old}\u2192{newVal}",
-            v => { _model.StashChance = v; StashBox.Text = v.ToString(); _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushIntChange(_undoRedo, _model, StashBox, "StashChance",
+            _model.StashChance ?? 0, v => _model.StashChance = v);
     }
+
+    #endregion
 
     // ── Expand / Collapse All ──
 
@@ -238,7 +195,7 @@ public partial class DistributionDetailControl : UserControl
         _filter.AutoFilter = !_filter.AutoFilter;
 
         if (_filter.AutoFilter && GetContentFilters is not null)
-            _filter.SyncFrom(GetContentFilters()!);
+            _filter.SyncFrom(GetContentFilters());
         else if (!_filter.AutoFilter)
             _filter.ClearAll();
 
@@ -277,20 +234,8 @@ public partial class DistributionDetailControl : UserControl
 
     private void UpdateContainerFilterStyles()
     {
-        foreach (var child in ContainerFilterPills.Children)
-        {
-            if (child is not Button btn) continue;
-            var state = _filter.GetRef(btn.Tag as string);
-            btn.Classes.Remove("include");
-            btn.Classes.Remove("exclude");
-            if (state == TriState.Include) btn.Classes.Add("include");
-            else if (state == TriState.Exclude) btn.Classes.Add("exclude");
-        }
-
-        if (_filter.AutoFilter)
-            AutoFilterBtn.Classes.Add("active");
-        else
-            AutoFilterBtn.Classes.Remove("active");
+        FilterPillHelper.ApplyTriStateStyles(ContainerFilterPills, _filter.Content);
+        AutoFilterBtn.Classes.Set("active", _filter.AutoFilter);
     }
 
     private void ApplyContainerFilter()

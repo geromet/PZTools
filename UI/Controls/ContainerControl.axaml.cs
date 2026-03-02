@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using DataInput.Data;
+using Data.Data;
 using UI.UndoRedo;
 
 namespace UI.Controls;
@@ -190,69 +190,38 @@ public partial class ContainerControl : UserControl
     private void ItemRollsBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        if (!int.TryParse(ItemRollsBox.Text, out var newVal))
-        {
-            ItemRollsBox.Text = _model.ItemRolls.ToString();
-            return;
-        }
-        if (newVal == _model.ItemRolls) return;
-        var old = _model.ItemRolls;
-        _undoRedo.Push(new PropertyChangeAction<int>(
-            $"{_model.Name}.Rolls: {old}\u2192{newVal}",
-            v => { _model.ItemRolls = v; ItemRollsBox.Text = v.ToString(); ItemRollsBadge.Text = $"\u21bb {v}"; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushIntChange(_undoRedo, _model, ItemRollsBox, "Rolls",
+            _model.ItemRolls, v => _model.ItemRolls = v,
+            v => ItemRollsBadge.Text = $"\u21bb {v}");
     }
 
     private void JunkRollsBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        if (!int.TryParse(JunkRollsBox.Text, out var newVal))
-        {
-            JunkRollsBox.Text = _model.JunkRolls.ToString();
-            return;
-        }
-        if (newVal == _model.JunkRolls) return;
-        var old = _model.JunkRolls;
-        _undoRedo.Push(new PropertyChangeAction<int>(
-            $"{_model.Name}.JunkRolls: {old}\u2192{newVal}",
-            v => { _model.JunkRolls = v; JunkRollsBox.Text = v.ToString(); _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushIntChange(_undoRedo, _model, JunkRollsBox, "JunkRolls",
+            _model.JunkRolls, v => _model.JunkRolls = v);
     }
 
     private void FillRandCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = FillRandCheck.IsChecked == true;
-        if (newVal == _model.FillRand) return;
-        var old = _model.FillRand;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.FillRand: {old}\u2192{newVal}",
-            v => { _model.FillRand = v; FillRandCheck.IsChecked = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, FillRandCheck, "FillRand",
+            _model.FillRand, v => _model.FillRand = v);
     }
 
     private void ProceduralCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = ProceduralCheck.IsChecked == true;
-        if (newVal == _model.Procedural) return;
-        var old = _model.Procedural;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.Procedural: {old}\u2192{newVal}",
-            v => { _model.Procedural = v; ProceduralCheck.IsChecked = v; ProceduralBadge.IsVisible = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, ProceduralCheck, "Procedural",
+            _model.Procedural, v => _model.Procedural = v,
+            v => ProceduralBadge.IsVisible = v);
     }
 
     private void DontSpawnAmmoCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = DontSpawnAmmoCheck.IsChecked == true;
-        if (newVal == _model.DontSpawnAmmo) return;
-        var old = _model.DontSpawnAmmo;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.DontSpawnAmmo: {old}\u2192{newVal}",
-            v => { _model.DontSpawnAmmo = v; DontSpawnAmmoCheck.IsChecked = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, DontSpawnAmmoCheck, "DontSpawnAmmo",
+            _model.DontSpawnAmmo, v => _model.DontSpawnAmmo = v);
     }
 
     private void AddItem_Click(object? sender, RoutedEventArgs e)
