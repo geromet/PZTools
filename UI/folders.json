@@ -4,7 +4,7 @@
     "DistributionNames": [],
     "Children": [
       {
-        "Name": "Backpacks \u0026 Carry Bags",
+        "Name": "Backpacks & Carry Bags",
         "DistributionNames": [
           "Bag_ALICEpack",
           "Bag_ALICEpack_Army",
@@ -91,7 +91,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Weapon \u0026 Ammo Cases",
+        "Name": "Weapon & Ammo Cases",
         "DistributionNames": [
           "Bag_AmmoBox",
           "Bag_AmmoBox_308",
@@ -176,7 +176,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Toolboxes \u0026 Tool Rolls",
+        "Name": "Toolboxes & Tool Rolls",
         "DistributionNames": [
           "Toolbox",
           "Toolbox_Farming",
@@ -191,7 +191,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Money \u0026 Valuables",
+        "Name": "Money & Valuables",
         "DistributionNames": [
           "Briefcase",
           "Briefcase_Money",
@@ -207,7 +207,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Mail \u0026 Parcels",
+        "Name": "Mail & Parcels",
         "DistributionNames": [
           "Parcel_ExtraLarge",
           "Parcel_ExtraSmall",
@@ -220,7 +220,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Bins \u0026 Trash",
+        "Name": "Bins & Trash",
         "DistributionNames": [
           "BinBar",
           "BinBathroom",
@@ -283,10 +283,10 @@
           "KeyRing_StinkyFace",
           "KeyRing_WestMaple"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Professions",
@@ -322,7 +322,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Doctor \u0026 Nurse",
+        "Name": "Doctor & Nurse",
         "DistributionNames": [
           "DoctorOutfit",
           "DoctorTools",
@@ -340,7 +340,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Electrician \u0026 Engineer",
+        "Name": "Electrician & Engineer",
         "DistributionNames": [
           "ElectricianOutfit",
           "ElectricianTools",
@@ -383,7 +383,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Hunter \u0026 Ranger \u0026 Trapper",
+        "Name": "Hunter & Ranger & Trapper",
         "DistributionNames": [
           "Hunter",
           "RangerOutfit",
@@ -407,7 +407,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Fitness \u0026 Photographer",
+        "Name": "Fitness & Photographer",
         "DistributionNames": [
           "FitnessTrainer",
           "Photographer"
@@ -415,7 +415,7 @@
         "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Education",
@@ -451,7 +451,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "School Lockers \u0026 Gym",
+        "Name": "School Lockers & Gym",
         "DistributionNames": [
           "SchoolLockers",
           "SchoolLockersBad",
@@ -595,192 +595,54 @@
           "AnthropologyDisplayWeapons"
         ],
         "IsExpanded": false
-      }
-    ],
-    "IsExpanded": true
-  },
-  {
-    "Name": "Government \u0026 Public Services",
-    "DistributionNames": [],
-    "Children": [
+      },
       {
-        "Name": "Base Locations",
+        "Name": "Elementary",
         "DistributionNames": [
-          "armystorage",
-          "armysurplus",
-          "armytent",
-          "firegarage",
-          "firestorage",
-          "hospitalhallway",
-          "hospitalroom",
-          "hospitalstorage",
-          "judgematthassset",
-          "mayorwestpointoffice",
-          "medical",
-          "medicaloffice",
-          "medicalstorage",
-          "morgue",
-          "pharmacy",
-          "pharmacystorage",
-          "policearchive",
-          "policegarage",
-          "policegunstorage",
-          "policelocker",
-          "policeoffice",
-          "policeoutfitstorage",
-          "policestorage",
-          "post",
-          "poststorage",
-          "prisoncells",
-          "prisonstorage",
-          "security"
+          "elementaryclassroom",
+          "elementaryschool"
         ],
         "IsExpanded": false
       },
       {
-        "Name": "Military",
+        "Name": "Secondary",
         "DistributionNames": [
-          "ArmyBunkerKitchen",
-          "ArmyBunkerLockers",
-          "ArmyBunkerMedical",
-          "ArmyBunkerStorage",
-          "ArmyHangarMechanics",
-          "ArmyHangarOutfit",
-          "ArmyHangarTools",
-          "ArmyStorageAmmunition",
-          "ArmyStorageElectronics",
-          "ArmyStorageGuns",
-          "ArmyStorageMedical",
-          "ArmyStorageOutfit",
-          "ArmySurplusAmmoBoxes",
-          "ArmySurplusBackpacks",
-          "ArmySurplusCases",
-          "ArmySurplusCots",
-          "ArmySurplusFootwear",
-          "ArmySurplusHeadwear",
-          "ArmySurplusLiterature",
-          "ArmySurplusMisc",
-          "ArmySurplusOutfit",
-          "ArmySurplusSnacks",
-          "ArmySurplusTools",
-          "ArmySurplusWater"
+          "secondaryclassroom",
+          "secondaryhall"
         ],
         "IsExpanded": false
       },
       {
-        "Name": "Police \u0026 SWAT",
+        "Name": "Daycare",
         "DistributionNames": [
-          "PoliceCaptainCabinet",
-          "PoliceCaptainDesk",
-          "PoliceDesk",
-          "PoliceEvidence",
-          "PoliceFileBox",
-          "PoliceFilingCabinet",
-          "PoliceLaundry",
-          "PoliceLockers",
-          "PoliceOutfit",
-          "PoliceStateOutfit",
-          "PoliceStateTools",
-          "PoliceStorageAmmunition",
-          "PoliceStorageArmor",
-          "PoliceStorageGuns",
-          "PoliceStorageMechanics",
-          "PoliceStorageOutfit",
-          "PoliceTools",
-          "SWATStorageAmmunition",
-          "SWATStorageArmor",
-          "SWATStorageGuns",
-          "evidenceroom"
+          "daycare",
+          "DaycareCounter",
+          "DaycareDesk",
+          "DaycareShelves"
         ],
         "IsExpanded": false
       },
       {
-        "Name": "Fire Department",
+        "Name": "Science & Lab",
         "DistributionNames": [
-          "FireDeptLockers",
-          "FireStorageMechanics",
-          "FireStorageOutfit",
-          "FireStorageTools",
-          "FiremanOutfit",
-          "FiremanTools"
+          "Chemistry",
+          "LaboratoryBooks",
+          "LaboratoryGasStorage",
+          "LaboratoryLockers",
+          "ScienceMisc",
+          "TestingLab"
         ],
         "IsExpanded": false
       },
       {
-        "Name": "Medical \u0026 Hospital",
+        "Name": "Dentist",
         "DistributionNames": [
-          "HospitalLockers",
-          "HospitalMagazineRack",
-          "HospitalRoomCleaning",
-          "HospitalRoomCounter",
-          "HospitalRoomFridge",
-          "HospitalRoomShelves",
-          "HospitalRoomWardrobe",
-          "MedicalCabinet",
-          "MedicalCache1",
-          "MedicalClinicDrugs",
-          "MedicalClinicOutfit",
-          "MedicalClinicTools",
-          "MedicalOfficeBooks",
-          "MedicalOfficeCounter",
-          "MedicalOfficeDesk",
-          "MedicalStorageDrugs",
-          "MedicalStorageOutfit",
-          "MedicalStorageTools",
-          "MorgueChemicals",
-          "MorgueOutfit",
-          "MorgueTools",
-          "PharmacyCosmetics",
-          "LaundryHospital"
-        ],
-        "IsExpanded": false
-      },
-      {
-        "Name": "Post Office",
-        "DistributionNames": [
-          "PostOfficeBooks",
-          "PostOfficeBoxes",
-          "PostOfficeMagazines",
-          "PostOfficeNewspapers",
-          "PostOfficeParcels",
-          "PostOfficeSupplies"
-        ],
-        "IsExpanded": false
-      },
-      {
-        "Name": "Prison",
-        "DistributionNames": [
-          "PrisonArmoryShotguns",
-          "PrisonCellRandom",
-          "PrisonCellRandomClassy",
-          "PrisonGuardLockers",
-          "PrisonLaundry",
-          "PrisonRiotStorage",
-          "PrisonStorageArmor"
-        ],
-        "IsExpanded": false
-      },
-      {
-        "Name": "Civic Offices",
-        "DistributionNames": [
-          "JudgeMattHassCounter",
-          "MayorWestPointBooks",
-          "MayorWestPointDesk",
-          "MayorWestPointSafe"
-        ],
-        "IsExpanded": false
-      },
-      {
-        "Name": "Security",
-        "DistributionNames": [
-          "SecurityDesk",
-          "SecurityLockers",
-          "SecurityStorage"
+          "dentiststorage"
         ],
         "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Agricultural",
@@ -805,7 +667,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Seeds \u0026 Grain",
+        "Name": "Seeds & Grain",
         "DistributionNames": [
           "SeedBag",
           "SeedBag_Farming",
@@ -860,9 +722,26 @@
           "ProduceStorageEquipment"
         ],
         "IsExpanded": false
+      },
+      {
+        "Name": "Bulk Storage",
+        "DistributionNames": [
+          "potatostorage",
+          "eggstorage",
+          "waterstorage"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Garden Store",
+        "DistributionNames": [
+          "GardenStoreMisc",
+          "GardenStoreTools"
+        ],
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Industrial",
@@ -887,12 +766,15 @@
           "mannequinfactory",
           "mapfactory",
           "radiofactory",
-          "wirefactory"
+          "wirefactory",
+          "batstorage",
+          "batterystorage",
+          "dogfoodstorage"
         ],
         "IsExpanded": false
       },
       {
-        "Name": "Shipping \u0026 Warehousing",
+        "Name": "Shipping & Warehousing",
         "DistributionNames": [
           "cabinetshipping",
           "dogfoodshipping",
@@ -1197,7 +1079,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Metal \u0026 Tool Production",
+        "Name": "Metal & Tool Production",
         "DistributionNames": [
           "MetalShopTools",
           "ToolFactoryBarStock",
@@ -1209,7 +1091,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Radio \u0026 Electronics",
+        "Name": "Radio & Electronics",
         "DistributionNames": [
           "RadioFactoryComponents"
         ],
@@ -1233,9 +1115,34 @@
           "WireFactoryTools"
         ],
         "IsExpanded": false
+      },
+      {
+        "Name": "Railroad",
+        "DistributionNames": [
+          "railroadrepair",
+          "RailYardSpikes",
+          "RailYardTools"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Newspaper",
+        "DistributionNames": [
+          "newspaperprint_herald",
+          "newspaperstorage_herald"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Seasonal Workers",
+        "DistributionNames": [
+          "campworkerdorm",
+          "SeasonalWorkerLockers"
+        ],
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Commercial",
@@ -1305,7 +1212,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Bars \u0026 Nightlife",
+        "Name": "Bars & Nightlife",
         "DistributionNames": [
           "BarCounterGlasses",
           "BarCounterLiquor",
@@ -1322,7 +1229,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Burger \u0026 Fast Food",
+        "Name": "Burger & Fast Food",
         "DistributionNames": [
           "BurgerKitchenButcher",
           "BurgerKitchenCutlery",
@@ -1333,7 +1240,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Cafe \u0026 Coffee",
+        "Name": "Cafe & Coffee",
         "DistributionNames": [
           "CafeCounterMix",
           "CafeDiningFridge",
@@ -1382,7 +1289,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Jay\u0027s Chicken",
+        "Name": "Jay's Chicken",
         "DistributionNames": [
           "JaysDiningCounter",
           "JaysKitchenBags",
@@ -1395,7 +1302,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Spiffo\u0027s",
+        "Name": "Spiffo's",
         "DistributionNames": [
           "SpiffosDesk",
           "SpiffosDiningCounter",
@@ -1453,7 +1360,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Grocery \u0026 Produce",
+        "Name": "Grocery & Produce",
         "DistributionNames": [
           "GroceryBag1",
           "GroceryBag2",
@@ -1520,7 +1427,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Theatre \u0026 Media",
+        "Name": "Theatre & Media",
         "DistributionNames": [
           "MovieRentalShelves",
           "TheatreDrinks",
@@ -1733,26 +1640,623 @@
           "WildWestClothing"
         ],
         "IsExpanded": false
+      },
+      {
+        "Name": "Chinese Kitchen",
+        "DistributionNames": [
+          "chinesekitchen",
+          "ChineseKitchenBaking",
+          "ChineseKitchenButcher",
+          "ChineseKitchenCutlery",
+          "ChineseKitchenFreezer",
+          "ChineseKitchenFridge",
+          "ChineseKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Italian Kitchen",
+        "DistributionNames": [
+          "italiankitchen",
+          "ItalianKitchenBaking",
+          "ItalianKitchenButcher",
+          "ItalianKitchenFreezer",
+          "ItalianKitchenFridge",
+          "ItalianKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Mexican Kitchen",
+        "DistributionNames": [
+          "mexicankitchen",
+          "MexicanKitchenBaking",
+          "MexicanKitchenButcher",
+          "MexicanKitchenFreezer",
+          "MexicanKitchenFridge",
+          "MexicanKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Seafood Kitchen",
+        "DistributionNames": [
+          "seafoodkitchen",
+          "SeafoodKitchenButcher",
+          "SeafoodKitchenFreezer",
+          "SeafoodKitchenFridge",
+          "SeafoodKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Fish & Chips Kitchen",
+        "DistributionNames": [
+          "fishchipskitchen",
+          "FishChipsKitchenButcher",
+          "FishChipsKitchenFreezer",
+          "FishChipsKitchenFridge",
+          "FishChipsKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Sushi Kitchen",
+        "DistributionNames": [
+          "sushikitchen",
+          "SushiKitchenBaking",
+          "SushiKitchenButcher",
+          "SushiKitchenCutlery",
+          "SushiKitchenFreezer",
+          "SushiKitchenFridge",
+          "SushiKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Western Kitchen",
+        "DistributionNames": [
+          "WesternKitchenBaking",
+          "WesternKitchenButcher",
+          "WesternKitchenFreezer",
+          "WesternKitchenFridge",
+          "WesternKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Catfish Kitchen",
+        "DistributionNames": [
+          "catfish_kitchen",
+          "CatfishKitchenButcher",
+          "CatfishKitchenFreezer",
+          "CatfishKitchenFridge"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Crepe Kitchen",
+        "DistributionNames": [
+          "CrepeKitchenBaking",
+          "CrepeKitchenFridge",
+          "CrepeKitchenSauce"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Deep Fry Kitchen",
+        "DistributionNames": [
+          "deepfry_kitchen",
+          "DeepFryKitchenFreezer",
+          "DeepFryKitchenFridge"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Donut Kitchen",
+        "DistributionNames": [
+          "donut_kitchen",
+          "donut_kitchenstorage"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Serving Trays",
+        "DistributionNames": [
+          "ServingTrayBiscuits",
+          "ServingTrayBurgers",
+          "ServingTrayBurritos",
+          "ServingTrayChicken",
+          "ServingTrayChickenFried",
+          "ServingTrayChickenNuggets",
+          "ServingTrayChickenWings",
+          "ServingTrayCornbread",
+          "ServingTrayFish",
+          "ServingTrayFishFingers",
+          "ServingTrayFishFried",
+          "ServingTrayFries",
+          "ServingTrayGravy",
+          "ServingTrayHam",
+          "ServingTrayHotdogs",
+          "ServingTrayLobster",
+          "ServingTrayMaki",
+          "ServingTrayMeatDumplings",
+          "ServingTrayMeatSteamBuns",
+          "ServingTrayMussels",
+          "ServingTrayNoodleSoup",
+          "ServingTrayOmelettes",
+          "ServingTrayOnigiri",
+          "ServingTrayOnionRings",
+          "ServingTrayOysters",
+          "ServingTrayOystersFried",
+          "ServingTrayPancakes",
+          "ServingTrayPerogies",
+          "ServingTrayPie",
+          "ServingTrayPizza",
+          "ServingTrayPorkChops",
+          "ServingTrayPotatoPancakes",
+          "ServingTrayRefriedBeans",
+          "ServingTraySalmon",
+          "ServingTraySausage",
+          "ServingTrayScrambledEggs",
+          "ServingTrayShrimp",
+          "ServingTrayShrimpDumplings",
+          "ServingTrayShrimpFried",
+          "ServingTraySpringRolls",
+          "ServingTraySteak",
+          "ServingTraySushiEgg",
+          "ServingTraySushiFish",
+          "ServingTrayTaco",
+          "ServingTrayTatoDots",
+          "ServingTrayTofuFried",
+          "ServingTrayWaffles"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Takeout & Packaging",
+        "DistributionNames": [
+          "TakeoutBox_Chinese",
+          "TakeoutBox_Styrofoam",
+          "PaperBag",
+          "Paperbag_Jays",
+          "Paperbag_Spiffos",
+          "Plasticbag",
+          "Plasticbag_Bags"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Hot Dog Stand",
+        "DistributionNames": [
+          "hotdogstand",
+          "HotdogStandDrinks",
+          "HotdogStandToppings"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Ice Cream",
+        "DistributionNames": [
+          "icecream",
+          "icecreamkitchen"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Butcher Shop",
+        "DistributionNames": [
+          "butcher",
+          "ButcherChicken",
+          "ButcherChops",
+          "ButcherFish",
+          "ButcherFreezer",
+          "ButcherGround",
+          "ButcherLiterature",
+          "ButcherSmoked",
+          "ButcherSnacks",
+          "ButcherSpices",
+          "ButcherTools",
+          "jerkycoldroom",
+          "jerkysmoker",
+          "Meat"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Whiskey Bottling",
+        "DistributionNames": [
+          "whiskeybottling",
+          "WhiskeyBottlingEmpty",
+          "WhiskeyBottlingFull"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Brewery",
+        "DistributionNames": [
+          "brewery",
+          "BreweryBottles",
+          "BreweryCans",
+          "BreweryEmptyBottles",
+          "BreweryEmptyCans",
+          "BreweryHops",
+          "brewerystorage"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Beer Garden",
+        "DistributionNames": [
+          "beergarden",
+          "BeerGardenCounter"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "BBQ Store",
+        "DistributionNames": [
+          "BBQCharcoal",
+          "BBQCharcoalRich",
+          "BBQPropane",
+          "BBQPropaneRich",
+          "GrillAcessories",
+          "GrillStoreBlackBBQ",
+          "GrillStoreRedBBQ"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Smoking Room & VIP",
+        "DistributionNames": [
+          "smokingroom",
+          "SmokingRoomCigars",
+          "SmokingRoomPipes",
+          "viplounge",
+          "DishCabinetVIPLounge",
+          "Humidor"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Gas Station",
+        "DistributionNames": [
+          "fossoil",
+          "FossoilCounterCleaning",
+          "Gas2GoCounterCleaning",
+          "GasStorageCombo",
+          "GasStorageMechanics",
+          "GasStoreCounterCleaning",
+          "GasStoreEmergency",
+          "GasStoreSpecial",
+          "GasStoreToiletries"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Department Store",
+        "DistributionNames": [
+          "departmentstore",
+          "DepartmentStoreJewelry",
+          "DepartmentStoreWatches"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Houseware Store",
+        "DistributionNames": [
+          "housewarestore"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Gift Store",
+        "DistributionNames": [
+          "giftstorage",
+          "GiftStoreCards",
+          "GiftStoreFancy",
+          "GiftStoreToys",
+          "Gifts"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Jewelry Store",
+        "DistributionNames": [
+          "jewelrystorage",
+          "JewelryGems",
+          "JewelryGold",
+          "JewelryNavelRings",
+          "JewelryOthers",
+          "JewelrySilver",
+          "JewelryStorageAll",
+          "JewelryWeddingRings",
+          "JewelryWrist",
+          "JewelerTools",
+          "JewelleryBox",
+          "JewelleryBox_Fancy"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Wedding Store",
+        "DistributionNames": [
+          "weddingstorestorage",
+          "WeddingStoreDresses",
+          "WeddingStoreSuits"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Optometrist",
+        "DistributionNames": [
+          "glassesstore",
+          "OptometristDesk",
+          "OptometristGlasses"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Sewing Store",
+        "DistributionNames": [
+          "sewingstorage",
+          "sewingstore",
+          "SewingStoreFabric",
+          "SewingStoreTools",
+          "SewingKit"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Camera Store",
+        "DistributionNames": [
+          "camerastore",
+          "CameraStoreDisplayCase",
+          "CameraStoreShelves"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Pet Store",
+        "DistributionNames": [
+          "petstore",
+          "PetShopShelf",
+          "kennels"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Candy Store",
+        "DistributionNames": [
+          "candystorage",
+          "candystore",
+          "CandyStoreSnacks"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Music Store",
+        "DistributionNames": [
+          "MusicStoreBass",
+          "MusicStoreBrass",
+          "MusicStoreCases",
+          "MusicStoreCDs",
+          "MusicStoreDrums",
+          "MusicStoreGuitar",
+          "MusicStoreLiterature",
+          "MusicStoreOthers",
+          "MusicStoreSpeaker",
+          "MusicStoreStringed"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Comic Store",
+        "DistributionNames": [
+          "comicstorage",
+          "ComicStoreCounter",
+          "ComicStoreDisplayBooks",
+          "ComicStoreDisplayComics",
+          "ComicStoreDisplayDice",
+          "ComicStoreMagazines",
+          "ComicStoreShelfComics",
+          "ComicStoreShelfFantasy",
+          "ComicStoreShelfGames",
+          "ComicStoreShelfSciFi"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Electronic Store",
+        "DistributionNames": [
+          "ElectronicStoreAppliances",
+          "ElectronicStoreCases",
+          "ElectronicStoreComputers",
+          "ElectronicStoreHAMRadio",
+          "ElectronicStoreLights",
+          "ElectronicStoreMagazines",
+          "ElectronicStoreMisc",
+          "ElectronicStoreMusic",
+          "ElectronicStorePhones"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Tool Store",
+        "DistributionNames": [
+          "ToolStoreAccessories",
+          "ToolStoreBooks",
+          "ToolStoreCarpentry",
+          "ToolStoreFarming",
+          "ToolStoreFootwear",
+          "ToolStoreHandles",
+          "ToolStoreKeymaking",
+          "ToolStoreMetalwork",
+          "ToolStoreMisc",
+          "ToolStoreOutfit",
+          "ToolStorePaint",
+          "toolstorestorage",
+          "ToolStoreTools"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Pawn Shop",
+        "DistributionNames": [
+          "PawnShopCases",
+          "pawnshopcooking",
+          "PawnShopGuns",
+          "PawnShopGunsSpecial",
+          "PawnShopKnives",
+          "pawnshopoffice",
+          "pawnshopstorage",
+          "PawnShopTools"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Knife Store",
+        "DistributionNames": [
+          "KnifeStoreCutlery"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Lingerie Store",
+        "DistributionNames": [
+          "LingerieStoreAccessories",
+          "LingerieStoreBras",
+          "LingerieStoreOutfits",
+          "LingerieStoreUnderwear"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Salon",
+        "DistributionNames": [
+          "SalonCounter",
+          "SalonShelfHaircare",
+          "SalonShelfTowels",
+          "MakeupCase_Professional"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Antiques",
+        "DistributionNames": [
+          "Antiques"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Generic Office",
+        "DistributionNames": [
+          "office",
+          "officechurch",
+          "OfficeCounter",
+          "OfficeDesk",
+          "OfficeDeskHome",
+          "OfficeDeskHomeClassy",
+          "OfficeDeskSecretary",
+          "OfficeDeskStressed",
+          "OfficeDrawers",
+          "OfficeShelfSupplies",
+          "officestorage",
+          "DeskGeneric",
+          "FilingCabinetGeneric",
+          "breakroom",
+          "BreakRoomCounter",
+          "BreakRoomShelves"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Bank",
+        "DistributionNames": [
+          "BankDeposit"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Named Offices",
+        "DistributionNames": [
+          "CortmanOfficeBooks",
+          "CortmanOfficeDesk",
+          "CortmanOfficeSidetable",
+          "nolansoffice",
+          "NolansDesk",
+          "NolansFilingCabinet",
+          "NolansFridge",
+          "jackiejayeoffice",
+          "jackiejayestudio",
+          "JackiesDesk",
+          "joanstudio"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Cyber Cafe",
+        "DistributionNames": [
+          "cybercafe",
+          "CyberCafeDesk",
+          "CyberCafeFilingCabinet"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Photo Studio",
+        "DistributionNames": [
+          "photoroom",
+          "PhotoAlbum",
+          "PhotoAlbum_Old",
+          "studio",
+          "StudioPropShelf"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Magazine Racks",
+        "DistributionNames": [
+          "MagazineRackAdult",
+          "MagazineRackBrochure",
+          "MagazineRackCards",
+          "MagazineRackMaps",
+          "MagazineRackMixed",
+          "MagazineRackNewspaper",
+          "MagazineRackPaperback"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Gun Store",
+        "DistributionNames": [
+          "gunstore",
+          "GunStoreAccessories",
+          "GunStoreAmmunition",
+          "GunStoreBodyArmor",
+          "GunStoreCases",
+          "GunStoreCounter",
+          "GunStoreDisplayCase",
+          "GunStoreGuns",
+          "GunStoreKnives",
+          "GunStoreLiterature",
+          "GunStoreMagazineRack",
+          "GunStoreMagsAmmo",
+          "GunStorePistols",
+          "GunStoreRifles",
+          "GunStoreShelf",
+          "GunStoreShotguns",
+          "gunstorestorage"
+        ],
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Residential",
     "DistributionNames": [],
     "Children": [
-      {
-        "Name": "Base Locations",
-        "DistributionNames": [
-          "bathroom",
-          "bedroom",
-          "kitchen",
-          "kitchen_crepe",
-          "kitchenwares",
-          "livingroom"
-        ],
-        "IsExpanded": false
-      },
       {
         "Name": "Bathroom",
         "DistributionNames": [
@@ -1920,7 +2424,7 @@
           "SafehouseMedical_Mid",
           "SafehouseMedical_Late"
         ],
-        "IsExpanded": false
+        "IsExpanded": true
       },
       {
         "Name": "Safehouse - Appliances",
@@ -1954,633 +2458,404 @@
           "SafehouseTraps"
         ],
         "IsExpanded": false
+      },
+      {
+        "Name": "Base Locations",
+        "DistributionNames": [
+          "bedroom",
+          "kitchen",
+          "kitchen_crepe",
+          "kitchenwares",
+          "livingroom",
+          "bathroom"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Motel",
+        "DistributionNames": [
+          "motelroom",
+          "motelroomoccupied",
+          "MotelFridge",
+          "MotelLinens",
+          "MotelSideTable",
+          "MotelTowels"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Laundry",
+        "DistributionNames": [
+          "laundry",
+          "LaundryCleaning",
+          "LaundryLoad1",
+          "LaundryLoad2",
+          "LaundryLoad3",
+          "LaundryLoad4",
+          "LaundryLoad5",
+          "LaundryLoad6",
+          "LaundryLoad7",
+          "LaundryLoad8",
+          "DryerEmpty"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Home Cinema",
+        "DistributionNames": [
+          "homecinema",
+          "HomeCinemaFilm",
+          "HomeCinemaLiterature"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Garage & Shed",
+        "DistributionNames": [
+          "GarageCarpentry",
+          "GarageFirearms",
+          "GarageMechanics",
+          "GarageMetalwork",
+          "garagestorage",
+          "GarageTools",
+          "shed",
+          "storage",
+          "storageunit",
+          "PlumbingSupplies"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Closet & Changeroom",
+        "DistributionNames": [
+          "closet",
+          "ClosetInstruments",
+          "ClosetShelfGeneric",
+          "ClosetSportsEquipment",
+          "changeroom",
+          "ChangeroomCounters",
+          "changeroomjockey"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Derelict House",
+        "DistributionNames": [
+          "DerelictHouseCrime",
+          "DerelictHouseDrugs",
+          "DerelictHouseJunk",
+          "DerelictHouseParty",
+          "DerelictHouseSquatter",
+          "DerelictHouseStove"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Hoarder",
+        "DistributionNames": [
+          "hoarder",
+          "hoarderoffice",
+          "JunkHoard"
+        ],
+        "IsExpanded": false
       }
     ],
     "IsExpanded": true
   },
   {
-    "Name": "Unsorted",
-    "DistributionNames": [
-      "Antiques",
-      "BankDeposit",
-      "batstorage",
-      "batterystorage",
-      "BBQCharcoal",
-      "BBQCharcoalRich",
-      "BBQPropane",
-      "BBQPropaneRich",
-      "beergarden",
-      "BeerGardenCounter",
-      "bowlingalley",
-      "BowlingAlleyCounters",
-      "BowlingAlleyLockers",
-      "BowlingAlleyPins",
-      "BowlingAlleyShoes",
-      "boxing",
-      "BoxingLockers",
-      "BoxingMemorabilia",
-      "BoxingStorageGloves",
-      "BoxingStorageHelmets",
-      "breakroom",
-      "BreakRoomCounter",
-      "BreakRoomShelves",
-      "brewery",
-      "BreweryBottles",
-      "BreweryCans",
-      "BreweryEmptyBottles",
-      "BreweryEmptyCans",
-      "BreweryHops",
-      "brewerystorage",
-      "BurglarTools",
-      "butcher",
-      "ButcherChicken",
-      "ButcherChops",
-      "ButcherFish",
-      "ButcherFreezer",
-      "ButcherGround",
-      "ButcherLiterature",
-      "ButcherSmoked",
-      "ButcherSnacks",
-      "ButcherSpices",
-      "ButcherTools",
-      "camerastore",
-      "CameraStoreDisplayCase",
-      "CameraStoreShelves",
-      "camping",
-      "CampingLockers",
-      "CampingStoreBackpacks",
-      "CampingStoreBooks",
-      "CampingStoreCases",
-      "CampingStoreClothes",
-      "CampingStoreGear",
-      "CampingStoreLegwear",
-      "CampingStoreLighting",
-      "CampingStoreSleepingBags",
-      "CampingStoreTents",
-      "CampingStoreTools",
-      "campworkerdorm",
-      "candystorage",
-      "candystore",
-      "CandyStoreSnacks",
-      "captainoffice",
-      "CarBrakesModern1",
-      "CarBrakesModern2",
-      "CarBrakesModern3",
-      "CarBrakesNormal1",
-      "CarBrakesNormal2",
-      "CarBrakesNormal3",
-      "CarDealerDesk",
-      "CarDealerFilingCabinet",
-      "cardealershipoffice",
-      "CarLightbars",
-      "CarMufflerModern1",
-      "CarMufflerModern2",
-      "CarMufflerModern3",
-      "CarMufflerNormal1",
-      "CarMufflerNormal2",
-      "CarMufflerNormal3",
-      "CarnivalPrizes",
-      "carsupply",
-      "CarSupplyBatteries",
-      "CarSupplyGasCans",
-      "CarSupplyGloves",
-      "CarSupplyLiterature",
-      "CarSupplyMagazines",
-      "carsupplysport",
-      "CarSupplyTools",
-      "CarSuspensionModern1",
-      "CarSuspensionModern2",
-      "CarSuspensionModern3",
-      "CarSuspensionNormal1",
-      "CarSuspensionNormal2",
-      "CarSuspensionNormal3",
-      "CarTiresModern1",
-      "CarTiresModern2",
-      "CarTiresModern3",
-      "CarTiresNormal1",
-      "CarTiresNormal2",
-      "CarTiresNormal3",
-      "CarWindows1",
-      "CarWindows2",
-      "CarWindows3",
-      "CatfishKitchenButcher",
-      "CatfishKitchenFreezer",
-      "CatfishKitchenFridge",
-      "catfish_kitchen",
-      "catwalk",
-      "changeroom",
-      "ChangeroomCounters",
-      "changeroomjockey",
-      "Chemistry",
-      "chinesekitchen",
-      "ChineseKitchenBaking",
-      "ChineseKitchenButcher",
-      "ChineseKitchenCutlery",
-      "ChineseKitchenFreezer",
-      "ChineseKitchenFridge",
-      "ChineseKitchenSauce",
-      "closet",
-      "ClosetInstruments",
-      "ClosetShelfGeneric",
-      "ClosetSportsEquipment",
-      "comicstorage",
-      "ComicStoreCounter",
-      "ComicStoreDisplayBooks",
-      "ComicStoreDisplayComics",
-      "ComicStoreDisplayDice",
-      "ComicStoreMagazines",
-      "ComicStoreShelfComics",
-      "ComicStoreShelfFantasy",
-      "ComicStoreShelfGames",
-      "ComicStoreShelfSciFi",
-      "ConstructionWorkerOutfit",
-      "controlroom",
-      "ControlRoomCounter",
-      "CookieJar_Bear",
-      "Cooler_Meat",
-      "Cooler_Seafood",
-      "Cooler_Soda",
-      "coroneroffice",
-      "CortmanOfficeBooks",
-      "CortmanOfficeDesk",
-      "CortmanOfficeSidetable",
-      "CrepeKitchenBaking",
-      "CrepeKitchenFridge",
-      "CrepeKitchenSauce",
-      "cybercafe",
-      "CyberCafeDesk",
-      "CyberCafeFilingCabinet",
-      "dartgame",
-      "daycare",
-      "DaycareCounter",
-      "DaycareDesk",
-      "DaycareShelves",
-      "DeepFryKitchenFreezer",
-      "DeepFryKitchenFridge",
-      "deepfry_kitchen",
-      "dentiststorage",
-      "departmentstore",
-      "DepartmentStoreJewelry",
-      "DepartmentStoreWatches",
-      "DerelictHouseCrime",
-      "DerelictHouseDrugs",
-      "DerelictHouseJunk",
-      "DerelictHouseParty",
-      "DerelictHouseSquatter",
-      "DerelictHouseStove",
-      "DeskGeneric",
-      "detectiveoffice",
-      "DiceBag",
-      "DishCabinetLiquor",
-      "DishCabinetVIPLounge",
-      "dogfoodstorage",
-      "donut_kitchen",
-      "donut_kitchenstorage",
-      "druglab",
-      "DrugLabGuns",
-      "DrugLabMoney",
-      "DrugLabOutfit",
-      "drugshack",
-      "DrugShackDrugs",
-      "DrugShackMisc",
-      "DrugShackTools",
-      "DrugShackWeapons",
-      "DryerEmpty",
-      "duckshootgame",
-      "eggstorage",
-      "ElectronicStoreAppliances",
-      "ElectronicStoreCases",
-      "ElectronicStoreComputers",
-      "ElectronicStoreHAMRadio",
-      "ElectronicStoreLights",
-      "ElectronicStoreMagazines",
-      "ElectronicStoreMisc",
-      "ElectronicStoreMusic",
-      "ElectronicStorePhones",
-      "elementaryclassroom",
-      "elementaryschool",
-      "Empty",
-      "FilingCabinetGeneric",
-      "FirearmWeapons",
-      "FirearmWeapons_Late",
-      "FirearmWeapons_Mid",
-      "FirstAidKit_Camping",
-      "FirstAidKit_Camping_New",
-      "FirstAidKit_Military",
-      "FirstAidKit_New",
-      "FirstAidKit_NewPro",
-      "FirstAidKit_Pro",
-      "fishchipskitchen",
-      "FishChipsKitchenButcher",
-      "FishChipsKitchenFreezer",
-      "FishChipsKitchenFridge",
-      "FishChipsKitchenSauce",
-      "FishingLockers",
-      "FishingStoreBait",
-      "FishingStoreGear",
-      "FoodGourmet",
-      "ForestFireTools",
-      "fossoil",
-      "FossoilCounterCleaning",
-      "GarageCarpentry",
-      "GarageFirearms",
-      "GarageMechanics",
-      "GarageMetalwork",
-      "garagestorage",
-      "GarageTools",
-      "GardenStoreMisc",
-      "GardenStoreTools",
-      "Gas2GoCounterCleaning",
-      "GasStorageCombo",
-      "GasStorageMechanics",
-      "GasStoreCounterCleaning",
-      "GasStoreEmergency",
-      "GasStoreSpecial",
-      "GasStoreToiletries",
-      "GemBag",
-      "GeneratorRoom",
-      "Gifts",
-      "giftstorage",
-      "GiftStoreCards",
-      "GiftStoreFancy",
-      "GiftStoreToys",
-      "glassesstore",
-      "GolfLockers",
-      "GolfStorage",
-      "golfstore",
-      "GolfStoreAccessories",
-      "GolfStoreBags",
-      "GolfStoreLiterature",
-      "GrillAcessories",
-      "GrillStoreBlackBBQ",
-      "GrillStoreRedBBQ",
-      "Guitarcase",
-      "gunstore",
-      "GunStoreAccessories",
-      "GunStoreAmmunition",
-      "GunStoreBodyArmor",
-      "GunStoreCases",
-      "GunStoreCounter",
-      "GunStoreDisplayCase",
-      "GunStoreGuns",
-      "GunStoreKnives",
-      "GunStoreLiterature",
-      "GunStoreMagazineRack",
-      "GunStoreMagsAmmo",
-      "GunStorePistols",
-      "GunStoreRifles",
-      "GunStoreShelf",
-      "GunStoreShotguns",
-      "gunstorestorage",
-      "gym",
-      "GymLaundry",
-      "GymLockers",
-      "GymMats",
-      "gymstorage",
-      "GymSweatbands",
-      "GymTowels",
-      "GymWeights",
-      "HalloweenCandyBucket",
-      "Hiker",
-      "hoarder",
-      "hoarderoffice",
-      "Hobbies",
-      "HolidayStuff",
-      "homecinema",
-      "HomeCinemaFilm",
-      "HomeCinemaLiterature",
-      "Homesteading",
-      "hoopgame",
-      "hotdogstand",
-      "HotdogStandDrinks",
-      "HotdogStandToppings",
-      "housewarestore",
-      "Humidor",
-      "HuntingLockers",
-      "icecream",
-      "icecreamkitchen",
-      "ImprovisedCrafts",
-      "interrogationroom",
-      "italiankitchen",
-      "ItalianKitchenBaking",
-      "ItalianKitchenButcher",
-      "ItalianKitchenFreezer",
-      "ItalianKitchenFridge",
-      "ItalianKitchenSauce",
-      "jackiejayeoffice",
-      "jackiejayestudio",
-      "JackiesDesk",
-      "jerkycoldroom",
-      "jerkysmoker",
-      "JewelerTools",
-      "JewelleryBox",
-      "JewelleryBox_Fancy",
-      "JewelryGems",
-      "JewelryGold",
-      "JewelryNavelRings",
-      "JewelryOthers",
-      "JewelrySilver",
-      "jewelrystorage",
-      "JewelryStorageAll",
-      "JewelryWeddingRings",
-      "JewelryWrist",
-      "joanstudio",
-      "JockeyLockers",
-      "JunkHoard",
-      "kennels",
-      "KnifeStoreCutlery",
-      "LaboratoryBooks",
-      "LaboratoryGasStorage",
-      "LaboratoryLockers",
-      "lasertag",
-      "laundry",
-      "LaundryCleaning",
-      "LaundryLoad1",
-      "LaundryLoad2",
-      "LaundryLoad3",
-      "LaundryLoad4",
-      "LaundryLoad5",
-      "LaundryLoad6",
-      "LaundryLoad7",
-      "LaundryLoad8",
-      "LingerieStoreAccessories",
-      "LingerieStoreBras",
-      "LingerieStoreOutfits",
-      "LingerieStoreUnderwear",
-      "lobby",
-      "Locker",
-      "LockerArmyBedroom",
-      "LockerArmyBedroomHome",
-      "LockerClassy",
-      "loggingtruck",
-      "Lunchbox",
-      "Lunchbox2",
-      "MagazineRackAdult",
-      "MagazineRackBrochure",
-      "MagazineRackCards",
-      "MagazineRackMaps",
-      "MagazineRackMixed",
-      "MagazineRackNewspaper",
-      "MagazineRackPaperback",
-      "MakeupCase_Professional",
-      "mannequinpainting",
-      "Meat",
-      "MedievalAlchemy",
-      "MedievalBible",
-      "MedievalBooks",
-      "MedievalCooking",
-      "MedievalTools",
-      "MedievalWeapons",
-      "MedievalWeaponsJapan",
-      "MeleeWeapons",
-      "MeleeWeapons_Late",
-      "MeleeWeapons_Mid",
-      "mexicankitchen",
-      "MexicanKitchenBaking",
-      "MexicanKitchenButcher",
-      "MexicanKitchenFreezer",
-      "MexicanKitchenFridge",
-      "MexicanKitchenSauce",
-      "MotelFridge",
-      "MotelLinens",
-      "motelroom",
-      "motelroomoccupied",
-      "MotelSideTable",
-      "MotelTowels",
-      "MusicStoreBass",
-      "MusicStoreBrass",
-      "MusicStoreCases",
-      "MusicStoreCDs",
-      "MusicStoreDrums",
-      "MusicStoreGuitar",
-      "MusicStoreLiterature",
-      "MusicStoreOthers",
-      "MusicStoreSpeaker",
-      "MusicStoreStringed",
-      "newspaperprint_herald",
-      "newspaperstorage_herald",
-      "NolansDesk",
-      "NolansFilingCabinet",
-      "NolansFridge",
-      "nolansoffice",
-      "office",
-      "officechurch",
-      "OfficeCounter",
-      "OfficeDesk",
-      "OfficeDeskHome",
-      "OfficeDeskHomeClassy",
-      "OfficeDeskSecretary",
-      "OfficeDeskStressed",
-      "OfficeDrawers",
-      "OfficeShelfSupplies",
-      "officestorage",
-      "oldarmy",
-      "OptometristDesk",
-      "OptometristGlasses",
-      "OtherGeneric",
-      "outdoorsupply",
-      "OutdoorSupplyBoots",
-      "OutdoorSupplyClothes",
-      "OutdoorSupplyMagazines",
-      "outdoorsupply_storage",
-      "paintershop",
-      "PaperBag",
-      "Paperbag_Jays",
-      "Paperbag_Spiffos",
-      "PawnShopCases",
-      "pawnshopcooking",
-      "PawnShopGuns",
-      "PawnShopGunsSpecial",
-      "PawnShopKnives",
-      "pawnshopoffice",
-      "pawnshopstorage",
-      "PawnShopTools",
-      "PencilCase",
-      "PetShopShelf",
-      "petstore",
-      "PhotoAlbum",
-      "PhotoAlbum_Old",
-      "photoroom",
-      "Plasticbag",
-      "Plasticbag_Bags",
-      "plazastore1",
-      "PlumbingSupplies",
-      "pool",
-      "PoolLockers",
-      "potatostorage",
-      "PotteryBooks",
-      "radiostorage",
-      "railroadrepair",
-      "RailYardSpikes",
-      "RailYardTools",
-      "RandomFiller",
-      "recreation",
-      "RecRoomShelf",
-      "RevolverCase2",
-      "RevolverCase3",
-      "ringtossgame",
-      "SalonCounter",
-      "SalonShelfHaircare",
-      "SalonShelfTowels",
-      "ScienceMisc",
-      "seafoodkitchen",
-      "SeafoodKitchenButcher",
-      "SeafoodKitchenFreezer",
-      "SeafoodKitchenFridge",
-      "SeafoodKitchenSauce",
-      "SeasonalWorkerLockers",
-      "secondaryclassroom",
-      "secondaryhall",
-      "ServingTrayBiscuits",
-      "ServingTrayBurgers",
-      "ServingTrayBurritos",
-      "ServingTrayChicken",
-      "ServingTrayChickenFried",
-      "ServingTrayChickenNuggets",
-      "ServingTrayChickenWings",
-      "ServingTrayCornbread",
-      "ServingTrayFish",
-      "ServingTrayFishFingers",
-      "ServingTrayFishFried",
-      "ServingTrayFries",
-      "ServingTrayGravy",
-      "ServingTrayHam",
-      "ServingTrayHotdogs",
-      "ServingTrayLobster",
-      "ServingTrayMaki",
-      "ServingTrayMeatDumplings",
-      "ServingTrayMeatSteamBuns",
-      "ServingTrayMussels",
-      "ServingTrayNoodleSoup",
-      "ServingTrayOmelettes",
-      "ServingTrayOnigiri",
-      "ServingTrayOnionRings",
-      "ServingTrayOysters",
-      "ServingTrayOystersFried",
-      "ServingTrayPancakes",
-      "ServingTrayPerogies",
-      "ServingTrayPie",
-      "ServingTrayPizza",
-      "ServingTrayPorkChops",
-      "ServingTrayPotatoPancakes",
-      "ServingTrayRefriedBeans",
-      "ServingTraySalmon",
-      "ServingTraySausage",
-      "ServingTrayScrambledEggs",
-      "ServingTrayShrimp",
-      "ServingTrayShrimpDumplings",
-      "ServingTrayShrimpFried",
-      "ServingTraySpringRolls",
-      "ServingTraySteak",
-      "ServingTraySushiEgg",
-      "ServingTraySushiFish",
-      "ServingTrayTaco",
-      "ServingTrayTatoDots",
-      "ServingTrayTofuFried",
-      "ServingTrayWaffles",
-      "SewingKit",
-      "sewingstorage",
-      "sewingstore",
-      "SewingStoreFabric",
-      "SewingStoreTools",
-      "shed",
-      "Shoebox",
-      "smokingroom",
-      "SmokingRoomCigars",
-      "SmokingRoomPipes",
-      "sodatruck",
-      "sportstorage",
-      "SportStorageBalls",
-      "SportStorageBats",
-      "SportStorageHelmets",
-      "SportStoragePaddles",
-      "SportStorageRacquets",
-      "SportStorageSticks",
-      "SportStorageWeights",
-      "SportStoreAccessories",
-      "SportStoreBadminton",
-      "SportStoreBaseball",
-      "SportStoreBoxing",
-      "SportStoreFootball",
-      "SportStoreGolf",
-      "SportStoreIceHockey",
-      "SportStorePadding",
-      "SportStoreSneakers",
-      "SportStoreTennis",
-      "storage",
-      "storageunit",
-      "studio",
-      "StudioPropShelf",
-      "sushikitchen",
-      "SushiKitchenBaking",
-      "SushiKitchenButcher",
-      "SushiKitchenCutlery",
-      "SushiKitchenFreezer",
-      "SushiKitchenFridge",
-      "SushiKitchenSauce",
-      "Tacklebox",
-      "TakeoutBox_Chinese",
-      "TakeoutBox_Styrofoam",
-      "technical",
-      "TestingLab",
-      "throwgame",
-      "ToolCabinetFarming",
-      "ToolCabinetMechanics",
-      "ToolStoreAccessories",
-      "ToolStoreBooks",
-      "ToolStoreCarpentry",
-      "ToolStoreFarming",
-      "ToolStoreFootwear",
-      "ToolStoreHandles",
-      "ToolStoreKeymaking",
-      "ToolStoreMetalwork",
-      "ToolStoreMisc",
-      "ToolStoreOutfit",
-      "ToolStorePaint",
-      "toolstorestorage",
-      "ToolStoreTools",
-      "Tote_Bags",
-      "toystorestorage",
-      "VacationStuff",
-      "viplounge",
-      "waitingroom",
-      "WaitingRoomDesk",
-      "waterstorage",
-      "WeddingStoreDresses",
-      "weddingstorestorage",
-      "WeddingStoreSuits",
-      "WesternKitchenBaking",
-      "WesternKitchenButcher",
-      "WesternKitchenFreezer",
-      "WesternKitchenFridge",
-      "WesternKitchenSauce",
-      "whiskeybottling",
-      "WhiskeyBottlingEmpty",
-      "WhiskeyBottlingFull",
-      "WildWestBarberCounter",
-      "WildWestBarberShelves",
-      "WildWestBarCounter",
-      "WildWestBarShelf",
-      "WildWestBlacksmith",
-      "WildWestGeneralStore",
-      "WildWestLivingRoom",
-      "WildWestShelves",
-      "WildWestSheriffDesk",
-      "WildWestSheriffLocker",
-      "WildWestSouveniers",
-      "WildWestWoodStove",
-      "WoodcraftDudeCounter",
-      "woodcraftset",
-      "ww_aesthetic",
-      "ww_bar",
-      "ww_blacksmith",
-      "ww_generalstore",
-      "ww_hall",
-      "ww_livingroom",
-      "ww_sherrif",
-      "ww_toolstore"
+    "Name": "Vehicles & Auto",
+    "DistributionNames": [],
+    "Children": [
+      {
+        "Name": "Car Parts - Brakes",
+        "DistributionNames": [
+          "CarBrakesModern1",
+          "CarBrakesModern2",
+          "CarBrakesModern3",
+          "CarBrakesNormal1",
+          "CarBrakesNormal2",
+          "CarBrakesNormal3"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Car Parts - Mufflers",
+        "DistributionNames": [
+          "CarMufflerModern1",
+          "CarMufflerModern2",
+          "CarMufflerModern3",
+          "CarMufflerNormal1",
+          "CarMufflerNormal2",
+          "CarMufflerNormal3"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Car Parts - Suspension",
+        "DistributionNames": [
+          "CarSuspensionModern1",
+          "CarSuspensionModern2",
+          "CarSuspensionModern3",
+          "CarSuspensionNormal1",
+          "CarSuspensionNormal2",
+          "CarSuspensionNormal3"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Car Parts - Tires & Windows",
+        "DistributionNames": [
+          "CarTiresModern1",
+          "CarTiresModern2",
+          "CarTiresModern3",
+          "CarTiresNormal1",
+          "CarTiresNormal2",
+          "CarTiresNormal3",
+          "CarWindows1",
+          "CarWindows2",
+          "CarWindows3",
+          "CarLightbars"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Car Dealership",
+        "DistributionNames": [
+          "cardealershipoffice",
+          "CarDealerDesk",
+          "CarDealerFilingCabinet"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Car Supply Store",
+        "DistributionNames": [
+          "carsupply",
+          "CarSupplyBatteries",
+          "CarSupplyGasCans",
+          "CarSupplyGloves",
+          "CarSupplyLiterature",
+          "CarSupplyMagazines",
+          "carsupplysport",
+          "CarSupplyTools"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Transport Vehicles",
+        "DistributionNames": [
+          "loggingtruck",
+          "sodatruck"
+        ],
+        "IsExpanded": false
+      }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
+  },
+  {
+    "Name": "Sports & Recreation",
+    "DistributionNames": [],
+    "Children": [
+      {
+        "Name": "Bowling Alley",
+        "DistributionNames": [
+          "bowlingalley",
+          "BowlingAlleyCounters",
+          "BowlingAlleyLockers",
+          "BowlingAlleyPins",
+          "BowlingAlleyShoes"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Boxing Gym",
+        "DistributionNames": [
+          "boxing",
+          "BoxingLockers",
+          "BoxingMemorabilia",
+          "BoxingStorageGloves",
+          "BoxingStorageHelmets"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Golf",
+        "DistributionNames": [
+          "golfstore",
+          "GolfLockers",
+          "GolfStorage",
+          "GolfStoreAccessories",
+          "GolfStoreBags",
+          "GolfStoreLiterature"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Gym",
+        "DistributionNames": [
+          "gym",
+          "GymLaundry",
+          "GymLockers",
+          "GymMats",
+          "gymstorage",
+          "GymSweatbands",
+          "GymTowels",
+          "GymWeights"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Pool",
+        "DistributionNames": [
+          "pool",
+          "PoolLockers"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Fishing Store",
+        "DistributionNames": [
+          "FishingLockers",
+          "FishingStoreBait",
+          "FishingStoreGear",
+          "Tacklebox"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Sports Storage",
+        "DistributionNames": [
+          "sportstorage",
+          "SportStorageBalls",
+          "SportStorageBats",
+          "SportStorageHelmets",
+          "SportStoragePaddles",
+          "SportStorageRacquets",
+          "SportStorageSticks",
+          "SportStorageWeights"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Sports Store",
+        "DistributionNames": [
+          "SportStoreAccessories",
+          "SportStoreBadminton",
+          "SportStoreBaseball",
+          "SportStoreBoxing",
+          "SportStoreFootball",
+          "SportStoreGolf",
+          "SportStoreIceHockey",
+          "SportStorePadding",
+          "SportStoreSneakers",
+          "SportStoreTennis"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Arcade & Games",
+        "DistributionNames": [
+          "CarnivalPrizes",
+          "dartgame",
+          "duckshootgame",
+          "hoopgame",
+          "lasertag",
+          "recreation",
+          "RecRoomShelf",
+          "ringtossgame",
+          "throwgame"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Camping & Outdoor",
+        "DistributionNames": [
+          "camping",
+          "CampingLockers",
+          "CampingStoreBackpacks",
+          "CampingStoreBooks",
+          "CampingStoreCases",
+          "CampingStoreClothes",
+          "CampingStoreGear",
+          "CampingStoreLegwear",
+          "CampingStoreLighting",
+          "CampingStoreSleepingBags",
+          "CampingStoreTents",
+          "CampingStoreTools",
+          "HuntingLockers",
+          "outdoorsupply",
+          "OutdoorSupplyBoots",
+          "OutdoorSupplyClothes",
+          "OutdoorSupplyMagazines",
+          "outdoorsupply_storage"
+        ],
+        "IsExpanded": false
+      }
+    ],
+    "IsExpanded": false
+  },
+  {
+    "Name": "Special Locations",
+    "DistributionNames": [],
+    "Children": [
+      {
+        "Name": "Wild West",
+        "DistributionNames": [
+          "WildWestBarberCounter",
+          "WildWestBarberShelves",
+          "WildWestBarCounter",
+          "WildWestBarShelf",
+          "WildWestBlacksmith",
+          "WildWestGeneralStore",
+          "WildWestLivingRoom",
+          "WildWestShelves",
+          "WildWestSheriffDesk",
+          "WildWestSheriffLocker",
+          "WildWestSouveniers",
+          "WildWestWoodStove",
+          "WoodcraftDudeCounter",
+          "woodcraftset",
+          "ww_aesthetic",
+          "ww_bar",
+          "ww_blacksmith",
+          "ww_generalstore",
+          "ww_hall",
+          "ww_livingroom",
+          "ww_toolstore",
+          "ww_sherrif"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Medieval",
+        "DistributionNames": [
+          "MedievalAlchemy",
+          "MedievalBible",
+          "MedievalBooks",
+          "MedievalCooking",
+          "MedievalTools",
+          "MedievalWeapons",
+          "MedievalWeaponsJapan"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Drug Operations",
+        "DistributionNames": [
+          "druglab",
+          "DrugLabGuns",
+          "DrugLabMoney",
+          "DrugLabOutfit",
+          "drugshack",
+          "DrugShackDrugs",
+          "DrugShackMisc",
+          "DrugShackTools",
+          "DrugShackWeapons"
+        ],
+        "IsExpanded": false
+      }
+    ],
+    "IsExpanded": false
   },
   {
     "Name": "Misc",
@@ -2602,8 +2877,324 @@
           "SurvivorCacheBigBuilding"
         ],
         "IsExpanded": false
+      },
+      {
+        "Name": "Generic Lockers",
+        "DistributionNames": [
+          "Locker",
+          "LockerArmyBedroom",
+          "LockerArmyBedroomHome",
+          "LockerClassy"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Small Containers",
+        "DistributionNames": [
+          "CookieJar_Bear",
+          "Cooler_Meat",
+          "Cooler_Seafood",
+          "Cooler_Soda",
+          "Lunchbox",
+          "Lunchbox2",
+          "PencilCase",
+          "Shoebox"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Hobby & Crafts",
+        "DistributionNames": [
+          "Hobbies",
+          "Homesteading",
+          "ImprovisedCrafts",
+          "PotteryBooks"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Random Filler",
+        "DistributionNames": [
+          "Empty",
+          "RandomFiller",
+          "OtherGeneric"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Other",
+        "DistributionNames": [
+          "BurglarTools",
+          "captainoffice",
+          "catwalk",
+          "ConstructionWorkerOutfit",
+          "DiceBag",
+          "DishCabinetLiquor",
+          "FoodGourmet",
+          "ForestFireTools",
+          "GemBag",
+          "Guitarcase",
+          "HalloweenCandyBucket",
+          "Hiker",
+          "HolidayStuff",
+          "JockeyLockers",
+          "mannequinpainting",
+          "oldarmy",
+          "paintershop",
+          "plazastore1",
+          "radiostorage",
+          "RevolverCase2",
+          "RevolverCase3",
+          "technical",
+          "ToolCabinetFarming",
+          "ToolCabinetMechanics",
+          "Tote_Bags",
+          "toystorestorage",
+          "VacationStuff"
+        ],
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
+  },
+  {
+    "Name": "Government & Public Services",
+    "DistributionNames": [],
+    "Children": [
+      {
+        "Name": "Base Locations",
+        "DistributionNames": [
+          "armystorage",
+          "armysurplus",
+          "armytent",
+          "firegarage",
+          "firestorage",
+          "hospitalhallway",
+          "hospitalroom",
+          "hospitalstorage",
+          "judgematthassset",
+          "mayorwestpointoffice",
+          "medical",
+          "medicaloffice",
+          "medicalstorage",
+          "morgue",
+          "pharmacy",
+          "pharmacystorage",
+          "policearchive",
+          "policegarage",
+          "policegunstorage",
+          "policelocker",
+          "policeoffice",
+          "policeoutfitstorage",
+          "policestorage",
+          "post",
+          "poststorage",
+          "prisoncells",
+          "prisonstorage",
+          "security"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Military",
+        "DistributionNames": [
+          "ArmyBunkerKitchen",
+          "ArmyBunkerLockers",
+          "ArmyBunkerMedical",
+          "ArmyBunkerStorage",
+          "ArmyHangarMechanics",
+          "ArmyHangarOutfit",
+          "ArmyHangarTools",
+          "ArmyStorageAmmunition",
+          "ArmyStorageElectronics",
+          "ArmyStorageGuns",
+          "ArmyStorageMedical",
+          "ArmyStorageOutfit",
+          "ArmySurplusAmmoBoxes",
+          "ArmySurplusBackpacks",
+          "ArmySurplusCases",
+          "ArmySurplusCots",
+          "ArmySurplusFootwear",
+          "ArmySurplusHeadwear",
+          "ArmySurplusLiterature",
+          "ArmySurplusMisc",
+          "ArmySurplusOutfit",
+          "ArmySurplusSnacks",
+          "ArmySurplusTools",
+          "ArmySurplusWater"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Police & SWAT",
+        "DistributionNames": [
+          "PoliceCaptainCabinet",
+          "PoliceCaptainDesk",
+          "PoliceDesk",
+          "PoliceEvidence",
+          "PoliceFileBox",
+          "PoliceFilingCabinet",
+          "PoliceLaundry",
+          "PoliceLockers",
+          "PoliceOutfit",
+          "PoliceStateOutfit",
+          "PoliceStateTools",
+          "PoliceStorageAmmunition",
+          "PoliceStorageArmor",
+          "PoliceStorageGuns",
+          "PoliceStorageMechanics",
+          "PoliceStorageOutfit",
+          "PoliceTools",
+          "SWATStorageAmmunition",
+          "SWATStorageArmor",
+          "SWATStorageGuns",
+          "evidenceroom"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Fire Department",
+        "DistributionNames": [
+          "FireDeptLockers",
+          "FireStorageMechanics",
+          "FireStorageOutfit",
+          "FireStorageTools",
+          "FiremanOutfit",
+          "FiremanTools"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Medical & Hospital",
+        "DistributionNames": [
+          "HospitalLockers",
+          "HospitalMagazineRack",
+          "HospitalRoomCleaning",
+          "HospitalRoomCounter",
+          "HospitalRoomFridge",
+          "HospitalRoomShelves",
+          "HospitalRoomWardrobe",
+          "MedicalCabinet",
+          "MedicalCache1",
+          "MedicalClinicDrugs",
+          "MedicalClinicOutfit",
+          "MedicalClinicTools",
+          "MedicalOfficeBooks",
+          "MedicalOfficeCounter",
+          "MedicalOfficeDesk",
+          "MedicalStorageDrugs",
+          "MedicalStorageOutfit",
+          "MedicalStorageTools",
+          "MorgueChemicals",
+          "MorgueOutfit",
+          "MorgueTools",
+          "PharmacyCosmetics",
+          "LaundryHospital"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Post Office",
+        "DistributionNames": [
+          "PostOfficeBooks",
+          "PostOfficeBoxes",
+          "PostOfficeMagazines",
+          "PostOfficeNewspapers",
+          "PostOfficeParcels",
+          "PostOfficeSupplies"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Prison",
+        "DistributionNames": [
+          "PrisonArmoryShotguns",
+          "PrisonCellRandom",
+          "PrisonCellRandomClassy",
+          "PrisonGuardLockers",
+          "PrisonLaundry",
+          "PrisonRiotStorage",
+          "PrisonStorageArmor"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Civic Offices",
+        "DistributionNames": [
+          "JudgeMattHassCounter",
+          "MayorWestPointBooks",
+          "MayorWestPointDesk",
+          "MayorWestPointSafe"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Security",
+        "DistributionNames": [
+          "SecurityDesk",
+          "SecurityLockers",
+          "SecurityStorage"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Detective",
+        "DistributionNames": [
+          "detectiveoffice",
+          "interrogationroom"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Coroner",
+        "DistributionNames": [
+          "coroneroffice"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Control Room",
+        "DistributionNames": [
+          "controlroom",
+          "ControlRoomCounter"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Waiting Room & Lobby",
+        "DistributionNames": [
+          "lobby",
+          "waitingroom",
+          "WaitingRoomDesk"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "Weapons Cache",
+        "DistributionNames": [
+          "FirearmWeapons",
+          "FirearmWeapons_Late",
+          "FirearmWeapons_Mid",
+          "MeleeWeapons",
+          "MeleeWeapons_Late",
+          "MeleeWeapons_Mid",
+          "GeneratorRoom"
+        ],
+        "IsExpanded": false
+      },
+      {
+        "Name": "First Aid Kits",
+        "DistributionNames": [
+          "FirstAidKit_Camping",
+          "FirstAidKit_Camping_New",
+          "FirstAidKit_Military",
+          "FirstAidKit_New",
+          "FirstAidKit_NewPro",
+          "FirstAidKit_Pro"
+        ],
+        "IsExpanded": false
+      }
+    ],
+    "IsExpanded": false
   }
 ]
