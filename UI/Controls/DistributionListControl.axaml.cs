@@ -20,7 +20,7 @@ using Data.Data;
 
 namespace UI.Controls;
 
-public partial class DistributionListControl : UserControl
+public partial class DistributionListControl : UserControl, ITreeDragDropHost
 {
     private List<Distribution> _all = [];
     private string? _activeTypeFilter; // null = "All"
@@ -43,18 +43,12 @@ public partial class DistributionListControl : UserControl
     private List<FolderDefinition> _folders = [];
     private readonly ObservableCollection<ExplorerNode> _rootNodes = [];
     private UserSettings? _settings;
+    private TreeDragDropHandler? _dragDropHandler;
 
     // Inline rename state
     private ExplorerNode? _renamingNode;
     private bool _isCreatingNewFolder;
     private ExplorerNode? _newFolderParent; // null = root, set for subfolders
-
-    // Drag-drop state
-    private Point _dragStartPoint;
-    private bool _dragStartPending;
-    private List<ExplorerNode> _draggedNodesSnapshot = [];
-    private TreeViewItem? _currentDropTarget;
-    private const double DragThreshold = 6;
 
     // Cached filter result for tree-only rebuilds
     private List<Distribution> _lastFiltered = [];
@@ -91,12 +85,8 @@ public partial class DistributionListControl : UserControl
         }
 
         // Wire drag-drop
-        DistTree.AddHandler(PointerPressedEvent, OnTreePointerPressed, RoutingStrategies.Tunnel);
-        DistTree.AddHandler(PointerMovedEvent, OnTreePointerMoved, RoutingStrategies.Tunnel);
-        DistTree.AddHandler(PointerReleasedEvent, OnTreePointerReleased, RoutingStrategies.Tunnel);
-        DistTree.AddHandler(DragDrop.DragOverEvent, OnTreeDragOver);
-        DistTree.AddHandler(DragDrop.DragLeaveEvent, OnTreeDragLeave);
-        DistTree.AddHandler(DragDrop.DropEvent, OnTreeDrop);
+        _dragDropHandler = new TreeDragDropHandler(DistTree, this);
+        _dragDropHandler.Attach();
 
         // Double-click opens a tab
         DistTree.DoubleTapped += OnTreeDoubleTapped;
@@ -258,264 +248,22 @@ public partial class DistributionListControl : UserControl
             OpenMultipleRequested?.Invoke(dists);
     }
 
-    // ── Drag-and-drop ──
+    // ── ITreeDragDropHost implementation ──
 
-    private void OnTreePointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (e.Source is Visual v && v.FindAncestorOfType<ScrollBar>() is not null) return;
-        if (!e.GetCurrentPoint(DistTree).Properties.IsLeftButtonPressed) return;
-        _dragStartPoint = e.GetPosition(DistTree);
+    ObservableCollection<ExplorerNode> ITreeDragDropHost.RootNodes => _rootNodes;
+    List<FolderDefinition> ITreeDragDropHost.Folders => _folders;
+    void ITreeDragDropHost.SaveFolders() => SaveFolders();
+    void ITreeDragDropHost.RefreshTree() => RefreshTree();
 
-        // Snapshot selection now, before the TreeView processes the click and potentially resets it
-        _draggedNodesSnapshot = [];
-        if (DistTree.SelectedItems is not null)
-        {
-            foreach (var item in DistTree.SelectedItems)
-            {
-                if (item is ExplorerNode node)
-                    _draggedNodesSnapshot.Add(node);
-            }
-        }
+    (FolderDefinition? folder, List<FolderDefinition> parentList) ITreeDragDropHost.FindFolderDefinition(
+        ExplorerNode node) => FindFolderDefinition(node);
 
-        _dragStartPending = true;
-    }
-
-    private void OnTreePointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        _dragStartPending = false;
-    }
-
-    private async void OnTreePointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (e.Source is Visual v && v.FindAncestorOfType<ScrollBar>() is not null) return;
-        if (!_dragStartPending) return;
-
-        var pos = e.GetPosition(DistTree);
-        var delta = pos - _dragStartPoint;
-        if (Math.Abs(delta.X) < DragThreshold && Math.Abs(delta.Y) < DragThreshold)
-            return;
-
-        _dragStartPending = false;
-
-        // Use the snapshot taken at PointerPressed (before TreeView changed the selection)
-        // Also include the currently clicked node if it wasn't in the original selection
-        var clickedNode = FindNodeAtPosition(_dragStartPoint);
-        var draggedNodes = new List<ExplorerNode>(_draggedNodesSnapshot);
-        if (clickedNode is not null && !draggedNodes.Contains(clickedNode))
-            draggedNodes.Add(clickedNode);
-        if (draggedNodes.Count == 0) return;
-
-        var data = new DataObject();
-        data.Set("ExplorerNodes", draggedNodes);
-        try
-        {
-            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
-        
-        ClearDropTarget();
-    }
-
-    private void OnTreeDragOver(object? sender, DragEventArgs e)
-    {
-        if (!e.Data.Contains("ExplorerNodes"))
-        {
-            e.DragEffects = DragDropEffects.None;
-            return;
-        }
-
-        var targetNode = FindNodeAtPosition(e.GetPosition(DistTree));
-        var draggedNodes = e.Data.Get("ExplorerNodes") as List<ExplorerNode>;
-
-        // Find the effective drop folder (if target is a distribution in a folder, use that folder)
-        var dropFolder = ResolveDropFolder(targetNode);
-
-        // Validate drop
-        if (draggedNodes is not null && !IsValidDrop(draggedNodes, dropFolder, targetNode))
-        {
-            e.DragEffects = DragDropEffects.None;
-            ClearDropTarget();
-            return;
-        }
-
-        e.DragEffects = DragDropEffects.Move;
-
-        // Visual feedback on the folder being targeted
-        if (dropFolder is not null)
-        {
-            var tvi = FindTreeViewItemForNode(dropFolder);
-            if (tvi is not null)
-                SetDropTarget(tvi);
-            else
-                ClearDropTarget();
-        }
-        else
-        {
-            ClearDropTarget();
-        }
-    }
-
-    private void OnTreeDragLeave(object? sender, DragEventArgs e)
-    {
-        ClearDropTarget();
-    }
-
-    private void OnTreeDrop(object? sender, DragEventArgs e)
-    {
-        ClearDropTarget();
-
-        if (e.Data.Get("ExplorerNodes") is not List<ExplorerNode> draggedNodes)
-            return;
-
-        var targetNode = FindNodeAtPosition(e.GetPosition(DistTree));
-        var dropFolder = ResolveDropFolder(targetNode);
-
-        if (!IsValidDrop(draggedNodes, dropFolder, targetNode))
-            return;
-
-        // Perform the move (MoveFolderTo shows its own confirmation dialog)
-        foreach (var node in draggedNodes)
-        {
-            if (node.IsFolder)
-            {
-                if (!MoveFolderTo(node, dropFolder))
-                    return; // user cancelled
-            }
-            else if (node.Distribution is not null)
-                MoveDistributionTo(node.Distribution.Name, dropFolder);
-        }
-
-        SaveFolders();
-        RefreshTree();
-    }
-
-    /// <summary>
-    /// Resolves the effective drop folder. If the target is itself a folder, return it.
-    /// If the target is a distribution inside a folder, return that parent folder.
-    /// If the target is a root distribution or null, return null (root level).
-    /// </summary>
-    private ExplorerNode? ResolveDropFolder(ExplorerNode? targetNode)
-    {
-        if (targetNode is null) return null;
-        if (targetNode.IsFolder) return targetNode;
-
-        // Check if this distribution node lives inside a folder in the current tree
-        return FindParentFolderNode(targetNode, _rootNodes);
-    }
-
-    private static ExplorerNode? FindParentFolderNode(
-        ExplorerNode target, ObservableCollection<ExplorerNode> nodes)
-    {
-        foreach (var node in nodes)
-        {
-            if (!node.IsFolder) continue;
-            if (node.Children.Contains(target)) return node;
-            var found = FindParentFolderNode(target, node.Children);
-            if (found is not null) return found;
-        }
-        return null;
-    }
-
-    private bool IsValidDrop(List<ExplorerNode> dragged, ExplorerNode? dropFolder, ExplorerNode? targetNode)
-    {
-        foreach (var node in dragged)
-        {
-            // Can't drop on itself
-            if (node == targetNode) return false;
-            if (node == dropFolder) return false;
-
-            // Can't drop a folder into its own descendant (cycle prevention)
-            if (node.IsFolder && dropFolder is not null && IsDescendantOf(dropFolder, node))
-                return false;
-        }
-        return true;
-    }
-
-    /// <summary>Returns true if `candidate` is nested inside `ancestor`.</summary>
-    private static bool IsDescendantOf(ExplorerNode candidate, ExplorerNode ancestor)
-    {
-        foreach (var child in ancestor.Children)
-        {
-            if (child == candidate) return true;
-            if (child.IsFolder && IsDescendantOf(candidate, child))
-                return true;
-        }
-        return false;
-    }
-
-    private void MoveDistributionTo(string distName, ExplorerNode? targetFolderNode)
-    {
-        var targetDef = targetFolderNode is not null ? FindFolderDefinition(targetFolderNode).folder : null;
-        FolderService.MoveDistribution(distName, targetDef, _folders);
-    }
-
-    /// <summary>
-    /// Moves a folder to a new parent. Shows a confirmation dialog first.
-    /// Returns false if the user cancelled.
-    /// </summary>
-    private bool MoveFolderTo(ExplorerNode folderNode, ExplorerNode? targetFolderNode)
-    {
-        if (!ShowMoveFolderConfirmation(folderNode.Name))
-            return false;
-
-        var (folderDef, oldParentList) = FindFolderDefinition(folderNode);
-        if (folderDef is null) return true; // nothing to move, but not cancelled
-
-        var targetDef = targetFolderNode is not null ? FindFolderDefinition(targetFolderNode).folder : null;
-        FolderService.MoveFolder(folderDef, oldParentList, targetDef, _folders);
-        return true;
-    }
-
-    // ── Drag visual helpers ──
-
-    private ExplorerNode? FindNodeAtPosition(Point pos)
-    {
-        var hit = DistTree.InputHitTest(pos);
-        if (hit is not Visual visual) return null;
-
-        var tvi = visual.FindAncestorOfType<TreeViewItem>();
-        return tvi?.DataContext as ExplorerNode;
-    }
-
-    private TreeViewItem? FindTreeViewItemForNode(ExplorerNode node)
-    {
-        return FindTreeViewItemRecursive(DistTree, node);
-    }
-
-    private static TreeViewItem? FindTreeViewItemRecursive(ItemsControl parent, ExplorerNode node)
-    {
-        foreach (var item in parent.GetRealizedContainers())
-        {
-            if (item is TreeViewItem tvi)
-            {
-                if (tvi.DataContext == node) return tvi;
-                var found = FindTreeViewItemRecursive(tvi, node);
-                if (found is not null) return found;
-            }
-        }
-        return null;
-    }
-
-    private void SetDropTarget(TreeViewItem tvi)
-    {
-        if (_currentDropTarget == tvi) return;
-        ClearDropTarget();
-        _currentDropTarget = tvi;
-        tvi.Classes.Add("droptarget");
-    }
-
-    private void ClearDropTarget()
-    {
-        if (_currentDropTarget is null) return;
-        _currentDropTarget.Classes.Remove("droptarget");
-        _currentDropTarget = null;
-    }
     /// <summary>
     /// Shows a confirmation dialog before moving a folder. Returns true if the user confirmed.
     /// </summary>
+    bool ITreeDragDropHost.ShowMoveFolderConfirmation(string folderName) =>
+        ShowMoveFolderConfirmation(folderName);
+
     private bool ShowMoveFolderConfirmation(string folderName)
     {
         var dialog = new Window
