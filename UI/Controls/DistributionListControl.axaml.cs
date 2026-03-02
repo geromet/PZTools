@@ -105,7 +105,7 @@ public partial class DistributionListControl : UserControl
     public void SetSettings(UserSettings settings)
     {
         _settings = settings;
-        _folders = DeepCopyFolders(FolderSettings.Load());
+        _folders = FolderService.DeepCopy(FolderSettings.Load());
     }
 
     public void Load(IReadOnlyList<Distribution> distributions)
@@ -511,14 +511,8 @@ public partial class DistributionListControl : UserControl
 
     private void MoveDistributionTo(string distName, ExplorerNode? targetFolderNode)
     {
-        // Remove from all folders first
-        RemoveDistFromAllFolders(distName, _folders);
-
-        if (targetFolderNode is null) return; // move to root = just remove from folders
-
-        // Find the target FolderDefinition and add
-        var (targetDef, _) = FindFolderDefinition(targetFolderNode);
-        targetDef?.DistributionNames.Add(distName);
+        var targetDef = targetFolderNode is not null ? FindFolderDefinition(targetFolderNode).folder : null;
+        FolderService.MoveDistribution(distName, targetDef, _folders);
     }
 
     /// <summary>
@@ -530,32 +524,11 @@ public partial class DistributionListControl : UserControl
         if (!ShowMoveFolderConfirmation(folderNode.Name))
             return false;
 
-        // Find and remove the folder from its current location
         var (folderDef, oldParentList) = FindFolderDefinition(folderNode);
         if (folderDef is null) return true; // nothing to move, but not cancelled
 
-        oldParentList.Remove(folderDef);
-
-        if (targetFolderNode is null)
-        {
-            // Move to root
-            _folders.Add(folderDef);
-        }
-        else
-        {
-            // Nest inside target folder
-            var (targetDef, _) = FindFolderDefinition(targetFolderNode);
-            if (targetDef is not null)
-            {
-                targetDef.Children ??= [];
-                targetDef.Children.Add(folderDef);
-            }
-            else
-            {
-                // Fallback: back to root
-                _folders.Add(folderDef);
-            }
-        }
+        var targetDef = targetFolderNode is not null ? FindFolderDefinition(targetFolderNode).folder : null;
+        FolderService.MoveFolder(folderDef, oldParentList, targetDef, _folders);
         return true;
     }
 
@@ -766,43 +739,11 @@ public partial class DistributionListControl : UserControl
     private FolderDefinition? FindParentFolder(ExplorerNode node)
     {
         if (node.Distribution is null) return null;
-        return FindFolderContaining(node.Distribution.Name, _folders);
+        return FolderService.FindFolderContaining(node.Distribution.Name, _folders);
     }
 
-    private static FolderDefinition? FindFolderContaining(string distName, List<FolderDefinition> folders)
-    {
-        foreach (var f in folders)
-        {
-            if (f.DistributionNames.Any(n =>
-                string.Equals(n, distName, StringComparison.OrdinalIgnoreCase)))
-                return f;
-
-            if (f.Children is not null)
-            {
-                var found = FindFolderContaining(distName, f.Children);
-                if (found is not null) return found;
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Finds a FolderDefinition by slash-separated path (e.g. "Food/Restaurants").
-    /// </summary>
-    private FolderDefinition? FindFolderByPath(string path)
-    {
-        var parts = path.Split('/');
-        var current = _folders;
-        FolderDefinition? result = null;
-        foreach (var part in parts)
-        {
-            result = current.FirstOrDefault(f =>
-                string.Equals(f.Name, part, StringComparison.OrdinalIgnoreCase));
-            if (result is null) return null;
-            current = result.Children ?? [];
-        }
-        return result;
-    }
+    private FolderDefinition? FindFolderByPath(string path) =>
+        FolderService.FindFolderByPath(path, _folders);
 
     /// <summary>
     /// Builds the path of folder names from root to the given node by searching the tree.
@@ -845,60 +786,11 @@ public partial class DistributionListControl : UserControl
     {
         var path = GetNodePath(node);
         if (path is not null)
-            return FindFolderByNodePath(path);
+            return FolderService.FindByNodePath(path, _folders);
         // Fallback: name-only search (for cases where node isn't in tree yet)
-        return FindFolderDefinitionByName(node.Name);
+        return FolderService.FindByName(node.Name, _folders);
     }
 
-    private (FolderDefinition? folder, List<FolderDefinition> parentList) FindFolderByNodePath(
-        List<string> path)
-    {
-        var currentList = _folders;
-        for (var i = 0; i < path.Count; i++)
-        {
-            var name = path[i];
-            var match = currentList.FirstOrDefault(f =>
-                string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase));
-            if (match is null)
-                return (null, currentList);
-            if (i == path.Count - 1)
-                return (match, currentList);
-            currentList = match.Children ?? [];
-        }
-        return (null, currentList);
-    }
-
-    private (FolderDefinition? folder, List<FolderDefinition> parentList) FindFolderDefinitionByName(
-        string folderName, List<FolderDefinition>? folders = null)
-    {
-        folders ??= _folders;
-        foreach (var f in folders)
-        {
-            if (string.Equals(f.Name, folderName, StringComparison.OrdinalIgnoreCase))
-                return (f, folders);
-
-            if (f.Children is not null)
-            {
-                var found = FindFolderDefinitionByName(folderName, f.Children);
-                if (found.folder is not null) return found;
-            }
-        }
-        return (null, folders);
-    }
-
-    /// <summary>
-    /// Removes a distribution name from all folders recursively.
-    /// </summary>
-    private static void RemoveDistFromAllFolders(string distName, List<FolderDefinition> folders)
-    {
-        foreach (var f in folders)
-        {
-            f.DistributionNames.RemoveAll(n =>
-                string.Equals(n, distName, StringComparison.OrdinalIgnoreCase));
-            if (f.Children is not null)
-                RemoveDistFromAllFolders(distName, f.Children);
-        }
-    }
 
     // ── Folder CRUD ──
 
@@ -958,7 +850,7 @@ public partial class DistributionListControl : UserControl
         {
             if (node.Distribution is null) continue;
             // Remove from any existing folder first
-            RemoveDistFromAllFolders(node.Distribution.Name, _folders);
+            FolderService.RemoveDistFromAllFolders(node.Distribution.Name, _folders);
             folder.DistributionNames.Add(node.Distribution.Name);
         }
 
@@ -974,7 +866,7 @@ public partial class DistributionListControl : UserControl
         foreach (var node in selectedDists)
         {
             if (node.Distribution is null) continue;
-            RemoveDistFromAllFolders(node.Distribution.Name, _folders);
+            FolderService.RemoveDistFromAllFolders(node.Distribution.Name, _folders);
         }
 
         SaveFolders();
@@ -1067,7 +959,7 @@ public partial class DistributionListControl : UserControl
     {
         // Sync expansion state from current tree nodes
         SyncExpansionState(_rootNodes, _folders);
-        FolderSettings.Save(DeepCopyFolders(_folders));
+        FolderSettings.Save(FolderService.DeepCopy(_folders));
     }
 
     /// <summary>
@@ -1096,16 +988,6 @@ public partial class DistributionListControl : UserControl
         }
     }
 
-    private static List<FolderDefinition> DeepCopyFolders(List<FolderDefinition> source)
-    {
-        return source.Select(f => new FolderDefinition
-        {
-            Name = f.Name,
-            DistributionNames = [.. f.DistributionNames],
-            Children = f.Children is not null ? DeepCopyFolders(f.Children) : null,
-            IsExpanded = f.IsExpanded,
-        }).ToList();
-    }
 
     // ── Type filter pills (row 1) — single-select toggle ──
 
