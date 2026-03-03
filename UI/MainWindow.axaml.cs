@@ -336,7 +336,7 @@ public partial class MainWindow : Window
         var state  = new ItemTabState(itemName) { LastAccessTick = Environment.TickCount64 };
         var detail = new ItemsDetailControl();
         detail.GetAllDistributions = () => _distributions;
-        detail.OpenDistributionRequested += d => OpenOrActivateTab(d);
+        detail.OpenDistributionRequested += d => OpenTabInBackground(d);
         detail.Load(itemName, _itemIndex, state.UndoRedo);
         state.DetailControl = detail;
 
@@ -374,7 +374,7 @@ public partial class MainWindow : Window
         if (_itemIndex is null) return;
         var detail = new ItemsDetailControl();
         detail.GetAllDistributions = () => _distributions;
-        detail.OpenDistributionRequested += d => OpenOrActivateTab(d);
+        detail.OpenDistributionRequested += d => OpenTabInBackground(d);
         detail.Load(state.ItemName, _itemIndex, state.UndoRedo);
         state.DetailControl   = detail;
         state.TabItem.Content = detail;
