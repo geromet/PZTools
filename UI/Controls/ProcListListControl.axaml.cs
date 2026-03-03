@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Avalonia.Controls;
-using DataInput.Data;
+using Data.Data;
 using UI.UndoRedo;
 
 namespace UI.Controls;

@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:UI.Assets"
+             x:Class="UI.Controls.ItemsDetailControl"
+             x:CompileBindings="False">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Row 0: Item name header -->
+        <Border Grid.Row="0"
+                Padding="14 10 14 10"
+                Background="{StaticResource BgPanel}"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 0 0 1">
+            <DockPanel>
+                <Button x:Name="AutoFilterBtn"
+                        DockPanel.Dock="Right"
+                        Classes="FilterPill"
+                        Content="{x:Static loc:Strings.IDAutoFilter}"
+                        ToolTip.Tip="{x:Static loc:Strings.IDAutoFilterTip}"
+                        Click="AutoFilter_Click"
+                        VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock x:Name="ItemNameText"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimary}"
+                               VerticalAlignment="Center" />
+                    <Border CornerRadius="4" Padding="6 2"
+                            Background="{StaticResource BgElevated}"
+                            VerticalAlignment="Center">
+                        <TextBlock x:Name="OccurrenceCountText"
+                                   FontSize="11"
+                                   Foreground="{StaticResource TextMuted}" />
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Row 1: Column headers -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="*,120,50,80,65,26"
+              Background="{StaticResource BgElevated}"
+              Margin="0 0 0 1">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:Strings.IDColDistribution}"
+                       FontSize="10" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}" Margin="14 3 4 3" />
+            <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.IDColContainer}"
+                       FontSize="10" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}" Margin="4 3" />
+            <TextBlock Grid.Column="2" Text="{x:Static loc:Strings.IDColItemType}"
+                       FontSize="10" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}" Margin="4 3" />
+            <TextBlock Grid.Column="3" Text="{x:Static loc:Strings.IDColType}"
+                       FontSize="10" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}" Margin="4 3" />
+            <TextBlock Grid.Column="4" Text="{x:Static loc:Strings.IDColChance}"
+                       FontSize="10" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}"
+                       HorizontalAlignment="Right" Margin="0 3 4 3" />
+        </Grid>
+
+        <!-- Row 2: Scrollable rows -->
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Visible"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel x:Name="RowsPanel" />
+        </ScrollViewer>
+
+        <!-- Row 3: Add-row footer -->
+        <Border Grid.Row="3"
+                Padding="8 6"
+                Background="{StaticResource BgPanel}"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 1 0 0">
+            <Grid ColumnDefinitions="*,120,65,Auto">
+                <AutoCompleteBox x:Name="AddDistBox"
+                                 Grid.Column="0"
+                                 Watermark="{x:Static loc:Strings.IDAddDistPlaceholder}"
+                                 FontSize="11" Margin="0 0 4 0"
+                                 FilterMode="None"
+                                 MinimumPrefixLength="0"
+                                 SelectionChanged="AddDistBox_SelectionChanged"
+                                 TextChanged="AddDistBox_TextChanged"
+                                 DropDownOpened="AddDistBox_DropDownOpened" />
+                <ComboBox x:Name="AddContainerBox"
+                          Grid.Column="1"
+                          PlaceholderText="{x:Static loc:Strings.IDAddContainerPlaceholder}"
+                          FontSize="11" Margin="0 0 4 0" />
+                <TextBox x:Name="AddChanceBox"
+                         Grid.Column="2"
+                         Text="1"
+                         FontSize="11" Margin="0 0 4 0"
+                         VerticalContentAlignment="Center" />
+                <Button x:Name="AddBtn"
+                        Grid.Column="3"
+                        Content="{x:Static loc:Strings.IDBtnAdd}"
+                        FontSize="11"
+                        Click="AddBtn_Click" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

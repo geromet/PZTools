@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="using:UI.Controls"
+             xmlns:helpers="clr-namespace:UI.Controls.Helpers"
+             xmlns:loc="clr-namespace:UI.Assets"
              x:Class="UI.Controls.DistributionListControl"
              x:CompileBindings="False">
 
@@ -14,10 +15,8 @@
             <StackPanel Spacing="8">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Left"
-                               Text="DISTRIBUTIONS"
-                               FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
-                               Foreground="{StaticResource TextMuted}"
-                               VerticalAlignment="Center" />
+                               Text="{x:Static loc:Strings.DLHeader}"
+                               Classes="PanelHeader" />
                     <!-- Filtered/Total count -->
                     <TextBlock x:Name="CountText"
                                DockPanel.Dock="Right"
@@ -26,14 +25,14 @@
                                VerticalAlignment="Center" />
                     <!-- Expand/Collapse All buttons -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0 0 6 0">
-                        <Button Classes="FilterPill" Content="⊞" ToolTip.Tip="Expand All"
+                        <Button Classes="FilterPill" Content="⊞" ToolTip.Tip="{x:Static loc:Strings.DLExpandAll}"
                                 Click="ExpandAll_Click" Margin="2" Padding="4 2" FontSize="10" />
-                        <Button Classes="FilterPill" Content="⊟" ToolTip.Tip="Collapse All"
+                        <Button Classes="FilterPill" Content="⊟" ToolTip.Tip="{x:Static loc:Strings.DLCollapseAll}"
                                 Click="CollapseAll_Click" Margin="2" Padding="4 2" FontSize="10" />
                     </StackPanel>
                 </DockPanel>
                 <TextBox x:Name="SearchBox"
-                         Watermark="Search…"
+                         Watermark="{x:Static loc:Strings.DLSearch}"
                          FontSize="12" />
             </StackPanel>
         </Border>
@@ -48,15 +47,20 @@
                 <Border Padding="4" CornerRadius="4"
                         Background="{StaticResource BgElevated}">
                     <StackPanel Spacing="2">
-                        <TextBlock Text="TYPE" FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
-                                   Foreground="{StaticResource TextMuted}" Margin="2 0 0 0" />
+                        <TextBlock Text="{x:Static loc:Strings.DLTypeHeader}" Classes="SectionHeader" Margin="2 0 0 0" />
                         <WrapPanel x:Name="TypeFilterPills" Orientation="Horizontal">
-                            <Button Classes="FilterPill" Content="All" Tag="{x:Null}" Click="TypeFilterPill_Click" Margin="2" />
-                            <Button Classes="FilterPill" Content="Rooms" Tag="Room" Click="TypeFilterPill_Click" Margin="2" />
-                            <Button Classes="FilterPill" Content="Caches" Tag="Cache" Click="TypeFilterPill_Click" Margin="2" />
-                            <Button Classes="FilterPill" Content="Professions" Tag="Profession" Click="TypeFilterPill_Click" Margin="2" />
-                            <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="TypeFilterPill_Click" Margin="2" />
-                            <Button Classes="FilterPill" Content="Items" Tag="Item" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeAll}" Tag="{x:Null}" Click="TypeFilterPill_Click"
+                                    Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeRooms}" Tag="Room" Click="TypeFilterPill_Click"
+                                    Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeCaches}" Tag="Cache" Click="TypeFilterPill_Click"
+                                    Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeProfessions}" Tag="Profession"
+                                    Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeProcedural}" Tag="Procedural"
+                                    Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeItems}" Tag="Item" Click="TypeFilterPill_Click"
+                                    Margin="2" />
                         </WrapPanel>
                     </StackPanel>
                 </Border>
@@ -70,14 +74,13 @@
                     <Border Grid.Column="0" Padding="4" CornerRadius="4"
                             Background="{StaticResource BgElevated}">
                         <StackPanel Spacing="2">
-                            <TextBlock Text="CONTENT  (L: has · R: no)" FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
-                                       Foreground="{StaticResource TextMuted}" Margin="2 0 0 0" />
+                            <TextBlock Text="{x:Static loc:Strings.DLContentHeader}" Classes="SectionHeader" Margin="2 0 0 0" />
                             <WrapPanel x:Name="ContentFilterPills" Orientation="Horizontal">
-                                <Button Classes="FilterPill" Content="Proc List" Tag="ProcList" Click="ContentFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Rolls" Tag="Rolls" Click="ContentFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Items" Tag="Items" Click="ContentFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Junk" Tag="Junk" Click="ContentFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="ContentFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLFilterProcList}" Tag="ProcList" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLFilterRolls}" Tag="Rolls" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLFilterItems}" Tag="Items" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLFilterJunk}" Tag="Junk" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLFilterProcedural}" Tag="Procedural" Margin="2" />
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -86,11 +89,11 @@
                     <Border Grid.Column="2" Padding="4" CornerRadius="4"
                             Background="{StaticResource BgElevated}">
                         <StackPanel Spacing="2">
-                            <TextBlock Text="STRUCTURE" FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
-                                       Foreground="{StaticResource TextMuted}" Margin="2 0 0 0" />
+                            <TextBlock Text="{x:Static loc:Strings.DLStructureHeader}" Classes="SectionHeader" Margin="2 0 0 0" />
                             <WrapPanel x:Name="StructureFilterPills" Orientation="Horizontal">
-                                <Button Classes="FilterPill" Content="No Content" Tag="NoContent" Click="StructureFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Invalid" Tag="Invalid" Click="StructureFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLNoContent}" Tag="NoContent" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLInvalid}" Tag="Invalid" Margin="2" />
+                                <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLDistItems}" Tag="DistributionItems" Margin="2" />
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -120,7 +123,7 @@
                         <TextBlock Grid.Column="1"
                                    Text="{Binding Name}"
                                    TextTrimming="CharacterEllipsis"
-                                   FontWeight="{Binding IsFolder, Converter={x:Static controls:BoolToFontWeightConverter.Instance}}"
+                                   FontWeight="{Binding IsFolder, Converter={x:Static helpers:BoolToFontWeightConverter.Instance}}"
                                    VerticalAlignment="Center" />
                         <!-- Type badge (distributions only) -->
                         <Border Grid.Column="2"
@@ -144,20 +147,22 @@
             </TreeView.ItemTemplate>
             <TreeView.ContextMenu>
                 <ContextMenu x:Name="TreeContextMenu" Opening="TreeContextMenu_Opening">
-                    <MenuItem Header="Open Distribution" x:Name="OpenDistItem" Click="OpenDistribution_Click" />
-                    <MenuItem Header="Open Selected Distributions" x:Name="OpenSelectedDistsItem" Click="OpenSelectedDistributions_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuOpen}" x:Name="OpenDistItem" Click="OpenDistribution_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuOpenSelected}" x:Name="OpenSelectedDistsItem"
+                              Click="OpenSelectedDistributions_Click" />
                     <Separator />
-                    <MenuItem Header="New Folder" Click="NewFolder_Click" />
-                    <MenuItem Header="New Subfolder" x:Name="NewSubfolderItem" Click="NewSubfolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuNewFolder}" Click="NewFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuNewSubfolder}" x:Name="NewSubfolderItem" Click="NewSubfolder_Click" />
                     <Separator />
-                    <MenuItem Header="Move to Folder" x:Name="MoveToFolderMenu" />
-                    <MenuItem Header="Remove from Folder" x:Name="RemoveFromFolderItem" Click="RemoveFromFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuMoveToFolder}" x:Name="MoveToFolderMenu" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuRemoveFromFolder}" x:Name="RemoveFromFolderItem" Click="RemoveFromFolder_Click" />
                     <Separator />
-                    <MenuItem Header="Rename Folder" x:Name="RenameFolderItem" Click="RenameFolder_Click" />
-                    <MenuItem Header="Delete Folder" x:Name="DeleteFolderItem" Click="DeleteFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuRenameFolder}" x:Name="RenameFolderItem" Click="RenameFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuDeleteFolder}" x:Name="DeleteFolderItem" Click="DeleteFolder_Click" />
                     <Separator x:Name="FolderExpandSeparator" />
-                    <MenuItem Header="Expand All in Folder" x:Name="ExpandFolderItem" Click="ExpandFolderAll_Click" />
-                    <MenuItem Header="Collapse All in Folder" x:Name="CollapseFolderItem" Click="CollapseFolderAll_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuExpandAll}" x:Name="ExpandFolderItem" Click="ExpandFolderAll_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuCollapseAll}" x:Name="CollapseFolderItem"
+                              Click="CollapseFolderAll_Click" />
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>

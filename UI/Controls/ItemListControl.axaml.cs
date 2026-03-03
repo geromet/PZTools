@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using DataInput.Data;
+using Data.Data;
 using UI.UndoRedo;
 
 namespace UI.Controls;
@@ -27,14 +27,15 @@ public partial class ItemListControl : UserControl
         ItemRowHelper.Populate(RowsPanel, items, undoRedo, context, owner);
     }
 
+    public void Repopulate()
+    {
+        if (_items is null || _undoRedo is null || _owner is null) return;
+        ItemRowHelper.Populate(RowsPanel, _items, _undoRedo, _context, _owner);
+    }
+
     private void AddItemBtn_Click(object? sender, RoutedEventArgs e)
     {
         if (_items is null || _undoRedo is null || _owner is null) return;
-        var newItem = new Item("NewItem", 1);
-        var index = _items.Count;
-        _undoRedo.Push(new ListInsertAction<Item>(
-            $"{_context}: add '{newItem.Name}'",
-            _items, index, newItem,
-            () => { ItemRowHelper.Populate(RowsPanel, _items, _undoRedo, _context, _owner); _owner.IsDirty = true; }));
+        UndoHelper.PushItemInsert(_undoRedo, _owner, _items, RowsPanel, _context);
     }
 }

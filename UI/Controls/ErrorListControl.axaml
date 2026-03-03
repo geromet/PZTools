@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:UI.Assets"
              x:Class="UI.Controls.ErrorListControl"
              x:CompileBindings="False">
 
@@ -13,10 +14,8 @@
                 Padding="12 7">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
-                           Text="ERROR LIST"
-                           FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
-                           Foreground="{StaticResource TextMuted}"
-                           VerticalAlignment="Center" />
+                           Text="{x:Static loc:Strings.ELHeader}"
+                           Classes="PanelHeader" />
 
                 <!-- Error/warning filter toggles -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12">
@@ -27,7 +26,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                                      Fill="{StaticResource StatusError}" />
-                            <TextBlock x:Name="ErrorCountText" Text="0 errors" />
+                            <TextBlock x:Name="ErrorCountText" Text="{x:Static loc:Strings.ELErrorsDefault}" />
                         </StackPanel>
                     </ToggleButton>
                     <ToggleButton x:Name="ShowWarningsBtn"
@@ -37,7 +36,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="5">
                             <Ellipse Width="7" Height="7" VerticalAlignment="Center"
                                      Fill="{StaticResource StatusWarning}" />
-                            <TextBlock x:Name="WarningCountText" Text="0 warnings" />
+                            <TextBlock x:Name="WarningCountText" Text="{x:Static loc:Strings.ELWarningsDefault}" />
                         </StackPanel>
                     </ToggleButton>
                 </StackPanel>
@@ -55,17 +54,17 @@
 
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Copy selected" Click="CopyRow_Click" InputGesture="Ctrl+C" />
-                    <MenuItem Header="Copy all" Click="CopyAll_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.ELCopySelected}" Click="CopyRow_Click" InputGesture="Ctrl+C" />
+                    <MenuItem Header="{x:Static loc:Strings.ELCopyAll}" Click="CopyAll_Click" />
                 </ContextMenu>
             </DataGrid.ContextMenu>
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="60"  />
-                <DataGridTextColumn Header="Code" Binding="{Binding Code}" Width="150" />
-                <DataGridTextColumn Header="Context" Binding="{Binding Context}" Width="200"/>
-                <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" />
-                <DataGridTextColumn Header="File" Binding="{Binding DisplayFile}" Width="160" />
+                <DataGridTextColumn Header="{x:Static loc:Strings.ELColType}"    Binding="{Binding Type}"        Width="60"  />
+                <DataGridTextColumn Header="{x:Static loc:Strings.ELColCode}"    Binding="{Binding Code}"        Width="150" />
+                <DataGridTextColumn Header="{x:Static loc:Strings.ELColContext}" Binding="{Binding Context}"     Width="200" />
+                <DataGridTextColumn Header="{x:Static loc:Strings.ELColMessage}" Binding="{Binding Message}"     Width="*"   />
+                <DataGridTextColumn Header="{x:Static loc:Strings.ELColFile}"    Binding="{Binding DisplayFile}" Width="160" />
             </DataGrid.Columns>
             <DataGrid.Styles>
                 <Style Selector="DataGridColumnHeader">

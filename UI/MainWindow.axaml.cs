@@ -3,97 +3,112 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
-using DataInput;
-using DataInput.Comments;
-using DataInput.Data;
-using DataInput.Serialization;
+using Avalonia.Threading;
+using Core;
+using Core.Items;
+using Data;
+using Data.Comments;
+using Data.Data;
+using Data.Serialization;
+using UI.Assets;
 using UI.Controls;
+using UI.Controls.Helpers;
 using UI.UndoRedo;
 
 namespace UI;
 
 public partial class MainWindow : Window
 {
+    #region Fields
+
     private readonly UserSettings _settings = UserSettings.Load();
     private string? _lastFolder;
     private IReadOnlyList<Distribution> _distributions = [];
     private CommentMap? _procComments;
     private CommentMap? _distComments;
 
-    // Panel visibility state + saved sizes
+    private static string BaseTitle => Strings.AppTitle;
+
+    // ── Panel visibility + saved sizes ──
     private bool _listVisible   = true;
+    private bool _itemsVisible  = true;
     private bool _detailVisible = true;
     private bool _errorVisible  = true;
     private bool _rightVisible  = true;
-    private GridLength _savedListWidth   = new GridLength(260);
-    private GridLength _savedErrorHeight = new GridLength(160);
-    private GridLength _savedRightWidth  = new GridLength(260);
-
-    private const string BaseTitle = "PZ Distribution Viewer";
+    private GridLength _savedListWidth   = new(260);
+    private GridLength _savedItemsWidth  = new(260);
+    private GridLength _savedErrorHeight = new(160);
+    private GridLength _savedRightWidth  = new(260);
 
     // ── Tab state ──
-
-    private class TabState
-    {
-        public Distribution Distribution { get; }
-        public UndoRedoStack UndoRedo { get; } = new();
-        public DistributionDetailControl? DetailControl { get; set; }
-        public Distribution? PropertiesDistribution { get; set; }
-        public TabItem TabItem { get; set; } = null!;
-        public long LastAccessTick { get; set; }
-
-        public bool IsPinned { get; set; }
-
-        public TabState(Distribution distribution)
-        {
-            Distribution = distribution;
-        }
-    }
-
     private readonly Dictionary<string, TabState> _openTabs = new();
+    private readonly Dictionary<string, ItemTabState> _openItemTabs = new();
+    private readonly AvaloniaList<TabItem> _tabItems = new();
     private TabState? _activeTab;
+    private ItemTabState? _activeItemTab;
     private bool _suppressTabChanged;
     private const int MaxCachedTabs = 10;
+
+    // ── Item index ──
+    private ItemIndex? _itemIndex;
+
+    // ── Tab strip scroll ──
+    private ItemsPresenter? _tabItemsPresenter;
+    private ScrollViewer?   _tabScrollViewer;
+    private Button?         _tabScrollLeft;
+    private Button?         _tabScrollRight;
+    private const double    TabScrollStep = 120;
+
+    #endregion
+
+    #region Construction
 
     public MainWindow()
     {
         InitializeComponent();
 
+        TabBar.ItemsSource = _tabItems;
+        TabBar.TemplateApplied += OnTabBarTemplateApplied;
         DistributionList.SetSettings(_settings);
-        DistributionList.OpenRequested += OnDistributionOpenRequested;
+        DistributionList.OpenRequested         += OnDistributionOpenRequested;
         DistributionList.OpenMultipleRequested += OnDistributionOpenMultipleRequested;
+        ItemsList.ItemOpenRequested += name => OpenOrActivateItemTab(name);
+        ItemsList.FilterChanged     += () => _activeItemTab?.DetailControl?.RefreshIfAutoFilter();
         KeyDown += OnKeyDown;
         AddHandler(ProcListEntryControl.NavigateRequestedEvent, OnNavigateToDistribution);
 
         RightDetail.GetContentFilters = () => DistributionList.ContentFilters;
+        RightDetail.GetAllDistributions = () => _distributions;
+        RightDetail.OpenTabRequested += d => OpenTabInBackground(d);
         RightDetail.ShowToolbar = false;
         RightDetail.ShowEmpty();
 
-        Loaded += OnWindowLoaded;
+        Loaded += async (_, _) =>
+        {
+            if (_settings.LastFolder is not null && Directory.Exists(_settings.LastFolder))
+                await ParseAsync(_settings.LastFolder);
+        };
     }
 
-    private async void OnWindowLoaded(object? sender, RoutedEventArgs e)
-    {
-        if (_settings.LastFolder is not null && System.IO.Directory.Exists(_settings.LastFolder))
-            await ParseAsync(_settings.LastFolder);
-    }
+    #endregion
 
-    // ── Tab management ──
+    #region Tabs — Lifecycle
 
     private void OpenOrActivateTab(Distribution d)
     {
         if (_openTabs.TryGetValue(d.Name, out var existing))
         {
             existing.LastAccessTick = Environment.TickCount64;
-            // If the control was evicted, recreate it
-            if (existing.DetailControl is null)
-                RecreateDetailControl(existing);
+            if (existing.DetailControl is null) RecreateDetailControl(existing);
             _suppressTabChanged = true;
             TabBar.SelectedItem = existing.TabItem;
             _suppressTabChanged = false;
@@ -101,154 +116,47 @@ public partial class MainWindow : Window
             return;
         }
 
-        var state = new TabState(d)
-        {
-            LastAccessTick = Environment.TickCount64
-        };
-
+        var state  = new TabState(d) { LastAccessTick = Environment.TickCount64 };
         var detail = new DistributionDetailControl();
         detail.GetContentFilters = () => DistributionList.ContentFilters;
         detail.Load(d, state.UndoRedo);
         state.DetailControl = detail;
 
-        var tabItem = new TabItem
+        state.TabItem = new TabItem
         {
-            Header = CreateTabHeader(state),
+            Header  = TabHeaderHelper.Create(state, s => CloseTabAsync(s), CloseAllTabsWithPromptAsync, CloseOtherTabsAsync, CloseTabsToSideAsync),
             Content = detail
         };
-        state.TabItem = tabItem;
-
         state.UndoRedo.StateChanged += () => OnTabUndoStateChanged(state);
 
         _openTabs[d.Name] = state;
         _suppressTabChanged = true;
-        TabBar.Items.Add(tabItem);
-        TabBar.SelectedItem = tabItem;
+        _tabItems.Add(state.TabItem);
+        TabBar.SelectedItem = state.TabItem;
         _suppressTabChanged = false;
 
         ActivateTab(state);
         EvictOldTabs();
     }
 
-    private static readonly IBrush DirtyDotBrush = SolidColorBrush.Parse("#C88B2A");
-    private static readonly IBrush TabNameBrush = SolidColorBrush.Parse("#8A8A98");
-    private static readonly IBrush TabCloseBrush = SolidColorBrush.Parse("#5A5A6A");
-    private static readonly IBrush EvictedTextBrush = SolidColorBrush.Parse("#5A5A6A");
-    private static readonly IBrush PinIconBrush = SolidColorBrush.Parse("#8A8A98");
-
-    private StackPanel CreateTabHeader(TabState state)
+    private void OpenTabInBackground(Distribution d)
     {
-        var pinIcon = new TextBlock
+        if (_openTabs.ContainsKey(d.Name)) return;
+
+        var state = new TabState(d) { LastAccessTick = Environment.TickCount64 };
+        state.TabItem = new TabItem
         {
-            Text = "\ud83d\udccc",
-            FontSize = 10,
-            Foreground = PinIconBrush,
-            IsVisible = false,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 4, 0),
-            Tag = "pin"
+            Header  = TabHeaderHelper.Create(state, s => CloseTabAsync(s), CloseAllTabsWithPromptAsync, CloseOtherTabsAsync, CloseTabsToSideAsync),
+            Content = CreateEvictedPlaceholder()
         };
+        state.UndoRedo.StateChanged += () => OnTabUndoStateChanged(state);
 
-        var dirtyDot = new Border
-        {
-            Width = 6,
-            Height = 6,
-            CornerRadius = new CornerRadius(3),
-            Background = DirtyDotBrush,
-            IsVisible = false,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 4, 0),
-            Tag = "dirty"
-        };
+        _openTabs[d.Name] = state;
+        _suppressTabChanged = true;
+        _tabItems.Add(state.TabItem);
+        _suppressTabChanged = false;
 
-        var nameBlock = new TextBlock
-        {
-            Text = state.Distribution.Name,
-            Foreground = TabNameBrush,
-            FontSize = 12,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
-        var closeBtn = new Button
-        {
-            Content = "\u00d7",
-            Width = 18,
-            Height = 18,
-            Padding = new Thickness(0),
-            FontSize = 14,
-            Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            Foreground = TabCloseBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(6, 0, 0, 0),
-            Cursor = new Cursor(StandardCursorType.Hand)
-        };
-        closeBtn.Click += (_, _) => _ = CloseTabAsync(state);
-
-        var header = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 2,
-            Children = { pinIcon, dirtyDot, nameBlock, closeBtn }
-        };
-
-        header.ContextMenu = CreateTabContextMenu(state);
-        return header;
-    }
-
-    private ContextMenu CreateTabContextMenu(TabState state)
-    {
-        var pinItem = new MenuItem { Header = state.IsPinned ? "Unpin This Tab" : "Pin This Tab" };
-        pinItem.Click += (_, _) =>
-        {
-            state.IsPinned = !state.IsPinned;
-            RefreshTabPinIcon(state);
-        };
-
-        var closeItem = new MenuItem { Header = "Close This Tab" };
-        closeItem.Click += (_, _) => _ = CloseTabAsync(state);
-
-        var closeAllItem = new MenuItem { Header = "Close All Tabs" };
-        closeAllItem.Click += (_, _) => _ = CloseAllTabsWithPromptAsync();
-
-        var closeOthersItem = new MenuItem { Header = "Close All Tabs Except This" };
-        closeOthersItem.Click += (_, _) => _ = CloseOtherTabsAsync(state);
-
-        var closeLeftItem = new MenuItem { Header = "Close All Tabs to the Left" };
-        closeLeftItem.Click += (_, _) => _ = CloseTabsToSideAsync(state, left: true);
-
-        var closeRightItem = new MenuItem { Header = "Close All Tabs to the Right" };
-        closeRightItem.Click += (_, _) => _ = CloseTabsToSideAsync(state, left: false);
-
-        return new ContextMenu
-        {
-            Items =
-            {
-                pinItem,
-                new Separator(),
-                closeItem,
-                closeAllItem,
-                closeOthersItem,
-                new Separator(),
-                closeLeftItem,
-                closeRightItem
-            }
-        };
-    }
-
-    private void RefreshTabPinIcon(TabState state)
-    {
-        if (state.TabItem.Header is not StackPanel header) return;
-        foreach (var child in header.Children)
-        {
-            if (child is TextBlock { Tag: "pin" } pin)
-            {
-                pin.IsVisible = state.IsPinned;
-                break;
-            }
-        }
-        // Rebuild context menu with updated pin/unpin text
-        header.ContextMenu = CreateTabContextMenu(state);
+        EvictOldTabs();
     }
 
     private void ActivateTab(TabState state)
@@ -256,135 +164,33 @@ public partial class MainWindow : Window
         _activeTab = state;
         state.LastAccessTick = Environment.TickCount64;
 
-        // Restore properties panel
         if (state.PropertiesDistribution is not null)
             RightDetail.Load(state.PropertiesDistribution, state.UndoRedo);
         else
             RightDetail.ShowEmpty();
 
         RefreshUndoButtons();
-        RefreshTabDirtyDot(state);
-    }
-
-    private async Task CloseTabAsync(TabState state, bool skipPinCheck = false)
-    {
-        if (!skipPinCheck && state.IsPinned) return;
-
-        if (IsDistributionDirty(state.Distribution))
-        {
-            var result = await ShowCloseTabDialog(state.Distribution.Name);
-            if (result == CloseTabResult.Cancel) return;
-            if (result == CloseTabResult.Save) await SaveAsync();
-        }
-
-        RemoveTab(state);
+        TabHeaderHelper.RefreshDirtyDot(state, DirtyCheck.IsDistributionDirty(state.Distribution));
+        ScrollTabIntoView(state.TabItem);
     }
 
     private void RemoveTab(TabState state)
     {
         _suppressTabChanged = true;
-        TabBar.Items.Remove(state.TabItem);
+        _tabItems.Remove(state.TabItem);
         _openTabs.Remove(state.Distribution.Name);
         _suppressTabChanged = false;
 
-        if (_activeTab == state)
-        {
-            _activeTab = null;
-            RightDetail.ShowEmpty();
+        if (_activeTab != state) return;
 
-            // Activate adjacent tab
-            if (TabBar.Items.Count > 0)
-            {
-                TabBar.SelectedIndex = Math.Min(TabBar.SelectedIndex, TabBar.Items.Count - 1);
-                if (TabBar.SelectedIndex < 0) TabBar.SelectedIndex = 0;
-                var selected = TabBar.SelectedItem as TabItem;
-                var next = _openTabs.Values.FirstOrDefault(t => t.TabItem == selected);
-                if (next is not null)
-                    ActivateTab(next);
-            }
-            else
-            {
-                RefreshUndoButtons();
-            }
-        }
-    }
+        _activeTab = null;
+        RightDetail.ShowEmpty();
 
-    private async Task CloseAllTabsWithPromptAsync()
-    {
-        var tabs = _openTabs.Values.ToList();
-        foreach (var tab in tabs)
-        {
-            if (tab.IsPinned) continue;
-            if (IsDistributionDirty(tab.Distribution))
-            {
-                var result = await ShowCloseTabDialog(tab.Distribution.Name);
-                if (result == CloseTabResult.Cancel) return;
-                if (result == CloseTabResult.Save) await SaveAsync();
-            }
-            RemoveTab(tab);
-        }
-    }
+        if (_tabItems.Count == 0) { RefreshUndoButtons(); return; }
 
-    private async Task CloseOtherTabsAsync(TabState keep)
-    {
-        var tabs = _openTabs.Values.Where(t => t != keep).ToList();
-        foreach (var tab in tabs)
-        {
-            if (tab.IsPinned) continue;
-            if (IsDistributionDirty(tab.Distribution))
-            {
-                var result = await ShowCloseTabDialog(tab.Distribution.Name);
-                if (result == CloseTabResult.Cancel) return;
-                if (result == CloseTabResult.Save) await SaveAsync();
-            }
-            RemoveTab(tab);
-        }
-    }
-
-    private async Task CloseTabsToSideAsync(TabState anchor, bool left)
-    {
-        var items = TabBar.Items.Cast<TabItem>().ToList();
-        int anchorIndex = items.IndexOf(anchor.TabItem);
-        if (anchorIndex < 0) return;
-
-        var toClose = new List<TabState>();
-        for (int i = 0; i < items.Count; i++)
-        {
-            if ((left && i < anchorIndex) || (!left && i > anchorIndex))
-            {
-                var tab = _openTabs.Values.FirstOrDefault(t => t.TabItem == items[i]);
-                if (tab is not null && !tab.IsPinned)
-                    toClose.Add(tab);
-            }
-        }
-
-        foreach (var tab in toClose)
-        {
-            if (IsDistributionDirty(tab.Distribution))
-            {
-                var result = await ShowCloseTabDialog(tab.Distribution.Name);
-                if (result == CloseTabResult.Cancel) return;
-                if (result == CloseTabResult.Save) await SaveAsync();
-            }
-            RemoveTab(tab);
-        }
-    }
-
-    private void TabBar_SelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (_suppressTabChanged || _openTabs is null) return;
-
-        var selected = TabBar?.SelectedItem as TabItem;
-        if (selected is null) return;
-
-        var state = _openTabs.Values.FirstOrDefault(t => t.TabItem == selected);
-        if (state is null) return;
-
-        // If control was evicted, recreate it
-        if (state.DetailControl is null)
-            RecreateDetailControl(state);
-
-        ActivateTab(state);
+        TabBar.SelectedIndex = Math.Clamp(TabBar.SelectedIndex, 0, _tabItems.Count - 1);
+        var next = _openTabs.Values.FirstOrDefault(t => t.TabItem == TabBar.SelectedItem);
+        if (next is not null) ActivateTab(next);
     }
 
     private void RecreateDetailControl(TabState state)
@@ -392,245 +198,439 @@ public partial class MainWindow : Window
         var detail = new DistributionDetailControl();
         detail.GetContentFilters = () => DistributionList.ContentFilters;
         detail.Load(state.Distribution, state.UndoRedo);
-        state.DetailControl = detail;
-        state.TabItem.Content = detail;
+        state.DetailControl    = detail;
+        state.TabItem.Content  = detail;
     }
 
     private void EvictOldTabs()
     {
         if (_openTabs.Count <= MaxCachedTabs) return;
-
-        var toEvict = _openTabs.Values
+        foreach (var tab in _openTabs.Values
             .Where(t => t != _activeTab && t.DetailControl is not null)
             .OrderBy(t => t.LastAccessTick)
-            .Take(_openTabs.Count - MaxCachedTabs)
-            .ToList();
-
-        foreach (var tab in toEvict)
+            .Take(_openTabs.Count - MaxCachedTabs))
         {
             tab.DetailControl = null;
-            tab.TabItem.Content = new TextBlock
+            tab.TabItem.Content = CreateEvictedPlaceholder();
+        }
+    }
+
+    private static readonly IBrush EvictedTextBrush = SolidColorBrush.Parse("#5A5A6A");
+    private static TextBlock CreateEvictedPlaceholder() => new()
+    {
+        Text = Strings.TabClickToReload, Foreground = EvictedTextBrush,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment   = VerticalAlignment.Center
+    };
+
+    private void CloseAllTabs()
+    {
+        _suppressTabChanged = true;
+        _tabItems.Clear();
+        _openTabs.Clear();
+        _openItemTabs.Clear();
+        _activeTab = null;
+        _activeItemTab = null;
+        _suppressTabChanged = false;
+    }
+
+    #endregion
+
+    #region Tabs — Close
+
+    private async Task CloseTabAsync(TabState state, bool skipPinCheck = false)
+    {
+        if (!skipPinCheck && state.IsPinned) return;
+        if (IsDistributionDirty(state.Distribution))
+        {
+            var r = await ShowCloseTabDialog(state.Distribution.Name);
+            if (r == CloseTabResult.Cancel) return;
+            if (r == CloseTabResult.Save) await SaveAsync();
+        }
+        RemoveTab(state);
+    }
+
+    // Common bulk close: iterates candidates, skips pinned, prompts for dirty
+    private async Task CloseTabsAsync(IEnumerable<TabState> candidates)
+    {
+        foreach (var tab in candidates.Where(t => !t.IsPinned).ToList())
+        {
+            if (IsDistributionDirty(tab.Distribution))
             {
-                Text = "Click to reload...",
-                Foreground = EvictedTextBrush,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+                var r = await ShowCloseTabDialog(tab.Distribution.Name);
+                if (r == CloseTabResult.Cancel) return;
+                if (r == CloseTabResult.Save) await SaveAsync();
+            }
+            RemoveTab(tab);
+        }
+    }
+
+    private Task CloseAllTabsWithPromptAsync() =>
+        CloseTabsAsync(_openTabs.Values);
+
+    private Task CloseOtherTabsAsync(TabState keep) =>
+        CloseTabsAsync(_openTabs.Values.Where(t => t != keep));
+
+    private Task CloseTabsToSideAsync(TabState anchor, bool left)
+    {
+        var items = _tabItems.ToList();
+        int idx = items.IndexOf(anchor.TabItem);
+        if (idx < 0) return Task.CompletedTask;
+        return CloseTabsAsync(_openTabs.Values.Where(t =>
+        {
+            int i = items.IndexOf(t.TabItem);
+            return i >= 0 && (left ? i < idx : i > idx);
+        }));
+    }
+
+    #endregion
+
+    #region Tabs — State
+
+    private void TabBar_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressTabChanged) return;
+
+        var ds = _openTabs.Values.FirstOrDefault(t => t.TabItem == TabBar.SelectedItem);
+        if (ds is not null)
+        {
+            if (ds.DetailControl is null) RecreateDetailControl(ds);
+            ActivateTab(ds);
+            return;
+        }
+
+        var its = _openItemTabs.Values.FirstOrDefault(t => t.TabItem == TabBar.SelectedItem);
+        if (its is not null)
+        {
+            if (its.DetailControl is null) RecreateItemDetailControl(its);
+            ActivateItemTab(its);
         }
     }
 
     private void OnTabUndoStateChanged(TabState state)
     {
-        if (state == _activeTab)
-        {
-            RefreshUndoButtons();
-            RefreshDirtyState();
-        }
-        RefreshTabDirtyDot(state);
+        if (state == _activeTab) { RefreshUndoButtons(); RefreshDirtyState(); }
+        TabHeaderHelper.RefreshDirtyDot(state, DirtyCheck.IsDistributionDirty(state.Distribution));
     }
 
-    private void RefreshTabDirtyDot(TabState state)
+    private bool IsDistributionDirty(Distribution d) => DirtyCheck.IsDistributionDirty(d);
+
+    #endregion
+
+    #region Item Tabs
+
+    private void OpenOrActivateItemTab(string itemName)
     {
-        if (state.TabItem.Header is StackPanel header)
+        if (_openItemTabs.TryGetValue(itemName, out var existing))
         {
-            foreach (var child in header.Children)
-            {
-                if (child is Border { Tag: "dirty" } dot)
-                {
-                    dot.IsVisible = IsDistributionDirty(state.Distribution);
-                    break;
-                }
-            }
+            existing.LastAccessTick = Environment.TickCount64;
+            if (existing.DetailControl is null) RecreateItemDetailControl(existing);
+            _suppressTabChanged = true;
+            TabBar.SelectedItem = existing.TabItem;
+            _suppressTabChanged = false;
+            ActivateItemTab(existing);
+            return;
         }
+
+        if (_itemIndex is null) return;
+
+        var state  = new ItemTabState(itemName) { LastAccessTick = Environment.TickCount64 };
+        var detail = new ItemsDetailControl();
+        detail.GetAllDistributions       = () => _distributions;
+        detail.GetCurrentFilters         = () => ItemsList.FilterContext;
+        detail.OpenDistributionRequested += d => OpenTabInBackground(d);
+        detail.DistributionModified      += (dist, parent) => OnItemDetailDistributionModified(state, dist, parent);
+        detail.Load(itemName, _itemIndex, state.UndoRedo);
+        state.DetailControl = detail;
+
+        state.TabItem = new TabItem
+        {
+            Header  = TabHeaderHelper.CreateForItem(state, s => { RemoveItemTab(s); return Task.CompletedTask; },
+                          CloseAllTabsWithPromptAsync,
+                          s => { CloseOtherItemTabs(s); return Task.CompletedTask; },
+                          (s, left) => { CloseItemTabsToSide(s, left); return Task.CompletedTask; }),
+            Content = detail
+        };
+        state.UndoRedo.StateChanged += () => { if (state == _activeItemTab) RefreshUndoButtons(); };
+
+        _openItemTabs[itemName] = state;
+        _suppressTabChanged = true;
+        _tabItems.Add(state.TabItem);
+        TabBar.SelectedItem = state.TabItem;
+        _suppressTabChanged = false;
+
+        ActivateItemTab(state);
     }
 
-    private static bool IsDistributionDirty(Distribution d)
+    private void ActivateItemTab(ItemTabState state)
     {
-        if (d.IsDirty) return true;
-        foreach (var c in d.Containers)
-        {
-            if (c.IsDirty) return true;
-            foreach (var p in c.ProcListEntries)
-                if (p.IsDirty) return true;
-        }
-        return false;
+        _activeTab     = null;
+        _activeItemTab = state;
+        state.LastAccessTick = Environment.TickCount64;
+        RightDetail.ShowEmpty();
+        RefreshUndoButtons();
+        state.DetailControl?.RefreshIfAutoFilter();
+        ScrollTabIntoView(state.TabItem);
     }
 
-    private void CloseAllTabs()
+    private void RecreateItemDetailControl(ItemTabState state)
+    {
+        if (_itemIndex is null) return;
+        var detail = new ItemsDetailControl();
+        detail.GetAllDistributions       = () => _distributions;
+        detail.GetCurrentFilters         = () => ItemsList.FilterContext;
+        detail.OpenDistributionRequested += d => OpenTabInBackground(d);
+        detail.DistributionModified      += (dist, parent) => OnItemDetailDistributionModified(state, dist, parent);
+        detail.Load(state.ItemName, _itemIndex, state.UndoRedo);
+        state.DetailControl   = detail;
+        state.TabItem.Content = detail;
+    }
+
+    private void OnItemDetailDistributionModified(ItemTabState itemState, Distribution dist, ItemParent parent)
+    {
+        TabHeaderHelper.RefreshDirtyDotForItem(itemState, true);
+        RefreshDirtyState();
+
+        if (_openTabs.TryGetValue(dist.Name, out var distTab))
+        {
+            TabHeaderHelper.RefreshDirtyDot(distTab, DirtyCheck.IsDistributionDirty(dist));
+            distTab.DetailControl?.RefreshItemRows(parent);
+        }
+    }
+
+    private void RemoveItemTab(ItemTabState state)
     {
         _suppressTabChanged = true;
-        TabBar.Items.Clear();
-        _openTabs.Clear();
-        _activeTab = null;
+        _tabItems.Remove(state.TabItem);
+        _openItemTabs.Remove(state.ItemName);
         _suppressTabChanged = false;
+
+        if (_activeItemTab != state) return;
+
+        _activeItemTab = null;
+        RightDetail.ShowEmpty();
+
+        if (_tabItems.Count == 0) { RefreshUndoButtons(); return; }
+
+        TabBar.SelectedIndex = Math.Clamp(TabBar.SelectedIndex, 0, _tabItems.Count - 1);
+        // Try to activate whatever is now selected
+        var nextDist = _openTabs.Values.FirstOrDefault(t => t.TabItem == TabBar.SelectedItem);
+        if (nextDist is not null) { ActivateTab(nextDist); return; }
+        var nextItem = _openItemTabs.Values.FirstOrDefault(t => t.TabItem == TabBar.SelectedItem);
+        if (nextItem is not null) ActivateItemTab(nextItem);
     }
 
-    // ── Close tab dialog ──
-
-    private enum CloseTabResult { Save, Discard, Cancel }
-
-    private async Task<CloseTabResult> ShowCloseTabDialog(string distName)
+    private void CloseOtherItemTabs(ItemTabState keep)
     {
-        var dialog = new Window
-        {
-            Title = "Unsaved Changes",
-            Width = 420,
-            Height = 160,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            CanResize = false,
-        };
-
-        var result = CloseTabResult.Cancel;
-        var saveBtn = new Button { Content = "Save", Margin = new Thickness(0, 0, 8, 0) };
-        var discardBtn = new Button { Content = "Discard", Margin = new Thickness(0, 0, 8, 0) };
-        var cancelBtn = new Button { Content = "Cancel" };
-        saveBtn.Click += (_, _) => { result = CloseTabResult.Save; dialog.Close(); };
-        discardBtn.Click += (_, _) => { result = CloseTabResult.Discard; dialog.Close(); };
-        cancelBtn.Click += (_, _) => { dialog.Close(); };
-
-        dialog.Content = new StackPanel
-        {
-            Margin = new Thickness(20),
-            Spacing = 16,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = $"{distName} has unsaved changes.",
-                    TextWrapping = TextWrapping.Wrap
-                },
-                new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    Spacing = 8,
-                    Children = { saveBtn, discardBtn, cancelBtn }
-                }
-            }
-        };
-
-        await dialog.ShowDialog(this);
-        return result;
+        foreach (var tab in _openItemTabs.Values.Where(t => t != keep && !t.IsPinned).ToList())
+            RemoveItemTab(tab);
     }
 
-    // ── Navigation ──
+    private void CloseItemTabsToSide(ItemTabState anchor, bool left)
+    {
+        var items = _tabItems.ToList();
+        int idx = items.IndexOf(anchor.TabItem);
+        if (idx < 0) return;
+        foreach (var tab in _openItemTabs.Values.Where(t =>
+        {
+            int i = items.IndexOf(t.TabItem);
+            return i >= 0 && !t.IsPinned && (left ? i < idx : i > idx);
+        }).ToList())
+            RemoveItemTab(tab);
+    }
+
+    #endregion
+
+    #region Tab Strip Scrolling
+
+    private void OnTabBarTemplateApplied(object? sender, TemplateAppliedEventArgs e)
+    {
+        _tabItemsPresenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
+        _tabScrollViewer   = e.NameScope.Find<ScrollViewer>("PART_TabScrollViewer");
+        _tabScrollLeft     = e.NameScope.Find<Button>("PART_ScrollLeft");
+        _tabScrollRight    = e.NameScope.Find<Button>("PART_ScrollRight");
+        if (_tabScrollLeft  is not null) _tabScrollLeft.Click  += (_, _) => ScrollTabsLeft();
+        if (_tabScrollRight is not null) _tabScrollRight.Click += (_, _) => ScrollTabsRight();
+        if (_tabScrollViewer is not null) _tabScrollViewer.ScrollChanged += (_, _) => UpdateScrollButtonStates();
+        UpdateScrollButtonStates();
+    }
+
+    private void ScrollTabsLeft()
+    {
+        if (_tabScrollViewer is null) return;
+        _tabScrollViewer.Offset = new Vector(Math.Max(0, _tabScrollViewer.Offset.X - TabScrollStep), 0);
+    }
+
+    private void ScrollTabsRight()
+    {
+        if (_tabScrollViewer is null) return;
+        var max = _tabScrollViewer.Extent.Width - _tabScrollViewer.Viewport.Width;
+        _tabScrollViewer.Offset = new Vector(Math.Min(_tabScrollViewer.Offset.X + TabScrollStep, Math.Max(0, max)), 0);
+    }
+
+    private void UpdateScrollButtonStates()
+    {
+        if (_tabScrollLeft is null || _tabScrollRight is null || _tabScrollViewer is null) return;
+        var extent   = _tabScrollViewer.Extent.Width;
+        var viewport = _tabScrollViewer.Viewport.Width;
+        bool over    = extent > viewport + 0.5;
+
+        _tabScrollLeft.Opacity           = over ? 1 : 0;
+        _tabScrollLeft.IsHitTestVisible  = over;
+        _tabScrollRight.Opacity          = over ? 1 : 0;
+        _tabScrollRight.IsHitTestVisible = over;
+
+        if (over)
+        {
+            var offset = _tabScrollViewer.Offset.X;
+            _tabScrollLeft.IsEnabled  = offset > 0.5;
+            _tabScrollRight.IsEnabled = offset < extent - viewport - 0.5;
+        }
+    }
+
+    private void ScrollTabIntoView(TabItem tabItem)
+    {
+        if (_tabScrollViewer is null || _tabItemsPresenter is null) return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            var container = TabBar.ContainerFromItem(tabItem);
+            if (container is null) return;
+            var pos = container.TranslatePoint(new Point(0, 0), _tabItemsPresenter);
+            if (pos is null) return;
+            var left    = pos.Value.X;
+            var right   = left + container.Bounds.Width;
+            var offset  = _tabScrollViewer.Offset.X;
+            var vp      = _tabScrollViewer.Viewport.Width;
+            if (left < offset)           _tabScrollViewer.Offset = new Vector(Math.Max(0, left), 0);
+            else if (right > offset + vp) _tabScrollViewer.Offset = new Vector(right - vp, 0);
+        }, DispatcherPriority.Loaded);
+    }
+
+    #endregion
+
+    #region Navigation
 
     private void OnNavigateToDistribution(object? sender, NavigateToDistributionEventArgs e)
     {
-        if (_activeTab is not null)
-        {
-            _activeTab.PropertiesDistribution = e.Distribution;
-            RightDetail.Load(e.Distribution, _activeTab.UndoRedo);
-        }
-        else
-        {
-            RightDetail.Load(e.Distribution, new UndoRedoStack());
-        }
-        if (!_rightVisible) SetRightVisible(true);
+        if (_activeTab is not null) _activeTab.PropertiesDistribution = e.Distribution;
+        RightDetail.Load(e.Distribution, _activeTab?.UndoRedo ?? new UndoRedoStack());
+        if (!_rightVisible) SetPanelVisible("Right", true);
     }
 
     private void OnDistributionOpenRequested(Distribution d)
     {
-        if (!_detailVisible) return;
-        OpenOrActivateTab(d);
+        if (_detailVisible) OpenOrActivateTab(d);
     }
 
     private void OnDistributionOpenMultipleRequested(List<Distribution> distributions)
     {
-        if (!_detailVisible) return;
+        if (!_detailVisible || distributions.Count == 0) return;
+        if (distributions.Count == 1) { OpenOrActivateTab(distributions[0]); return; }
+
+        _suppressTabChanged = true;
+        TabState? last = null;
+        var newItems = new List<TabItem>();
+
         foreach (var d in distributions)
-            OpenOrActivateTab(d);
+        {
+            if (_openTabs.TryGetValue(d.Name, out var existing))
+            {
+                existing.LastAccessTick = Environment.TickCount64;
+                last = existing;
+                continue;
+            }
+            var state = new TabState(d) { LastAccessTick = Environment.TickCount64 };
+            state.TabItem = new TabItem
+            {
+                Header  = TabHeaderHelper.Create(state, s => CloseTabAsync(s), CloseAllTabsWithPromptAsync, CloseOtherTabsAsync, CloseTabsToSideAsync),
+                Content = CreateEvictedPlaceholder()
+            };
+            state.UndoRedo.StateChanged += () => OnTabUndoStateChanged(state);
+            _openTabs[d.Name] = state;
+            newItems.Add(state.TabItem);
+            last = state;
+        }
+
+        if (last is null) { _suppressTabChanged = false; return; }
+        if (newItems.Count > 0) _tabItems.AddRange(newItems);
+        if (last.DetailControl is null) RecreateDetailControl(last);
+        TabBar.SelectedItem = last.TabItem;
+        _suppressTabChanged = false;
+
+        ActivateTab(last);
+        EvictOldTabs();
     }
+
+    #endregion
+
+    #region File
 
     private async void SelectFolder_Click(object? sender, RoutedEventArgs e)
     {
-        if (HasUnsavedChanges() && !await ConfirmDiscardChanges())
-            return;
-
-        var folders = await StorageProvider.OpenFolderPickerAsync(
-            new FolderPickerOpenOptions { Title = "Select game or mod folder" });
-
+        if (HasUnsavedChanges() && !await ConfirmDiscardChanges()) return;
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = Strings.DialogSelectFolder });
         if (folders.Count == 0) return;
         var path = StorageProviderExtensions.TryGetLocalPath(folders[0]);
-        if (path is null) return;
-
-        await ParseAsync(path);
+        if (path is not null) await ParseAsync(path);
     }
 
     private async void Reload_Click(object? sender, RoutedEventArgs e)
     {
         if (_lastFolder is null) return;
-        if (HasUnsavedChanges() && !await ConfirmDiscardChanges())
-            return;
+        if (HasUnsavedChanges() && !await ConfirmDiscardChanges()) return;
         await ParseAsync(_lastFolder);
     }
 
     private async Task ParseAsync(string folder)
     {
-        _lastFolder = folder;
-        _settings.LastFolder = folder;
+        _lastFolder = _settings.LastFolder = folder;
         _settings.Save();
 
         LoadingBar.IsVisible = true;
-        UndoBtn.IsEnabled = false;
-        RedoBtn.IsEnabled = false;
+        UndoBtn.IsEnabled = RedoBtn.IsEnabled = false;
 
         var result = await Task.Run(() => DistributionParser.CreateDefault().Parse(folder));
 
         CloseAllTabs();
         _distributions = result.Distributions;
-        _procComments = result.ProcComments;
-        _distComments = result.DistComments;
+        _procComments  = result.ProcComments;
+        _distComments  = result.DistComments;
+        _itemIndex     = ItemIndex.Build(_distributions);
         DistributionList.Load(result.Distributions);
+        ItemsList.Load(_itemIndex);
         ErrorList.Load(result.Errors, folder);
 
-        int errorCount = result.Errors.Count;
-        StatusText.Text = $"{result.Distributions.Count} distributions loaded \u00b7 {errorCount} parse issues";
-        CountText.Text = string.Empty;
-
+        StatusText.Text  = string.Format(Strings.StatusLoaded, result.Distributions.Count, result.Errors.Count);
+        CountText.Text   = string.Empty;
         LoadingBar.IsVisible = false;
         RefreshDirtyState();
     }
 
-    // ── Save ──
+    #endregion
 
-    private async void Save_Click(object? sender, RoutedEventArgs e)
-    {
-        await SaveAsync();
-    }
+    #region Save
+
+    private async void Save_Click(object? sender, RoutedEventArgs e) => await SaveAsync();
 
     private async Task SaveAsync()
     {
         if (_distributions.Count == 0) return;
-
         SaveBtn.IsEnabled = false;
-        StatusText.Text = "Saving...";
-
-        var writer = new DistributionFileWriter();
-        var written = await Task.Run(() => writer.Save(_distributions, _procComments, _distComments));
-
-        if (written.Count > 0)
-            StatusText.Text = $"Saved {written.Count} file(s)";
-        else
-            StatusText.Text = "No changes to save";
-
+        StatusText.Text = Strings.StatusSaving;
+        var written = await Task.Run(() => new DistributionFileWriter().Save(_distributions, _procComments, _distComments));
+        StatusText.Text = written.Count > 0 ? string.Format(Strings.StatusSaved, written.Count) : Strings.StatusNoChanges;
         RefreshDirtyState();
-
-        // Refresh all tab dirty dots after save
         foreach (var tab in _openTabs.Values)
-            RefreshTabDirtyDot(tab);
+            TabHeaderHelper.RefreshDirtyDot(tab, DirtyCheck.IsDistributionDirty(tab.Distribution));
+        foreach (var tab in _openItemTabs.Values)
+            TabHeaderHelper.RefreshDirtyDotForItem(tab, false);
     }
 
-    // ── Dirty state tracking ──
+    #endregion
 
-    private bool HasUnsavedChanges()
-    {
-        foreach (var d in _distributions)
-        {
-            if (IsDistributionDirty(d)) return true;
-        }
-        return false;
-    }
+    #region Dirty State
+
+    private bool HasUnsavedChanges() => _distributions.Any(DirtyCheck.IsDistributionDirty);
 
     private void RefreshDirtyState()
     {
@@ -639,191 +639,236 @@ public partial class MainWindow : Window
         Title = dirty ? $"{BaseTitle} *" : BaseTitle;
     }
 
-    private async Task<bool> ConfirmDiscardChanges()
-    {
-        var dialog = new Window
-        {
-            Title = "Unsaved Changes",
-            Width = 400,
-            Height = 150,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            CanResize = false,
-        };
+    #endregion
 
-        bool result = false;
-        var yesBtn = new Button { Content = "Discard", Margin = new Thickness(0, 0, 8, 0) };
-        var noBtn = new Button { Content = "Cancel" };
-        yesBtn.Click += (_, _) => { result = true; dialog.Close(); };
-        noBtn.Click += (_, _) => { dialog.Close(); };
-
-        dialog.Content = new StackPanel
-        {
-            Margin = new Thickness(20),
-            Spacing = 16,
-            Children =
-            {
-                new TextBlock { Text = "You have unsaved changes. Discard them?", TextWrapping = TextWrapping.Wrap },
-                new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Spacing = 8, Children = { yesBtn, noBtn } }
-            }
-        };
-
-        await dialog.ShowDialog(this);
-        return result;
-    }
-
-    // ── Keyboard shortcuts ──
-
-    private void OnKeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.S && e.KeyModifiers == KeyModifiers.Control)
-        {
-            _ = SaveAsync();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Z && e.KeyModifiers == KeyModifiers.Control)
-        {
-            _activeTab?.UndoRedo.Undo();
-            e.Handled = true;
-        }
-        else if ((e.Key == Key.Y && e.KeyModifiers == KeyModifiers.Control)
-                 || (e.Key == Key.Z && e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift)))
-        {
-            _activeTab?.UndoRedo.Redo();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.W && e.KeyModifiers == KeyModifiers.Control)
-        {
-            if (_activeTab is not null)
-                _ = CloseTabAsync(_activeTab);
-            e.Handled = true;
-        }
-    }
+    #region Undo
 
     private void RefreshUndoButtons()
     {
-        var stack = _activeTab?.UndoRedo;
+        var stack = _activeTab?.UndoRedo ?? _activeItemTab?.UndoRedo;
         UndoBtn.IsEnabled = stack?.CanUndo ?? false;
         RedoBtn.IsEnabled = stack?.CanRedo ?? false;
-        ToolTip.SetTip(UndoBtn, stack?.NextUndoDescription is not null
-            ? $"Undo: {stack.NextUndoDescription}"
-            : "Nothing to undo");
-        ToolTip.SetTip(RedoBtn, stack?.NextRedoDescription is not null
-            ? $"Redo: {stack.NextRedoDescription}"
-            : "Nothing to redo");
+        ToolTip.SetTip(UndoBtn, stack?.NextUndoDescription is not null ? string.Format(Strings.UndoTip, stack.NextUndoDescription) : Strings.UndoNothingToUndo);
+        ToolTip.SetTip(RedoBtn, stack?.NextRedoDescription is not null ? string.Format(Strings.RedoTip, stack.NextRedoDescription) : Strings.UndoNothingToRedo);
     }
 
-    private void UndoBtn_Click(object? sender, RoutedEventArgs e) => _activeTab?.UndoRedo.Undo();
-    private void RedoBtn_Click(object? sender, RoutedEventArgs e) => _activeTab?.UndoRedo.Redo();
+    private void UndoBtn_Click(object? sender, RoutedEventArgs e)
+    {
+        _activeTab?.UndoRedo.Undo();
+        _activeItemTab?.UndoRedo.Undo();
+    }
 
-    // ── Help ──
+    private void RedoBtn_Click(object? sender, RoutedEventArgs e)
+    {
+        _activeTab?.UndoRedo.Redo();
+        _activeItemTab?.UndoRedo.Redo();
+    }
+
+    #endregion
+
+    #region Keyboard
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        switch (e.Key, e.KeyModifiers)
+        {
+            case (Key.S, KeyModifiers.Control):                        _ = SaveAsync();                    e.Handled = true; break;
+            case (Key.Z, KeyModifiers.Control):
+                (_activeTab?.UndoRedo ?? _activeItemTab?.UndoRedo)?.Undo();
+                e.Handled = true; break;
+            case (Key.Y, KeyModifiers.Control):
+                (_activeTab?.UndoRedo ?? _activeItemTab?.UndoRedo)?.Redo();
+                e.Handled = true; break;
+            case (Key.Z, KeyModifiers.Control | KeyModifiers.Shift):
+                (_activeTab?.UndoRedo ?? _activeItemTab?.UndoRedo)?.Redo();
+                e.Handled = true; break;
+            case (Key.W, KeyModifiers.Control):
+                if (_activeTab is not null) _ = CloseTabAsync(_activeTab);
+                else if (_activeItemTab is not null) RemoveItemTab(_activeItemTab);
+                e.Handled = true; break;
+        }
+    }
+
+    #endregion
+
+    #region Help
 
     private HelpWindow? _helpWindow;
 
     private void HelpBtn_Click(object? sender, RoutedEventArgs e)
     {
-        if (_helpWindow is not null && _helpWindow.IsVisible)
-        {
-            _helpWindow.Activate();
-            return;
-        }
-        _helpWindow = new HelpWindow();
-        _helpWindow.Show(this);
+        if (_helpWindow?.IsVisible == true) { _helpWindow.Activate(); return; }
+        (_helpWindow = new HelpWindow()).Show(this);
     }
 
-    // ── Panel close buttons ──────────────────────────────────────────────────
-    private void CloseListBtn_Click(object? sender, RoutedEventArgs e)   => SetListVisible(false);
-    private void CloseDetailBtn_Click(object? sender, RoutedEventArgs e) => SetDetailVisible(false);
-    private void CloseErrorBtn_Click(object? sender, RoutedEventArgs e)  => SetErrorVisible(false);
-    private void CloseRightBtn_Click(object? sender, RoutedEventArgs e)  => SetRightVisible(false);
+    #endregion
 
-    // ── View menu items ──────────────────────────────────────────────────────
-    private void ViewListItem_Click(object? sender, RoutedEventArgs e)   => SetListVisible(!_listVisible);
-    private void ViewDetailItem_Click(object? sender, RoutedEventArgs e) => SetDetailVisible(!_detailVisible);
-    private void ViewErrorItem_Click(object? sender, RoutedEventArgs e)  => SetErrorVisible(!_errorVisible);
-    private void ViewRightItem_Click(object? sender, RoutedEventArgs e)  => SetRightVisible(!_rightVisible);
+    #region Panels
 
-    // ── Toggle helpers ───────────────────────────────────────────────────────
-    private void SetListVisible(bool visible)
+    private void ClosePanelBtn_Click(object? sender, RoutedEventArgs e)
     {
-        if (_listVisible == visible) return;
+        if (sender is Control { Tag: string tag }) SetPanelVisible(tag, false);
+    }
+
+    private void ViewMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { Tag: string tag })
+            SetPanelVisible(tag, !IsPanelVisible(tag));
+    }
+
+    private bool IsPanelVisible(string tag) => tag switch
+    {
+        "List"   => _listVisible,
+        "Items"  => _itemsVisible,
+        "Detail" => _detailVisible,
+        "Error"  => _errorVisible,
+        "Right"  => _rightVisible,
+        _        => false
+    };
+
+    private void SetPanelVisible(string tag, bool visible)
+    {
+        switch (tag)
+        {
+            case "List":   SetListVisible(visible);   break;
+            case "Items":  SetItemsVisible(visible);  break;
+            case "Detail": SetDetailVisible(visible); break;
+            case "Error":  SetErrorVisible(visible);  break;
+            case "Right":  SetRightVisible(visible);  break;
+        }
+    }
+
+    private void SetListVisible(bool v)
+    {
+        if (_listVisible == v) return;
         if (_listVisible) _savedListWidth = MainGrid.ColumnDefinitions[0].Width;
-
-        _listVisible = visible;
-        LeftPanelGrid.IsVisible = visible;
-        LeftSplitter.IsVisible  = visible;
-
-        if (visible)
-        {
-            MainGrid.ColumnDefinitions[0].MinWidth = 100;
-            MainGrid.ColumnDefinitions[0].Width = _savedListWidth;
-            MainGrid.ColumnDefinitions[1].Width = new GridLength(4);
-        }
-        else
-        {
-            MainGrid.ColumnDefinitions[0].MinWidth = 0;
-            MainGrid.ColumnDefinitions[0].Width = new GridLength(0);
-            MainGrid.ColumnDefinitions[1].Width = new GridLength(0);
-        }
-
-        ViewListItem.Header = (visible ? "\u2713 " : "   ") + "Distribution List";
+        _listVisible = v;
+        LeftPanelGrid.IsVisible = v;
+        LeftSplitter.IsVisible  = v;
+        MainGrid.ColumnDefinitions[0].MinWidth = v ? 100 : 0;
+        MainGrid.ColumnDefinitions[0].Width    = v ? _savedListWidth : new GridLength(0);
+        MainGrid.ColumnDefinitions[1].Width    = v ? new GridLength(4) : new GridLength(0);
+        RefreshViewMenuHeaders();
     }
 
-    private void SetDetailVisible(bool visible)
+    private void SetItemsVisible(bool v)
     {
-        _detailVisible = visible;
-        DetailPanelGrid.IsVisible = visible;
-        ErrorPanelGrid.IsVisible = visible && _errorVisible;
-        ErrorSplitter.IsVisible  = visible && _errorVisible;
-        ViewDetailItem.Header = (visible ? "\u2713 " : "   ") + "Detail View";
+        if (_itemsVisible == v) return;
+        if (_itemsVisible) _savedItemsWidth = MainGrid.ColumnDefinitions[2].Width;
+        _itemsVisible = v;
+        ItemsListGrid.IsVisible = v;
+        ItemsSplitter.IsVisible = v;
+        MainGrid.ColumnDefinitions[2].MinWidth = v ? 100 : 0;
+        MainGrid.ColumnDefinitions[2].Width    = v ? _savedItemsWidth : new GridLength(0);
+        MainGrid.ColumnDefinitions[3].Width    = v ? new GridLength(4) : new GridLength(0);
+        RefreshViewMenuHeaders();
     }
 
-    private void SetErrorVisible(bool visible)
+    private void SetDetailVisible(bool v)
     {
-        if (_errorVisible == visible) return;
+        _detailVisible = v;
+        DetailPanelGrid.IsVisible = v;
+        ErrorPanelGrid.IsVisible  = v && _errorVisible;
+        ErrorSplitter.IsVisible   = v && _errorVisible;
+        RefreshViewMenuHeaders();
+    }
+
+    private void SetErrorVisible(bool v)
+    {
+        if (_errorVisible == v) return;
         if (_errorVisible) _savedErrorHeight = MainGrid.RowDefinitions[2].Height;
-
-        _errorVisible = visible;
-        ErrorPanelGrid.IsVisible = visible;
-        ErrorSplitter.IsVisible  = visible;
-
-        if (visible)
-        {
-            MainGrid.RowDefinitions[2].MinHeight = 50;
-            MainGrid.RowDefinitions[2].Height = _savedErrorHeight;
-            MainGrid.RowDefinitions[1].Height = new GridLength(4);
-        }
-        else
-        {
-            MainGrid.RowDefinitions[2].MinHeight = 0;
-            MainGrid.RowDefinitions[2].Height = new GridLength(0);
-            MainGrid.RowDefinitions[1].Height = new GridLength(0);
-        }
-
-        ViewErrorItem.Header = (visible ? "\u2713 " : "   ") + "Error List";
+        _errorVisible = v;
+        ErrorPanelGrid.IsVisible = v;
+        ErrorSplitter.IsVisible  = v;
+        MainGrid.RowDefinitions[2].MinHeight = v ? 50 : 0;
+        MainGrid.RowDefinitions[2].Height    = v ? _savedErrorHeight : new GridLength(0);
+        MainGrid.RowDefinitions[1].Height    = v ? new GridLength(4) : new GridLength(0);
+        RefreshViewMenuHeaders();
     }
 
-    private void SetRightVisible(bool visible)
+    private void SetRightVisible(bool v)
     {
-        if (_rightVisible == visible) return;
-        if (_rightVisible) _savedRightWidth = MainGrid.ColumnDefinitions[4].Width;
-
-        _rightVisible = visible;
-        RightPanelGrid.IsVisible = visible;
-        RightSplitter.IsVisible  = visible;
-
-        if (visible)
-        {
-            MainGrid.ColumnDefinitions[4].MinWidth = 100;
-            MainGrid.ColumnDefinitions[4].Width = _savedRightWidth;
-            MainGrid.ColumnDefinitions[3].Width = new GridLength(4);
-        }
-        else
-        {
-            MainGrid.ColumnDefinitions[4].MinWidth = 0;
-            MainGrid.ColumnDefinitions[4].Width = new GridLength(0);
-            MainGrid.ColumnDefinitions[3].Width = new GridLength(0);
-        }
-
-        ViewRightItem.Header = (visible ? "\u2713 " : "   ") + "Properties";
+        if (_rightVisible == v) return;
+        if (_rightVisible) _savedRightWidth = MainGrid.ColumnDefinitions[6].Width;
+        _rightVisible = v;
+        RightPanelGrid.IsVisible = v;
+        RightSplitter.IsVisible  = v;
+        MainGrid.ColumnDefinitions[6].MinWidth = v ? 100 : 0;
+        MainGrid.ColumnDefinitions[6].Width    = v ? _savedRightWidth : new GridLength(0);
+        MainGrid.ColumnDefinitions[5].Width    = v ? new GridLength(4) : new GridLength(0);
+        RefreshViewMenuHeaders();
     }
+
+    private static string Checkmark(bool v) => v ? "\u2713 " : "   ";
+
+    private void RefreshViewMenuHeaders()
+    {
+        ViewListItem.Header   = Checkmark(_listVisible)   + Strings.MenuViewDistList;
+        ViewItemsItem.Header  = Checkmark(_itemsVisible)  + Strings.MenuViewItemList;
+        ViewDetailItem.Header = Checkmark(_detailVisible) + Strings.MenuViewDetail;
+        ViewErrorItem.Header  = Checkmark(_errorVisible)  + Strings.MenuViewError;
+        ViewRightItem.Header  = Checkmark(_rightVisible)  + Strings.MenuViewRight;
+    }
+
+    #endregion
+
+    #region Dialogs
+
+    private enum CloseTabResult { Save, Discard, Cancel }
+
+    private async Task<CloseTabResult> ShowCloseTabDialog(string distName)
+    {
+        var result = CloseTabResult.Cancel;
+        var dialog = new Window
+        {
+            Title = Strings.DialogUnsavedChanges, Width = 420, Height = 160,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner, CanResize = false
+        };
+        var save    = new Button { Content = Strings.DialogSave };
+        var discard = new Button { Content = Strings.DialogDiscard };
+        var cancel  = new Button { Content = Strings.DialogCancel };
+        save.Click    += (_, _) => { result = CloseTabResult.Save;    dialog.Close(); };
+        discard.Click += (_, _) => { result = CloseTabResult.Discard; dialog.Close(); };
+        cancel.Click  += (_, _) => { dialog.Close(); };
+        dialog.Content = new StackPanel
+        {
+            Margin = new Thickness(20), Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = string.Format(Strings.DialogTabHasUnsaved, distName), TextWrapping = TextWrapping.Wrap },
+                new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
+                    Spacing = 8, Children = { save, discard, cancel } }
+            }
+        };
+        await dialog.ShowDialog(this);
+        return result;
+    }
+
+    private async Task<bool> ConfirmDiscardChanges()
+    {
+        bool result = false;
+        var dialog = new Window
+        {
+            Title = Strings.DialogUnsavedChanges, Width = 400, Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner, CanResize = false
+        };
+        var yes = new Button { Content = Strings.DialogDiscard };
+        var no  = new Button { Content = Strings.DialogCancel };
+        yes.Click += (_, _) => { result = true; dialog.Close(); };
+        no.Click  += (_, _) => { dialog.Close(); };
+        dialog.Content = new StackPanel
+        {
+            Margin = new Thickness(20), Spacing = 16,
+            Children =
+            {
+                new TextBlock { Text = Strings.DialogUnsavedPrompt, TextWrapping = TextWrapping.Wrap },
+                new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
+                    Spacing = 8, Children = { yes, no } }
+            }
+        };
+        await dialog.ShowDialog(this);
+        return result;
+    }
+
+    #endregion
 }
