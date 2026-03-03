@@ -181,6 +181,8 @@ public static class Strings
     public static string HelpSaving        => G(nameof(HelpSaving));
     public static string HelpErrorList     => G(nameof(HelpErrorList));
     public static string HelpShortcuts     => G(nameof(HelpShortcuts));
+    public static string HelpItemsExplorer => G(nameof(HelpItemsExplorer));
+    public static string HelpItemsDetail   => G(nameof(HelpItemsDetail));
 
     // ── Items list control ─────────────────────────────────────────────────
     public static string ILHeader          => G(nameof(ILHeader));
@@ -200,6 +202,8 @@ public static class Strings
     public static string IDAddDistPlaceholder   => G(nameof(IDAddDistPlaceholder));
     public static string IDAddContainerPlaceholder => G(nameof(IDAddContainerPlaceholder));
     public static string IDBtnAdd               => G(nameof(IDBtnAdd));
+    public static string IDAutoFilter           => G(nameof(IDAutoFilter));
+    public static string IDAutoFilterTip        => G(nameof(IDAutoFilterTip));
 
     // ── View menu additions ────────────────────────────────────────────────
     public static string MenuViewItemList  => G(nameof(MenuViewItemList));

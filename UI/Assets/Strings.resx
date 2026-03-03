@@ -488,6 +488,12 @@
   <data name="HelpShortcuts" xml:space="preserve">
     <value>Keyboard Shortcuts</value>
   </data>
+  <data name="HelpItemsExplorer" xml:space="preserve">
+    <value>Items Explorer</value>
+  </data>
+  <data name="HelpItemsDetail" xml:space="preserve">
+    <value>Items Detail</value>
+  </data>
 
   <!-- Items list control -->
   <data name="ILHeader" xml:space="preserve">
@@ -533,6 +539,12 @@
   </data>
   <data name="IDAddContainerPlaceholder" xml:space="preserve">
     <value>Container…</value>
+  </data>
+  <data name="IDAutoFilter" xml:space="preserve">
+    <value>Auto Filter</value>
+  </data>
+  <data name="IDAutoFilterTip" xml:space="preserve">
+    <value>Show only rows matching the current Items Explorer filter</value>
   </data>
   <data name="IDBtnAdd" xml:space="preserve">
     <value>+ Add</value>

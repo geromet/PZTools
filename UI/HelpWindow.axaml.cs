@@ -54,7 +54,9 @@ public partial class HelpWindow : Window
         "editing" => BuildEditing(),
         "saving" => BuildSaving(),
         "error-list" => BuildErrorList(),
-        "shortcuts" => BuildShortcuts(),
+        "shortcuts"    => BuildShortcuts(),
+        "items-list"   => BuildItemsExplorer(),
+        "items-detail" => BuildItemsDetail(),
         _ => BuildWelcome(),
     };
 
@@ -69,9 +71,10 @@ public partial class HelpWindow : Window
         c.Add(Para("PZTools parses the game's Distributions.lua and ProceduralDistributions.lua files into a browsable, editable interface. You can inspect every room, container, item list, and procedural reference \u2014 then save your changes back to disk."));
         c.Add(Spacer());
         c.Add(H2("Layout"));
-        c.Add(Para("The window is divided into four panels:"));
-        c.Add(Bullet("Distribution Explorer", "Left panel. Browse, search, and filter distributions. Organize them into collapsible folders with drag-and-drop."));
-        c.Add(Bullet("Detail View", "Center panel. Inspect and edit the selected distribution and its containers."));
+        c.Add(Para("The window is divided into five panels:"));
+        c.Add(Bullet("Distribution Explorer", "Far-left panel. Browse, search, and filter distributions. Organize them into collapsible folders."));
+        c.Add(Bullet("Items Explorer", "Left-center panel. Browse every unique item name found across all distributions. Search, filter by type, and open an item to see all its occurrences."));
+        c.Add(Bullet("Detail View", "Center panel. Inspect and edit a selected distribution (or item occurrences) in a tabbed editor."));
         c.Add(Bullet("Properties", "Right panel. Shows a read-only detail view when you click a procedural reference link."));
         c.Add(Bullet("Error List", "Bottom panel. Displays parse warnings and errors from the loaded files."));
         c.Add(Spacer());
@@ -339,6 +342,74 @@ public partial class HelpWindow : Window
         c.Add(Shortcut("Drag distribution", "Move it into or out of a folder in the explorer."));
         c.Add(Shortcut("Drag folder", "Nest it inside another folder."));
         c.Add(Shortcut("Right-click explorer", "Open the context menu for folder management."));
+        c.Add(Spacer());
+        c.Add(H2("Items"));
+        c.Add(Shortcut("Double-click item", "Open the item in an Items Detail tab (or activate the existing one)."));
+        return c;
+    }
+
+    // ── Items Explorer ──
+
+    private List<Control> BuildItemsExplorer()
+    {
+        var c = new List<Control>();
+        c.Add(H1("Items Explorer"));
+        c.Add(Para("The Items Explorer panel shows every unique item name found across all loaded distributions and containers. It is a read index \u2014 editing happens through distribution tabs or the Items Detail tab."));
+        c.Add(Spacer());
+        c.Add(H2("Search"));
+        c.Add(Para("Type in the search box to filter item names by substring. Supports regular expressions \u2014 invalid patterns fall back to a plain substring match. A count badge shows filtered / total (e.g. \u201c42 / 1 800\u201d)."));
+        c.Add(Spacer());
+        c.Add(H2("Distribution Type Filter"));
+        c.Add(Para("The single-select type pills (All / Rooms / Caches / Professions / Procedural / Items) limit the view to item names that appear in distributions of the selected type. Click an active pill again to deselect."));
+        c.Add(Spacer());
+        c.Add(H2("Item Type Filter"));
+        c.Add(Para("The tri-state Item Type pills (Items / Junk) filter by where the name appears:"));
+        c.Add(Bullet("Items \u2192 Include", "Show only names that appear in at least one Items list."));
+        c.Add(Bullet("Junk \u2192 Include", "Show only names that appear in at least one Junk list."));
+        c.Add(Para("Both pills can be active simultaneously. See the Filters topic for full tri-state behavior."));
+        c.Add(Spacer());
+        c.Add(H2("Folders"));
+        c.Add(Para("Item names can be organized into collapsible folders, exactly like distributions. Folders are UI-only and persist across sessions."));
+        c.Add(Bullet("New Folder", "Right-click \u2192 New Folder. Type a name and press Enter."));
+        c.Add(Bullet("Rename / Delete", "Right-click a folder for inline rename or delete (members return to root)."));
+        c.Add(Bullet("Move to Folder", "Right-click an item \u2192 Move to Folder submenu."));
+        c.Add(Spacer());
+        c.Add(H2("Opening an Item"));
+        c.Add(Para("Double-click any item name to open its Items Detail tab. If a tab for that item is already open it is activated instead."));
+        return c;
+    }
+
+    // ── Items Detail ──
+
+    private List<Control> BuildItemsDetail()
+    {
+        var c = new List<Control>();
+        c.Add(H1("Items Detail"));
+        c.Add(Para("The Items Detail tab shows every occurrence of a single item name across all distributions and containers. Each row is one place in the loot tables where the item can spawn."));
+        c.Add(Spacer());
+        c.Add(H2("Columns"));
+        c.Add(Bullet("Distribution", "Clickable link that opens the distribution in its own editor tab."));
+        c.Add(Bullet("Container", "The container the item is in, or \u201c(dist-level)\u201d if it is on the distribution directly."));
+        c.Add(Bullet("Kind", "Green \u201cItem\u201d badge for regular items; amber \u201cJunk\u201d badge for junk entries."));
+        c.Add(Bullet("Type", "The distribution type (Room, Cache, Profession, etc.)."));
+        c.Add(Bullet("Chance", "Editable spawn chance. Press Tab or click elsewhere to confirm; invalid input reverts."));
+        c.Add(Bullet("\u00d7", "Delete this occurrence. The change is undoable."));
+        c.Add(Spacer());
+        c.Add(H2("Auto Filter"));
+        c.Add(Para("The Auto Filter button mirrors the current Items Explorer filters onto the rows shown. When active, only occurrences that match the selected distribution type and item type are displayed. The occurrence count in the header always reflects the total, not the filtered view."));
+        c.Add(Para("Auto Filter updates live as you change filters in the Items Explorer."));
+        c.Add(Spacer());
+        c.Add(H2("Adding an Occurrence"));
+        c.Add(Para("Use the add form at the bottom of the tab to insert the item into any distribution:"));
+        c.Add(Step("1", "Type (or select) a distribution name in the Distribution box. The list is sorted by relevance to your input."));
+        c.Add(Step("2", "Choose a container from the Container dropdown, or leave it at \u201c(dist-level)\u201d to add directly to the distribution."));
+        c.Add(Step("3", "Enter a spawn chance and click + Add."));
+        c.Add(Para("The addition is undoable and marks the target distribution as dirty."));
+        c.Add(Spacer());
+        c.Add(H2("Undo / Redo"));
+        c.Add(Para("Each Items Detail tab has its own undo/redo stack, independent of distribution tabs. Use Ctrl+Z / Ctrl+Y while the item tab is active."));
+        c.Add(Spacer());
+        c.Add(Hint("Editing in an Items Detail tab also marks the corresponding distribution tab dirty. The dirty dot appears on both tabs until you save."));
         return c;
     }
 
