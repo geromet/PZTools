@@ -193,13 +193,17 @@
             <Style Selector="TabControl">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
+               
             </Style>
             <Style Selector="TabItem">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
-                <Setter Property="FontSize" Value="12" />
-                <Setter Property="Padding" Value="14 7" />
+                <Setter Property="FontSize" Value="11" />
+                <Setter Property="Padding" Value="14 0" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="MinHeight" Value="0" />
             </Style>
             <Style Selector="TabItem:selected">
                 <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
@@ -212,7 +216,7 @@
                 <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
                 <Setter Property="Width" Value="24" />
                 <Setter Property="Padding" Value="0" />
-                <Setter Property="FontSize" Value="15" />
+                <Setter Property="FontSize" Value="12" />
                 <Setter Property="VerticalAlignment" Value="Stretch" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
@@ -332,5 +336,6 @@
             </Style>
 
         </Styles>
+        
     </Application.Styles>
 </Application>

@@ -117,13 +117,15 @@
                                 </Setter>
                                 <Setter Property="Template">
                                     <ControlTemplate>
-                                        <Grid RowDefinitions="Auto,*">
-                                            <!-- Tab strip: single row, clipped, with scroll buttons -->
+                                        <Grid RowDefinitions="40,*">
+                                            <!-- Tab strip: 40px tall, clipped, with scroll buttons -->
                                             <Border Grid.Row="0"
                                                     Background="{StaticResource BgPanel}"
                                                     BorderBrush="{StaticResource BorderSubtle}"
-                                                    BorderThickness="0 0 0 1">
-                                                <Grid ColumnDefinitions="24,*,24">
+                                                    BorderThickness="0 0 0 1"
+                                                    ClipToBounds="True">
+                                                <Grid ColumnDefinitions="24,*,24"
+                                                      Margin="0">
                                                     <Button x:Name="PART_ScrollLeft"
                                                             Grid.Column="0"
                                                             Classes="TabScroll"
