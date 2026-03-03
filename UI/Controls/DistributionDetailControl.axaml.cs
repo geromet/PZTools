@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Collections;
 using Avalonia.Controls;
-using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Core.Filtering;
@@ -42,9 +41,9 @@ public partial class DistributionDetailControl : UserControl
     {
         InitializeComponent();
 
-        ContainersItemsControl.ItemsSource = _visibleContainers;
-        ContainersItemsControl.ContainerPrepared += OnContainerPrepared;
-        ContainersItemsControl.ContainerClearing += OnContainerClearing;
+        ContainersRepeater.ItemsSource = _visibleContainers;
+        ContainersRepeater.ElementPrepared += OnContainerElementPrepared;
+        ContainersRepeater.ElementClearing += OnContainerElementClearing;
 
         FilterPillHelper.WireTriStatePills(ContainerFilterPills, _filter, OnContainerFilterChanged);
     }
@@ -164,10 +163,9 @@ public partial class DistributionDetailControl : UserControl
         }
 
         _expandOverride = expanded;
-        for (int i = 0; i < _visibleContainers.Count; i++)
+        foreach (var child in ContainersRepeater.Children)
         {
-            var container = ContainersItemsControl.ContainerFromIndex(i);
-            if (container is ContentPresenter cp && cp.Child is ContainerControl cc)
+            if (child is ContainerControl cc)
                 cc.ContainerExpander.IsExpanded = expanded;
         }
     }
@@ -236,22 +234,14 @@ public partial class DistributionDetailControl : UserControl
         _visibleContainers.AddRange(all.Where(c => _filter.IsContainerVisible(c)));
     }
 
-    private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
+    private void OnContainerElementPrepared(object? sender, ItemsRepeaterElementPreparedEventArgs e)
     {
-        if (e.Container is not ContentPresenter cp) return;
-        cp.ApplyTemplate();
-        if (cp.Child is not ContainerControl ctrl) return;
-
-        var container = _visibleContainers[e.Index];
-        ctrl.Load(container, _undoRedo!, _sharedColumnLayout, _filter.ShowEmpty);
-
-        if (_expandOverride.HasValue)
-            ctrl.ContainerExpander.IsExpanded = _expandOverride.Value;
-        else
-            ctrl.ContainerExpander.IsExpanded = e.Index < AutoExpandLimit;
+        if (e.Element is not ContainerControl ctrl) return;
+        ctrl.Load(_visibleContainers[e.Index], _undoRedo!, _sharedColumnLayout, _filter.ShowEmpty);
+        ctrl.ContainerExpander.IsExpanded = _expandOverride ?? e.Index < AutoExpandLimit;
     }
 
-    private void OnContainerClearing(object? sender, ContainerClearingEventArgs e)
+    private void OnContainerElementClearing(object? sender, ItemsRepeaterElementClearingEventArgs e)
     {
         // ContainerControl.Load() handles re-subscription, OnUnloaded handles cleanup.
     }

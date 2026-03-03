@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="using:UI.Controls"
+             xmlns:ir="using:Avalonia.Controls"
+             xmlns:irlayout="using:Avalonia.Layout"
              x:Class="UI.Controls.DistributionDetailControl"
              x:CompileBindings="False">
 
@@ -157,27 +159,21 @@
             </Border>
 
             <!-- Row 3: Virtualized containers -->
-            <ItemsControl x:Name="ContainersItemsControl" Grid.Row="3">
-                <ItemsControl.Template>
-                    <ControlTemplate TargetType="ItemsControl">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled"
-                                      Padding="0 4 0 0">
-                            <ItemsPresenter Margin="0 0 0 16" />
-                        </ScrollViewer>
-                    </ControlTemplate>
-                </ItemsControl.Template>
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <controls:ContainerControl />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <ScrollViewer Grid.Row="3"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="0 4 0 0">
+                <ir:ItemsRepeater x:Name="ContainersRepeater" Margin="0 0 0 16">
+                    <ir:ItemsRepeater.Layout>
+                        <irlayout:StackLayout Spacing="0" />
+                    </ir:ItemsRepeater.Layout>
+                    <ir:ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <controls:ContainerControl />
+                        </DataTemplate>
+                    </ir:ItemsRepeater.ItemTemplate>
+                </ir:ItemsRepeater>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </UserControl>
