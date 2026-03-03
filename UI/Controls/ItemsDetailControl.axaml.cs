@@ -298,8 +298,14 @@ public partial class ItemsDetailControl : UserControl
     private void UpdateAddDistSuggestions(string query)
     {
         if (GetAllDistributions is null) return;
-        AddDistBox.ItemsSource = SearchHelper.SortedByRelevance(
+        var suggestions = SearchHelper.SortedByRelevance(
             GetAllDistributions().Select(d => d.Name), query);
+        // Defer the assignment: setting ItemsSource synchronously inside the
+        // AutoCompleteBox selection-change event clears the dropdown's internal
+        // list while the selection model is still mid-commit → crash.
+        Dispatcher.UIThread.Post(
+            () => AddDistBox.ItemsSource = suggestions,
+            DispatcherPriority.Background);
     }
 
     private void AddDistBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
