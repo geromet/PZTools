@@ -1,6 +1,10 @@
-﻿namespace UI.Controls.Helpers;
+﻿using Avalonia.Interactivity;
+using Data.Data;
 
-public class NavigateToDistributionEventArgs
+namespace UI.Controls.Helpers;
+
+public class NavigateToDistributionEventArgs(RoutedEvent routedEvent, Distribution distribution)
+    : RoutedEventArgs(routedEvent)
 {
-    
+    public Distribution Distribution { get; } = distribution;
 }

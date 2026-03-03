@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
-using DataInput.Data;
+using Data.Data;
 using UI.UndoRedo;
 
 namespace UI.Controls;
