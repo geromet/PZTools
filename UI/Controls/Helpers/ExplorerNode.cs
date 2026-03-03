@@ -9,7 +9,7 @@ using Data.Data;
 
 namespace UI.Controls;
 
-public class ExplorerNode : INotifyPropertyChanged
+public class ExplorerNode : IExplorerNode, INotifyPropertyChanged
 {
     private string _name = "";
     private bool _isExpanded = true;
@@ -30,6 +30,8 @@ public class ExplorerNode : INotifyPropertyChanged
         get => _isExpanded;
         set => SetField(ref _isExpanded, value);
     }
+
+    public IEnumerable<IExplorerNode> ChildrenBase => Children;
 
     public DistributionType? TypeBadge => Distribution?.Type;
     public string ChildCountText => IsFolder ? $"({Children.Count})" : "";

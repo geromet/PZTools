@@ -79,10 +79,12 @@
         <!-- Item tree -->
         <TreeView x:Name="ItemTree"
                   Grid.Row="2"
-                  SelectionMode="Single"
+                  SelectionMode="Multiple"
+                  DragDrop.AllowDrop="True"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                   ScrollViewer.VerticalScrollBarVisibility="Visible"
-                  ScrollViewer.AllowAutoHide="False">
+                  ScrollViewer.AllowAutoHide="False"
+                  KeyDown="Tree_KeyDown">
             <TreeView.ItemTemplate>
                 <TreeDataTemplate ItemsSource="{Binding Children}">
                     <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="22" Margin="0,0,6,0">
@@ -111,6 +113,9 @@
             </TreeView.ItemTemplate>
             <TreeView.ContextMenu>
                 <ContextMenu x:Name="TreeContextMenu" Opening="TreeContextMenu_Opening">
+                    <MenuItem Header="{x:Static loc:Strings.ILMenuOpen}" x:Name="OpenItemItem" Click="OpenItem_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.ILMenuOpenSelected}" x:Name="OpenSelectedItemsItem" Click="OpenSelectedItems_Click" />
+                    <Separator />
                     <MenuItem Header="{x:Static loc:Strings.DLMenuNewFolder}" Click="NewFolder_Click" />
                     <MenuItem Header="{x:Static loc:Strings.DLMenuNewSubfolder}" x:Name="NewSubfolderItem" Click="NewSubfolder_Click" />
                     <Separator />

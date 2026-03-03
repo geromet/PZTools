@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace UI.Controls;
 
-public class ItemExplorerNode : INotifyPropertyChanged
+public class ItemExplorerNode : IExplorerNode, INotifyPropertyChanged
 {
     private string _name = "";
     private bool _isExpanded = true;
@@ -25,6 +25,8 @@ public class ItemExplorerNode : INotifyPropertyChanged
         get => _isExpanded;
         set => SetField(ref _isExpanded, value);
     }
+
+    public IEnumerable<IExplorerNode> ChildrenBase => Children;
 
     public string ChildCountText => IsFolder ? $"({Children.Count})" : "";
 

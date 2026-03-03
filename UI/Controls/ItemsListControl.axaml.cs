@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
@@ -8,7 +9,7 @@ using Core.Items;
 
 namespace UI.Controls;
 
-public partial class ItemsListControl : UserControl
+public partial class ItemsListControl : UserControl, ITreeDragDropHost<ItemExplorerNode>
 {
     private readonly ItemsListState _state = new();
     private readonly RenameState<ItemExplorerNode> _rename = new();
@@ -20,6 +21,9 @@ public partial class ItemsListControl : UserControl
         ItemTree.ItemsSource = _state.RootNodes;
         FilterPillHelper.WireTriStatePills(ItemTypeFilterPills, _state, OnItemTypeFilterChanged);
         ItemTree.DoubleTapped += OnTreeDoubleTapped;
+
+        var dragDrop = new TreeDragDropHandler<ItemExplorerNode>(ItemTree, this);
+        dragDrop.Attach();
     }
 
     public event Action<string>? ItemOpenRequested;
@@ -46,11 +50,22 @@ public partial class ItemsListControl : UserControl
         FilterChanged?.Invoke();
     }
 
-    private void RefreshTree() => _state.RebuildTree(SearchHelper.BuildPredicate(SearchQuery), syncExpansion: true);
+    private void RefreshTree() =>
+        _state.RebuildTree(SearchHelper.BuildPredicate(SearchQuery), syncExpansion: true);
 
     #endregion
 
-    #region Tree double-tap
+    #region Tree selection + keyboard
+
+    private List<ItemExplorerNode> GetSelectedItemNodes()
+    {
+        var result = new List<ItemExplorerNode>();
+        if (ItemTree.SelectedItems is null) return result;
+        foreach (var item in ItemTree.SelectedItems)
+            if (item is ItemExplorerNode { IsFolder: false, ItemName: not null } node)
+                result.Add(node);
+        return result;
+    }
 
     private void OnTreeDoubleTapped(object? sender, TappedEventArgs e)
     {
@@ -63,23 +78,86 @@ public partial class ItemsListControl : UserControl
         }
     }
 
+    private void OpenItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (ItemTree.SelectedItem is ItemExplorerNode { IsFolder: false, ItemName: not null } node)
+            ItemOpenRequested?.Invoke(node.ItemName);
+    }
+
+    private void OpenSelectedItems_Click(object? sender, RoutedEventArgs e)
+    {
+        foreach (var node in GetSelectedItemNodes())
+            ItemOpenRequested?.Invoke(node.ItemName!);
+    }
+
+    private void Tree_KeyDown(object? sender, KeyEventArgs e)
+    {
+        var node = ItemTree.SelectedItem as ItemExplorerNode;
+        switch (e.Key)
+        {
+            case Key.Enter:
+                var items = GetSelectedItemNodes();
+                foreach (var n in items)
+                    ItemOpenRequested?.Invoke(n.ItemName!);
+                if (items.Count > 0) e.Handled = true;
+                break;
+            case Key.F2:
+                if (node is { IsFolder: true })
+                {
+                    _rename.BeginRename(node);
+                    ShowRenameOverlay(node.Name);
+                    e.Handled = true;
+                }
+                break;
+            case Key.Delete:
+                if (node is { IsFolder: false, ItemName: not null })
+                {
+                    var selected = GetSelectedItemNodes();
+                    foreach (var n in selected)
+                        if (ItemFolderService.FindFolderContaining(n.ItemName!, _state.Folders) is not null)
+                            _state.RemoveItemFromFolders(n.ItemName!);
+                    if (selected.Count > 0)
+                    {
+                        _state.SaveFolders();
+                        RefreshTree();
+                        e.Handled = true;
+                    }
+                }
+                else if (node is { IsFolder: true })
+                {
+                    _state.DeleteFolder(node);
+                    _state.SaveFolders();
+                    RefreshTree();
+                    e.Handled = true;
+                }
+                break;
+        }
+    }
+
     #endregion
 
     #region Context menu
 
     private void TreeContextMenu_Opening(object? sender, CancelEventArgs e)
     {
-        var selected = ItemTree.SelectedItem as ItemExplorerNode;
-        var isFolder = selected is { IsFolder: true };
-        var isItem   = selected is { IsFolder: false, ItemName: not null };
-        var inFolder = isItem && selected?.ItemName is not null
-            && ItemFolderService.FindFolderContaining(selected.ItemName, _state.Folders) is not null;
+        var selected         = ItemTree.SelectedItem as ItemExplorerNode;
+        var selectedItems    = GetSelectedItemNodes();
+        var hasSingleItem    = selected is { IsFolder: false, ItemName: not null };
+        var hasItemSelection = selectedItems.Count > 0;
+        var isFolder         = selected is { IsFolder: true };
+        var anyInFolder      = selectedItems.Any(n =>
+            n.ItemName is not null &&
+            ItemFolderService.FindFolderContaining(n.ItemName, _state.Folders) is not null);
 
+        OpenItemItem.IsVisible          = hasSingleItem;
+        OpenSelectedItemsItem.IsVisible = selectedItems.Count > 1;
         NewSubfolderItem.IsVisible      = isFolder;
+
         MoveToFolderMenu.Items.Clear();
         BuildMoveToFolderMenu(MoveToFolderMenu, _state.Folders, "");
-        MoveToFolderMenu.IsVisible      = isItem && _state.Folders.Count > 0;
-        RemoveFromFolderItem.IsVisible  = isItem && inFolder;
+        MoveToFolderMenu.IsVisible     = hasItemSelection && _state.Folders.Count > 0;
+        RemoveFromFolderItem.IsVisible = hasItemSelection && anyInFolder;
+
         RenameFolderItem.IsVisible      = isFolder;
         DeleteFolderItem.IsVisible      = isFolder;
         FolderExpandSeparator.IsVisible = isFolder;
@@ -160,18 +238,32 @@ public partial class ItemsListControl : UserControl
     {
         e.Handled = true;
         if (sender is not MenuItem { Tag: string folderPath }) return;
-        if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: false, ItemName: not null } node) return;
-        _state.MoveItemToFolder(node.ItemName, folderPath);
-        _state.SaveFolders();
-        RefreshTree();
+        var itemNames = GetSelectedItemNodes()
+            .Where(n => n.ItemName is not null)
+            .Select(n => n.ItemName!)
+            .ToList();
+        foreach (var name in itemNames)
+            _state.MoveItemToFolder(name, folderPath);
+        if (itemNames.Count > 0)
+        {
+            _state.SaveFolders();
+            RefreshTree();
+        }
     }
 
     private void RemoveFromFolder_Click(object? sender, RoutedEventArgs e)
     {
-        if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: false, ItemName: not null } node) return;
-        _state.RemoveItemFromFolders(node.ItemName);
-        _state.SaveFolders();
-        RefreshTree();
+        var itemNames = GetSelectedItemNodes()
+            .Where(n => n.ItemName is not null)
+            .Select(n => n.ItemName!)
+            .ToList();
+        foreach (var name in itemNames)
+            _state.RemoveItemFromFolders(name);
+        if (itemNames.Count > 0)
+        {
+            _state.SaveFolders();
+            RefreshTree();
+        }
     }
 
     #endregion
@@ -210,13 +302,39 @@ public partial class ItemsListControl : UserControl
 
     private void RenameBox_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter)  { CommitRename(); e.Handled = true; }
+        if (e.Key == Key.Enter)       { CommitRename(); e.Handled = true; }
         else if (e.Key == Key.Escape) { CancelRename(); e.Handled = true; }
     }
 
     private void RenameBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (RenameOverlay.IsVisible) CommitRename();
+    }
+
+    #endregion
+
+    #region ITreeDragDropHost<ItemExplorerNode>
+
+    ObservableCollection<ItemExplorerNode> ITreeDragDropHost<ItemExplorerNode>.RootNodes => _state.RootNodes;
+    void ITreeDragDropHost<ItemExplorerNode>.SaveFolders() => _state.SaveFolders();
+    void ITreeDragDropHost<ItemExplorerNode>.RefreshTree() => RefreshTree();
+
+    bool ITreeDragDropHost<ItemExplorerNode>.ExecuteNodeDrop(ItemExplorerNode node, ItemExplorerNode? targetFolder)
+    {
+        if (node.IsFolder)
+        {
+            if (!TreeControlHelper.ShowMoveFolderConfirmation(node.Name)) return false;
+            var (folderDef, oldParentList) = _state.FindFolderDefinitionByNode(node);
+            if (folderDef is null) return true;
+            var targetDef = targetFolder is not null ? _state.FindFolderDefinitionByNode(targetFolder).folder : null;
+            ItemFolderService.MoveFolder(folderDef, oldParentList, targetDef, _state.Folders);
+        }
+        else if (node.ItemName is not null)
+        {
+            var targetDef = targetFolder is not null ? _state.FindFolderDefinitionByNode(targetFolder).folder : null;
+            ItemFolderService.MoveItem(node.ItemName, targetDef, _state.Folders);
+        }
+        return true;
     }
 
     #endregion

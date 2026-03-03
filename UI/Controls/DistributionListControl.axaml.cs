@@ -2,11 +2,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.VisualTree;
 using Core.Filtering;
 using Core.Folders;
@@ -14,7 +11,7 @@ using Data.Data;
 
 namespace UI.Controls;
 
-public partial class DistributionListControl : UserControl, ITreeDragDropHost
+public partial class DistributionListControl : UserControl, ITreeDragDropHost<ExplorerNode>
 {
     private readonly RenameState<ExplorerNode> _rename = new();
     private readonly DistributionListState _state = new();
@@ -28,7 +25,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         FilterPillHelper.WireTriStatePills(ContentFilterPills, _state.Filter, OnFilterChanged);
         FilterPillHelper.WireTriStatePills(StructureFilterPills, _state.Filter, OnFilterChanged);
 
-        var dragDrop = new TreeDragDropHandler(DistTree, this);
+        var dragDrop = new TreeDragDropHandler<ExplorerNode>(DistTree, this);
         dragDrop.Attach();
 
         DistTree.DoubleTapped += OnTreeDoubleTapped;
@@ -46,10 +43,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         _state.SaveExpansionState();
     }
 
-    public void SetSettings(UserSettings settings)
-    {
-        _state.LoadFolders();
-    }
+    public void SetSettings(UserSettings settings) => _state.LoadFolders();
 
     public void Load(IReadOnlyList<Distribution> distributions)
     {
@@ -58,7 +52,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         UpdateAllPillStyles();
         ApplyFilter();
     }
-    
+
     #region Filtering
 
     private string SearchQuery => SearchBox.Text?.Trim() ?? string.Empty;
@@ -72,8 +66,8 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     private void RefreshTree()
     {
         var selectedNames = CaptureSelectedNames();
-        var scrollViewer = FindScrollViewer(DistTree);
-        var scrollOffset = scrollViewer?.Offset ?? default;
+        var scrollViewer  = FindScrollViewer(DistTree);
+        var scrollOffset  = scrollViewer?.Offset ?? default;
 
         _state.RebuildTree(SearchQuery, true);
 
@@ -112,7 +106,6 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
             var found = FindScrollViewer(child);
             if (found is not null) return found;
         }
-
         return null;
     }
 
@@ -167,76 +160,77 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         return result;
     }
 
+    private void Tree_KeyDown(object? sender, KeyEventArgs e)
+    {
+        var node = DistTree.SelectedItem as ExplorerNode;
+        switch (e.Key)
+        {
+            case Key.Enter:
+                var dists = GetSelectedDistributionNodes();
+                if (dists.Count == 1 && dists[0].Distribution is not null)
+                    OpenRequested?.Invoke(dists[0].Distribution!);
+                else if (dists.Count > 1)
+                    OpenMultipleRequested?.Invoke(dists.Where(n => n.Distribution is not null).Select(n => n.Distribution!).ToList());
+                if (dists.Count > 0) e.Handled = true;
+                break;
+            case Key.F2:
+                if (node is { IsFolder: true })
+                {
+                    _rename.BeginRename(node);
+                    ShowRenameOverlay(node.Name);
+                    e.Handled = true;
+                }
+                break;
+            case Key.Delete:
+                if (node is { IsFolder: false, Distribution: not null })
+                {
+                    var names = GetSelectedDistributionNodes()
+                        .Where(n => n.Distribution is not null)
+                        .Select(n => n.Distribution!.Name)
+                        .ToList();
+                    if (names.Count > 0)
+                    {
+                        _state.RemoveDistributionsFromFolders(names);
+                        _state.SaveFolders();
+                        RefreshTree();
+                        e.Handled = true;
+                    }
+                }
+                else if (node is { IsFolder: true })
+                {
+                    _state.DeleteFolder(node);
+                    _state.SaveFolders();
+                    RefreshTree();
+                    e.Handled = true;
+                }
+                break;
+        }
+    }
+
     #endregion
 
-    #region ITreeDragDropHost
+    #region ITreeDragDropHost<ExplorerNode>
 
-    ObservableCollection<ExplorerNode> ITreeDragDropHost.RootNodes => _state.RootNodes;
-    List<FolderDefinition> ITreeDragDropHost.Folders => _state.Folders;
+    ObservableCollection<ExplorerNode> ITreeDragDropHost<ExplorerNode>.RootNodes => _state.RootNodes;
+    void ITreeDragDropHost<ExplorerNode>.SaveFolders() => _state.SaveFolders();
+    void ITreeDragDropHost<ExplorerNode>.RefreshTree() => RefreshTree();
 
-    void ITreeDragDropHost.SaveFolders()
+    bool ITreeDragDropHost<ExplorerNode>.ExecuteNodeDrop(ExplorerNode node, ExplorerNode? targetFolder)
     {
-        _state.SaveFolders();
-    }
-
-    void ITreeDragDropHost.RefreshTree()
-    {
-        RefreshTree();
-    }
-
-    (FolderDefinition? folder, List<FolderDefinition> parentList) ITreeDragDropHost.FindFolderDefinition(
-        ExplorerNode node)
-    {
-        return _state.FindFolderDefinition(node);
-    }
-
-    bool ITreeDragDropHost.ShowMoveFolderConfirmation(string folderName)
-    {
-        return ShowMoveFolderConfirmation(folderName);
-    }
-
-    private bool ShowMoveFolderConfirmation(string folderName)
-    {
-        var dialog = new Window
+        if (node.IsFolder)
         {
-            Title = "Move Folder", Width = 320, Height = 100,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner, CanResize = false
-        };
-        var result = false;
-        var yesBtn = new Button { Content = "Yes", Margin = new Thickness(0, 0, 8, 0) };
-        var noBtn = new Button { Content = "No" };
-        yesBtn.Click += (_, _) =>
+            if (!TreeControlHelper.ShowMoveFolderConfirmation(node.Name)) return false;
+            var (folderDef, oldParentList) = _state.FindFolderDefinition(node);
+            if (folderDef is null) return true;
+            var targetDef = targetFolder is not null ? _state.FindFolderDefinition(targetFolder).folder : null;
+            FolderService.MoveFolder(folderDef, oldParentList, targetDef, _state.Folders);
+        }
+        else if (node.Distribution is not null)
         {
-            result = true;
-            dialog.Close();
-        };
-        noBtn.Click += (_, _) => { dialog.Close(); };
-        yesBtn.IsDefault = true;
-        noBtn.IsCancel = true;
-
-        dialog.Content = new StackPanel
-        {
-            Margin = new Thickness(10), Spacing = 16,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = $"Are you sure you want to move the folder \"{folderName}\"?",
-                    TextWrapping = TextWrapping.Wrap,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                },
-                new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Children = { yesBtn, noBtn }
-                }
-            }
-        };
-
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            dialog.ShowDialog(desktop.MainWindow);
-        return result;
+            var targetDef = targetFolder is not null ? _state.FindFolderDefinition(targetFolder).folder : null;
+            FolderService.MoveDistribution(node.Distribution.Name, targetDef, _state.Folders);
+        }
+        return true;
     }
 
     #endregion
@@ -245,29 +239,29 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     private void TreeContextMenu_Opening(object? sender, CancelEventArgs e)
     {
-        var selected = DistTree.SelectedItem as ExplorerNode;
+        var selected          = DistTree.SelectedItem as ExplorerNode;
         var selectedDistNodes = GetSelectedDistributionNodes();
-        var hasDistSelection = selectedDistNodes.Count > 0;
-        var hasSingleDist = selected is { IsFolder: false, Distribution: not null };
-        var anyInFolder = selectedDistNodes.Any(n =>
+        var hasDistSelection  = selectedDistNodes.Count > 0;
+        var hasSingleDist     = selected is { IsFolder: false, Distribution: not null };
+        var anyInFolder       = selectedDistNodes.Any(n =>
             n.Distribution is not null &&
             FolderService.FindFolderContaining(n.Distribution.Name, _state.Folders) is not null);
         var isFolder = selected is { IsFolder: true };
 
-        OpenDistItem.IsVisible = hasSingleDist;
+        OpenDistItem.IsVisible       = hasSingleDist;
         OpenSelectedDistsItem.IsVisible = selectedDistNodes.Count > 1;
-        NewSubfolderItem.IsVisible = isFolder;
+        NewSubfolderItem.IsVisible   = isFolder;
 
         MoveToFolderMenu.Items.Clear();
         BuildMoveToFolderMenu(MoveToFolderMenu, _state.Folders, "");
-        MoveToFolderMenu.IsVisible = hasDistSelection && _state.Folders.Count > 0;
-        RemoveFromFolderItem.IsVisible = hasDistSelection && anyInFolder;
+        MoveToFolderMenu.IsVisible      = hasDistSelection && _state.Folders.Count > 0;
+        RemoveFromFolderItem.IsVisible  = hasDistSelection && anyInFolder;
 
-        RenameFolderItem.IsVisible = isFolder;
-        DeleteFolderItem.IsVisible = isFolder;
+        RenameFolderItem.IsVisible      = isFolder;
+        DeleteFolderItem.IsVisible      = isFolder;
         FolderExpandSeparator.IsVisible = isFolder;
-        ExpandFolderItem.IsVisible = isFolder;
-        CollapseFolderItem.IsVisible = isFolder;
+        ExpandFolderItem.IsVisible      = isFolder;
+        CollapseFolderItem.IsVisible    = isFolder;
     }
 
     private void BuildMoveToFolderMenu(MenuItem parent, List<FolderDefinition> folders, string pathPrefix)
@@ -287,25 +281,10 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     #region Expand / collapse
 
-    private void ExpandAll_Click(object? sender, RoutedEventArgs e)
-    {
-        SetExpandAll(true);
-    }
-
-    private void CollapseAll_Click(object? sender, RoutedEventArgs e)
-    {
-        SetExpandAll(false);
-    }
-
-    private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)
-    {
-        SetExpandSelectedFolder(true);
-    }
-
-    private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e)
-    {
-        SetExpandSelectedFolder(false);
-    }
+    private void ExpandAll_Click(object? sender, RoutedEventArgs e)        => SetExpandAll(true);
+    private void CollapseAll_Click(object? sender, RoutedEventArgs e)      => SetExpandAll(false);
+    private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)  => SetExpandSelectedFolder(true);
+    private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e) => SetExpandSelectedFolder(false);
 
     private void SetExpandAll(bool expanded)
     {
@@ -396,11 +375,7 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
     {
         RenameOverlay.IsVisible = false;
         var newName = RenameBox.Text?.Trim() ?? "";
-        if (string.IsNullOrEmpty(newName))
-        {
-            _rename.Reset();
-            return;
-        }
+        if (string.IsNullOrEmpty(newName)) { _rename.Reset(); return; }
 
         bool changed;
         if (_rename.IsCreating)
@@ -424,16 +399,8 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
 
     private void RenameBox_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter)
-        {
-            CommitRename();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Escape)
-        {
-            CancelRename();
-            e.Handled = true;
-        }
+        if (e.Key == Key.Enter)       { CommitRename(); e.Handled = true; }
+        else if (e.Key == Key.Escape) { CancelRename(); e.Handled = true; }
     }
 
     private void RenameBox_LostFocus(object? sender, RoutedEventArgs e)

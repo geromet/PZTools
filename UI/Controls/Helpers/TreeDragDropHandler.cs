@@ -1,6 +1,4 @@
 #pragma warning disable CS0618 // DragDrop old API
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Avalonia;
@@ -9,45 +7,49 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using Core.Folders;
 
 namespace UI.Controls;
 
-public interface ITreeDragDropHost
+public interface ITreeDragDropHost<TNode> where TNode : class, IExplorerNode
 {
-    ObservableCollection<ExplorerNode> RootNodes { get; }
-    List<FolderDefinition> Folders { get; }
+    ObservableCollection<TNode> RootNodes { get; }
     void SaveFolders();
     void RefreshTree();
-    bool ShowMoveFolderConfirmation(string folderName);
-    (FolderDefinition? folder, List<FolderDefinition> parentList) FindFolderDefinition(ExplorerNode node);
+
+    /// <summary>
+    /// Executes a drop of a single node onto the given target folder (null = root).
+    /// Return false to cancel any remaining drops in the same operation.
+    /// </summary>
+    bool ExecuteNodeDrop(TNode droppedNode, TNode? targetFolder);
 }
 
-public class TreeDragDropHandler
+public class TreeDragDropHandler<TNode> where TNode : class, IExplorerNode
 {
     private readonly TreeView _tree;
-    private readonly ITreeDragDropHost _host;
+    private readonly ITreeDragDropHost<TNode> _host;
+    private readonly string _dragDataKey;
 
     private Point _dragStartPoint;
     private bool _dragStartPending;
-    private List<ExplorerNode> _draggedNodesSnapshot = [];
+    private List<TNode> _draggedNodesSnapshot = [];
     private TreeViewItem? _currentDropTarget;
     private const double DragThreshold = 6;
 
-    public TreeDragDropHandler(TreeView tree, ITreeDragDropHost host)
+    public TreeDragDropHandler(TreeView tree, ITreeDragDropHost<TNode> host)
     {
         _tree = tree;
         _host = host;
+        _dragDataKey = typeof(TNode).Name + "Nodes";
     }
 
     public void Attach()
     {
-        _tree.AddHandler(InputElement.PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
-        _tree.AddHandler(InputElement.PointerMovedEvent, OnPointerMoved, RoutingStrategies.Tunnel);
+        _tree.AddHandler(InputElement.PointerPressedEvent,  OnPointerPressed,  RoutingStrategies.Tunnel);
+        _tree.AddHandler(InputElement.PointerMovedEvent,    OnPointerMoved,    RoutingStrategies.Tunnel);
         _tree.AddHandler(InputElement.PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Tunnel);
-        _tree.AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        _tree.AddHandler(DragDrop.DragOverEvent,  OnDragOver);
         _tree.AddHandler(DragDrop.DragLeaveEvent, OnDragLeave);
-        _tree.AddHandler(DragDrop.DropEvent, OnDrop);
+        _tree.AddHandler(DragDrop.DropEvent,      OnDrop);
     }
 
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -56,71 +58,49 @@ public class TreeDragDropHandler
         if (!e.GetCurrentPoint(_tree).Properties.IsLeftButtonPressed) return;
         _dragStartPoint = e.GetPosition(_tree);
 
-        // Snapshot selection now, before the TreeView processes the click and potentially resets it
         _draggedNodesSnapshot = [];
         if (_tree.SelectedItems is not null)
-        {
             foreach (var item in _tree.SelectedItems)
-            {
-                if (item is ExplorerNode node)
+                if (item is TNode node)
                     _draggedNodesSnapshot.Add(node);
-            }
-        }
 
         _dragStartPending = true;
     }
 
-    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        _dragStartPending = false;
-    }
+    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e) => _dragStartPending = false;
 
     private async void OnPointerMoved(object? sender, PointerEventArgs e)
     {
         if (e.Source is Visual v && v.FindAncestorOfType<ScrollBar>() is not null) return;
         if (!_dragStartPending) return;
 
-        var pos = e.GetPosition(_tree);
+        var pos   = e.GetPosition(_tree);
         var delta = pos - _dragStartPoint;
-        if (Math.Abs(delta.X) < DragThreshold && Math.Abs(delta.Y) < DragThreshold)
-            return;
+        if (Math.Abs(delta.X) < DragThreshold && Math.Abs(delta.Y) < DragThreshold) return;
 
         _dragStartPending = false;
 
-        // Use the snapshot taken at PointerPressed (before TreeView changed the selection)
-        // Also include the currently clicked node if it wasn't in the original selection
-        var clickedNode = FindNodeAtPosition(_dragStartPoint);
-        var draggedNodes = new List<ExplorerNode>(_draggedNodesSnapshot);
+        var clickedNode  = FindNodeAtPosition(_dragStartPoint);
+        var draggedNodes = new List<TNode>(_draggedNodesSnapshot);
         if (clickedNode is not null && !draggedNodes.Contains(clickedNode))
             draggedNodes.Add(clickedNode);
         if (draggedNodes.Count == 0) return;
 
         var data = new DataObject();
-        data.Set("ExplorerNodes", draggedNodes);
-        try
-        {
-            await DragDrop.DoDragDrop(e, data, DragDropEffects.Move);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.Message);
-        }
+        data.Set(_dragDataKey, draggedNodes);
+        try { await DragDrop.DoDragDrop(e, data, DragDropEffects.Move); }
+        catch (Exception ex) { Debug.WriteLine(ex.Message); }
 
         ClearDropTarget();
     }
 
     private void OnDragOver(object? sender, DragEventArgs e)
     {
-        if (!e.Data.Contains("ExplorerNodes"))
-        {
-            e.DragEffects = DragDropEffects.None;
-            return;
-        }
+        if (!e.Data.Contains(_dragDataKey)) { e.DragEffects = DragDropEffects.None; return; }
 
-        var targetNode = FindNodeAtPosition(e.GetPosition(_tree));
-        var draggedNodes = e.Data.Get("ExplorerNodes") as List<ExplorerNode>;
-
-        var dropFolder = ResolveDropFolder(targetNode);
+        var targetNode   = FindNodeAtPosition(e.GetPosition(_tree));
+        var draggedNodes = e.Data.Get(_dragDataKey) as List<TNode>;
+        var dropFolder   = ResolveDropFolder(targetNode);
 
         if (draggedNodes is not null && !IsValidDrop(draggedNodes, dropFolder, targetNode))
         {
@@ -134,45 +114,26 @@ public class TreeDragDropHandler
         if (dropFolder is not null)
         {
             var tvi = FindTreeViewItemForNode(dropFolder);
-            if (tvi is not null)
-                SetDropTarget(tvi);
-            else
-                ClearDropTarget();
+            if (tvi is not null) SetDropTarget(tvi);
+            else ClearDropTarget();
         }
-        else
-        {
-            ClearDropTarget();
-        }
+        else ClearDropTarget();
     }
 
-    private void OnDragLeave(object? sender, DragEventArgs e)
-    {
-        ClearDropTarget();
-    }
+    private void OnDragLeave(object? sender, DragEventArgs e) => ClearDropTarget();
 
     private void OnDrop(object? sender, DragEventArgs e)
     {
         ClearDropTarget();
-
-        if (e.Data.Get("ExplorerNodes") is not List<ExplorerNode> draggedNodes)
-            return;
+        if (e.Data.Get(_dragDataKey) is not List<TNode> draggedNodes) return;
 
         var targetNode = FindNodeAtPosition(e.GetPosition(_tree));
         var dropFolder = ResolveDropFolder(targetNode);
-
-        if (!IsValidDrop(draggedNodes, dropFolder, targetNode))
-            return;
+        if (!IsValidDrop(draggedNodes, dropFolder, targetNode)) return;
 
         foreach (var node in draggedNodes)
-        {
-            if (node.IsFolder)
-            {
-                if (!MoveFolderTo(node, dropFolder))
-                    return; // user cancelled
-            }
-            else if (node.Distribution is not null)
-                MoveDistributionTo(node.Distribution.Name, dropFolder);
-        }
+            if (!_host.ExecuteNodeDrop(node, dropFolder))
+                return;
 
         _host.SaveFolders();
         _host.RefreshTree();
@@ -180,27 +141,26 @@ public class TreeDragDropHandler
 
     // ── Drop resolution ──
 
-    private ExplorerNode? ResolveDropFolder(ExplorerNode? targetNode)
+    private TNode? ResolveDropFolder(TNode? targetNode)
     {
         if (targetNode is null) return null;
         if (targetNode.IsFolder) return targetNode;
         return FindParentFolderNode(targetNode, _host.RootNodes);
     }
 
-    private static ExplorerNode? FindParentFolderNode(
-        ExplorerNode target, ObservableCollection<ExplorerNode> nodes)
+    private static TNode? FindParentFolderNode(TNode target, IEnumerable<IExplorerNode> nodes)
     {
-        foreach (var node in nodes)
+        foreach (var rawNode in nodes)
         {
-            if (!node.IsFolder) continue;
-            if (node.Children.Contains(target)) return node;
-            var found = FindParentFolderNode(target, node.Children);
+            if (rawNode is not TNode node || !node.IsFolder) continue;
+            if (node.ChildrenBase.Contains(target)) return node;
+            var found = FindParentFolderNode(target, node.ChildrenBase);
             if (found is not null) return found;
         }
         return null;
     }
 
-    private static bool IsValidDrop(List<ExplorerNode> dragged, ExplorerNode? dropFolder, ExplorerNode? targetNode)
+    private static bool IsValidDrop(List<TNode> dragged, TNode? dropFolder, TNode? targetNode)
     {
         foreach (var node in dragged)
         {
@@ -212,54 +172,31 @@ public class TreeDragDropHandler
         return true;
     }
 
-    private static bool IsDescendantOf(ExplorerNode candidate, ExplorerNode ancestor)
+    private static bool IsDescendantOf(TNode candidate, TNode ancestor)
     {
-        foreach (var child in ancestor.Children)
+        foreach (var child in ancestor.ChildrenBase)
         {
             if (child == candidate) return true;
-            if (child.IsFolder && IsDescendantOf(candidate, child))
+            if (child.IsFolder && child is TNode typedChild && IsDescendantOf(candidate, typedChild))
                 return true;
         }
         return false;
     }
 
-    // ── Move operations ──
-
-    private void MoveDistributionTo(string distName, ExplorerNode? targetFolderNode)
-    {
-        var targetDef = targetFolderNode is not null ? _host.FindFolderDefinition(targetFolderNode).folder : null;
-        FolderService.MoveDistribution(distName, targetDef, _host.Folders);
-    }
-
-    private bool MoveFolderTo(ExplorerNode folderNode, ExplorerNode? targetFolderNode)
-    {
-        if (!_host.ShowMoveFolderConfirmation(folderNode.Name))
-            return false;
-
-        var (folderDef, oldParentList) = _host.FindFolderDefinition(folderNode);
-        if (folderDef is null) return true;
-
-        var targetDef = targetFolderNode is not null ? _host.FindFolderDefinition(targetFolderNode).folder : null;
-        FolderService.MoveFolder(folderDef, oldParentList, targetDef, _host.Folders);
-        return true;
-    }
-
     // ── Visual helpers ──
 
-    private ExplorerNode? FindNodeAtPosition(Point pos)
+    private TNode? FindNodeAtPosition(Point pos)
     {
         var hit = _tree.InputHitTest(pos);
         if (hit is not Visual visual) return null;
         var tvi = visual.FindAncestorOfType<TreeViewItem>();
-        return tvi?.DataContext as ExplorerNode;
+        return tvi?.DataContext as TNode;
     }
 
-    private TreeViewItem? FindTreeViewItemForNode(ExplorerNode node)
-    {
-        return FindTreeViewItemRecursive(_tree, node);
-    }
+    private TreeViewItem? FindTreeViewItemForNode(TNode node) =>
+        FindTreeViewItemRecursive(_tree, node);
 
-    private static TreeViewItem? FindTreeViewItemRecursive(ItemsControl parent, ExplorerNode node)
+    private static TreeViewItem? FindTreeViewItemRecursive(ItemsControl parent, TNode node)
     {
         foreach (var item in parent.GetRealizedContainers())
         {

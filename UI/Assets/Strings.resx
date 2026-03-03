@@ -511,6 +511,12 @@
   <data name="ILFilterJunk" xml:space="preserve">
     <value>Junk</value>
   </data>
+  <data name="ILMenuOpen" xml:space="preserve">
+    <value>Open Item</value>
+  </data>
+  <data name="ILMenuOpenSelected" xml:space="preserve">
+    <value>Open Selected Items</value>
+  </data>
 
   <!-- Items detail control -->
   <data name="IDOccurrences" xml:space="preserve">

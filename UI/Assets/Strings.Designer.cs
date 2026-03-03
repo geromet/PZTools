@@ -190,6 +190,8 @@ public static class Strings
     public static string ILItemTypeHeader  => G(nameof(ILItemTypeHeader));
     public static string ILFilterItems     => G(nameof(ILFilterItems));
     public static string ILFilterJunk      => G(nameof(ILFilterJunk));
+    public static string ILMenuOpen        => G(nameof(ILMenuOpen));
+    public static string ILMenuOpenSelected => G(nameof(ILMenuOpenSelected));
 
     // ── Items detail control ───────────────────────────────────────────────
     public static string IDOccurrences          => G(nameof(IDOccurrences));
