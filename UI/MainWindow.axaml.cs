@@ -50,6 +50,8 @@ public partial class MainWindow : Window
     private bool _suppressTabChanged;
     private const int MaxCachedTabs = 10;
     private ItemsPresenter? _tabItemsPresenter;
+    private Button? _tabScrollLeft;
+    private Button? _tabScrollRight;
     private double _tabScrollOffset;
     private const double TabScrollStep = 120;
 
@@ -467,10 +469,13 @@ public partial class MainWindow : Window
     private void OnTabBarTemplateApplied(object? sender, TemplateAppliedEventArgs e)
     {
         _tabItemsPresenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
-        var left  = e.NameScope.Find<Button>("PART_ScrollLeft");
-        var right = e.NameScope.Find<Button>("PART_ScrollRight");
-        if (left  is not null) left.Click  += (_, _) => ScrollTabsLeft();
-        if (right is not null) right.Click += (_, _) => ScrollTabsRight();
+        _tabScrollLeft  = e.NameScope.Find<Button>("PART_ScrollLeft");
+        _tabScrollRight = e.NameScope.Find<Button>("PART_ScrollRight");
+        if (_tabScrollLeft  is not null) _tabScrollLeft.Click  += (_, _) => ScrollTabsLeft();
+        if (_tabScrollRight is not null) _tabScrollRight.Click += (_, _) => ScrollTabsRight();
+        if (_tabItemsPresenter is not null)
+            _tabItemsPresenter.LayoutUpdated += (_, _) => UpdateScrollButtonStates();
+        UpdateScrollButtonStates();
     }
 
     private void ScrollTabsLeft()
@@ -493,6 +498,46 @@ public partial class MainWindow : Window
     {
         if (_tabItemsPresenter is null) return;
         _tabItemsPresenter.RenderTransform = new TranslateTransform(-_tabScrollOffset, 0);
+        UpdateScrollButtonStates();
+    }
+
+    private void UpdateScrollButtonStates()
+    {
+        if (_tabScrollLeft is null || _tabScrollRight is null || _tabItemsPresenter is null) return;
+
+        var viewWidth    = _tabItemsPresenter.Parent is Control clip ? clip.Bounds.Width : 0;
+        var contentWidth = _tabItemsPresenter.DesiredSize.Width;
+        bool overflows   = contentWidth > viewWidth + 0.5;
+
+        if (!overflows)
+        {
+            if (_tabScrollOffset != 0)
+            {
+                _tabScrollOffset = 0;
+                _tabItemsPresenter.RenderTransform = new TranslateTransform(0, 0);
+            }
+            // Use opacity so the 24px grid columns don't collapse (avoids layout feedback loop)
+            _tabScrollLeft.Opacity          = 0;
+            _tabScrollLeft.IsHitTestVisible  = false;
+            _tabScrollRight.Opacity         = 0;
+            _tabScrollRight.IsHitTestVisible = false;
+            return;
+        }
+
+        _tabScrollLeft.Opacity          = 1;
+        _tabScrollLeft.IsHitTestVisible  = true;
+        _tabScrollRight.Opacity         = 1;
+        _tabScrollRight.IsHitTestVisible = true;
+
+        var maxOffset = contentWidth - viewWidth;
+        if (_tabScrollOffset > maxOffset)
+        {
+            _tabScrollOffset = Math.Max(0, maxOffset);
+            _tabItemsPresenter.RenderTransform = new TranslateTransform(-_tabScrollOffset, 0);
+        }
+
+        _tabScrollLeft.IsEnabled  = _tabScrollOffset > 0.5;
+        _tabScrollRight.IsEnabled = _tabScrollOffset < maxOffset - 0.5;
     }
 
     private void ScrollTabIntoView(TabItem tabItem)
