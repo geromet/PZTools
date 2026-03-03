@@ -205,6 +205,24 @@
                 <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
             </Style>
 
+            <!-- Tab strip scroll buttons (◀ / ▶) -->
+            <Style Selector="Button.TabScroll">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+                <Setter Property="Width" Value="24" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="VerticalAlignment" Value="Stretch" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="CornerRadius" Value="0" />
+            </Style>
+            <Style Selector="Button.TabScroll:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="{StaticResource BgHover}" />
+                <Setter Property="TextBlock.Foreground" Value="{StaticResource TextSecondary}" />
+            </Style>
+
             <!-- ══ DATA GRID ══ -->
 
             <Style Selector="DataGrid">

@@ -9,7 +9,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Controls.Primitives;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Data;
 using Data.Comments;
 using Data.Data;
@@ -45,12 +47,15 @@ public partial class MainWindow : Window
     private TabState? _activeTab;
     private bool _suppressTabChanged;
     private const int MaxCachedTabs = 10;
+    private ScrollViewer? _tabScrollViewer;
+    private const double TabScrollStep = 120;
 
     public MainWindow()
     {
         InitializeComponent();
 
         TabBar.ItemsSource = _tabItems;
+        TabBar.TemplateApplied += OnTabBarTemplateApplied;
         DistributionList.SetSettings(_settings);
         DistributionList.OpenRequested += OnDistributionOpenRequested;
         DistributionList.OpenMultipleRequested += OnDistributionOpenMultipleRequested;
@@ -250,6 +255,7 @@ public partial class MainWindow : Window
 
         RefreshUndoButtons();
         RefreshTabDirtyDot(state);
+        ScrollTabIntoView(state.TabItem);
     }
 
     private async Task CloseTabAsync(TabState state, bool skipPinCheck = false)
@@ -451,6 +457,41 @@ public partial class MainWindow : Window
         _openTabs.Clear();
         _activeTab = null;
         _suppressTabChanged = false;
+    }
+
+    // ── Tab strip scrolling ──
+
+    private void OnTabBarTemplateApplied(object? sender, TemplateAppliedEventArgs e)
+    {
+        _tabScrollViewer = e.NameScope.Find<ScrollViewer>("PART_TabScrollViewer");
+        var left  = e.NameScope.Find<Button>("PART_ScrollLeft");
+        var right = e.NameScope.Find<Button>("PART_ScrollRight");
+        if (left  is not null) left.Click  += (_, _) => ScrollTabsLeft();
+        if (right is not null) right.Click += (_, _) => ScrollTabsRight();
+    }
+
+    private void ScrollTabsLeft()
+    {
+        if (_tabScrollViewer is null) return;
+        _tabScrollViewer.Offset = _tabScrollViewer.Offset.WithX(
+            Math.Max(0, _tabScrollViewer.Offset.X - TabScrollStep));
+    }
+
+    private void ScrollTabsRight()
+    {
+        if (_tabScrollViewer is null) return;
+        _tabScrollViewer.Offset = _tabScrollViewer.Offset.WithX(
+            Math.Min(_tabScrollViewer.ScrollBarMaximum.X, _tabScrollViewer.Offset.X + TabScrollStep));
+    }
+
+    private void ScrollTabIntoView(TabItem tabItem)
+    {
+        if (_tabScrollViewer is null) return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            var container = TabBar.ContainerFromItem(tabItem);
+            container?.BringIntoView();
+        }, DispatcherPriority.Loaded);
     }
 
     // ── Close tab dialog ──

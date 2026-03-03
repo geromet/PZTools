@@ -108,7 +108,49 @@
                     <TabControl x:Name="TabBar"
                                 SelectionChanged="TabBar_SelectionChanged"
                                 HorizontalContentAlignment="Stretch"
-                                VerticalContentAlignment="Stretch" />
+                                VerticalContentAlignment="Stretch">
+                        <TabControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </TabControl.ItemsPanel>
+                        <TabControl.Template>
+                            <ControlTemplate>
+                                <Grid RowDefinitions="Auto,*">
+                                    <!-- Scrollable tab strip -->
+                                    <Border Grid.Row="0"
+                                            Background="{StaticResource BgPanel}"
+                                            BorderBrush="{StaticResource BorderSubtle}"
+                                            BorderThickness="0 0 0 1">
+                                        <Grid ColumnDefinitions="24,*,24">
+                                            <Button x:Name="PART_ScrollLeft"
+                                                    Grid.Column="0"
+                                                    Classes="TabScroll"
+                                                    Content="&#x2039;" />
+                                            <ScrollViewer x:Name="PART_TabScrollViewer"
+                                                          Grid.Column="1"
+                                                          HorizontalScrollBarVisibility="Hidden"
+                                                          VerticalScrollBarVisibility="Disabled">
+                                                <ItemsPresenter Name="PART_ItemsPresenter" />
+                                            </ScrollViewer>
+                                            <Button x:Name="PART_ScrollRight"
+                                                    Grid.Column="2"
+                                                    Classes="TabScroll"
+                                                    Content="&#x203A;" />
+                                        </Grid>
+                                    </Border>
+                                    <!-- Content area -->
+                                    <ContentPresenter Name="PART_SelectedContentHost"
+                                                      Grid.Row="1"
+                                                      Content="{TemplateBinding SelectedContent}"
+                                                      ContentTemplate="{TemplateBinding SelectedContentTemplate}"
+                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      Margin="{TemplateBinding Padding}" />
+                                </Grid>
+                            </ControlTemplate>
+                        </TabControl.Template>
+                    </TabControl>
                 </Border>
                 <Button Classes="PanelClose" Click="CloseDetailBtn_Click" />
             </Grid>
