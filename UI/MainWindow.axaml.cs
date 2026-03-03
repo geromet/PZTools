@@ -467,11 +467,6 @@ public partial class MainWindow : Window
     private void OnTabBarTemplateApplied(object? sender, TemplateAppliedEventArgs e)
     {
         _tabItemsPresenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
-
-        // Force a non-wrapping horizontal panel regardless of what the theme sets.
-        // This must happen after template application so ItemsPresenter recreates its panel.
-        TabBar.ItemsPanel = new FuncTemplate<Panel?>(() => new StackPanel { Orientation = Orientation.Horizontal });
-
         var left  = e.NameScope.Find<Button>("PART_ScrollLeft");
         var right = e.NameScope.Find<Button>("PART_ScrollRight");
         if (left  is not null) left.Click  += (_, _) => ScrollTabsLeft();
@@ -618,7 +613,8 @@ public partial class MainWindow : Window
             state.TabItem = new TabItem
             {
                 Header = CreateTabHeader(state),
-                Content = CreateEvictedPlaceholder()
+                Content = CreateEvictedPlaceholder(),
+                
             };
             state.UndoRedo.StateChanged += () => OnTabUndoStateChanged(state);
             _openTabs[d.Name] = state;
