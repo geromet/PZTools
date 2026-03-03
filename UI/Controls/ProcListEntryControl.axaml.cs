@@ -67,46 +67,11 @@ public partial class ProcListEntryControl : UserControl
 
     #region Property editing
 
-    private void MinBox_LostFocus(object? sender, RoutedEventArgs e)
+    private void Field_LostFocus(object? sender, RoutedEventArgs e)
     {
-        if (_loading || _model is null || _undoRedo is null) return;
-        UndoHelper.PushIntChange(_undoRedo, _model, MinBox, "Min",
-            _model.Min, v => _model.Min = v);
-    }
-
-    private void MaxBox_LostFocus(object? sender, RoutedEventArgs e)
-    {
-        if (_loading || _model is null || _undoRedo is null) return;
-        UndoHelper.PushIntChange(_undoRedo, _model, MaxBox, "Max",
-            _model.Max, v => _model.Max = v);
-    }
-
-    private void WeightBox_LostFocus(object? sender, RoutedEventArgs e)
-    {
-        if (_loading || _model is null || _undoRedo is null) return;
-        UndoHelper.PushIntChange(_undoRedo, _model, WeightBox, "WeightChance",
-            _model.WeightChance, v => _model.WeightChance = v);
-    }
-
-    private void ForceTilesBox_LostFocus(object? sender, RoutedEventArgs e)
-    {
-        if (_loading || _model is null || _undoRedo is null) return;
-        UndoHelper.PushStringChange(_undoRedo, _model, ForceTilesBox, "ForceForTiles",
-            _model.ForceForTiles, v => _model.ForceForTiles = v);
-    }
-
-    private void ForceRoomsBox_LostFocus(object? sender, RoutedEventArgs e)
-    {
-        if (_loading || _model is null || _undoRedo is null) return;
-        UndoHelper.PushStringChange(_undoRedo, _model, ForceRoomsBox, "ForceForRooms",
-            _model.ForceForRooms, v => _model.ForceForRooms = v);
-    }
-
-    private void ForceItemsBox_LostFocus(object? sender, RoutedEventArgs e)
-    {
-        if (_loading || _model is null || _undoRedo is null) return;
-        UndoHelper.PushStringChange(_undoRedo, _model, ForceItemsBox, "ForceForItems",
-            _model.ForceForItems, v => _model.ForceForItems = v);
+        if (_loading || _model is null || _undoRedo is null || sender is not TextBox box) return;
+        if (box.Tag is not string prop) return;
+        UndoHelper.PushChange(_undoRedo, _model, box, prop);
     }
 
     #endregion

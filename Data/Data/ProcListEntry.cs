@@ -28,4 +28,43 @@ public sealed class ProcListEntry : IDirtyEntry
     /// Set by the UI when any field on this entry is modified.
     /// </summary>
     public bool IsDirty { get; set; }
+
+    public bool TryGetInt(string prop, out int value)
+    {
+        switch (prop)
+        {
+            case "Min":          value = Min;          return true;
+            case "Max":          value = Max;          return true;
+            case "WeightChance": value = WeightChance; return true;
+            default:             value = 0;            return false;
+        }
+    }
+
+    public void SetInt(string prop, int value)
+    {
+        switch (prop)
+        {
+            case "Min":          Min = value;          break;
+            case "Max":          Max = value;          break;
+            case "WeightChance": WeightChance = value; break;
+        }
+    }
+
+    public string? GetString(string prop) => prop switch
+    {
+        "ForceForTiles" => ForceForTiles,
+        "ForceForRooms" => ForceForRooms,
+        "ForceForItems" => ForceForItems,
+        _               => null
+    };
+
+    public void SetString(string prop, string? value)
+    {
+        switch (prop)
+        {
+            case "ForceForTiles": ForceForTiles = value; break;
+            case "ForceForRooms": ForceForRooms = value; break;
+            case "ForceForItems": ForceForItems = value; break;
+        }
+    }
 }

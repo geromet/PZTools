@@ -29,27 +29,27 @@
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Min / Max" Classes="FieldLabel" />
             <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="4">
-                <TextBox x:Name="MinBox" Width="60" LostFocus="MinBox_LostFocus" />
+                <TextBox x:Name="MinBox" Tag="Min" Width="60" LostFocus="Field_LostFocus" />
                 <TextBlock HorizontalAlignment="Center" Text="&#x2013;" VerticalAlignment="Center"
                            Foreground="{StaticResource TextMuted}" Width="20"/>
-                <TextBox x:Name="MaxBox" HorizontalAlignment="Right" Width="60" LostFocus="MaxBox_LostFocus" />
+                <TextBox x:Name="MaxBox" Tag="Max" HorizontalAlignment="Right" Width="60" LostFocus="Field_LostFocus" />
             </StackPanel>
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Weight" Classes="FieldLabel" />
-            <TextBox x:Name="WeightBox" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left"
-                     Width="156" LostFocus="WeightBox_LostFocus" />
+            <TextBox x:Name="WeightBox" Tag="WeightChance" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left"
+                     Width="156" LostFocus="Field_LostFocus" />
 
             <TextBlock x:Name="ForceTilesLabel" Grid.Row="5" Grid.Column="0" Text="Force Tiles" Classes="FieldLabel" />
-            <TextBox x:Name="ForceTilesBox" Grid.Row="5" Grid.Column="1"
-                     TextWrapping="Wrap" LostFocus="ForceTilesBox_LostFocus" />
+            <TextBox x:Name="ForceTilesBox" Tag="ForceForTiles" Grid.Row="5" Grid.Column="1"
+                     TextWrapping="Wrap" LostFocus="Field_LostFocus" />
 
             <TextBlock x:Name="ForceRoomsLabel" Grid.Row="6" Grid.Column="0" Text="Force Rooms" Classes="FieldLabel" />
-            <TextBox x:Name="ForceRoomsBox" Grid.Row="6" Grid.Column="1"
-                     TextWrapping="Wrap" LostFocus="ForceRoomsBox_LostFocus" />
+            <TextBox x:Name="ForceRoomsBox" Tag="ForceForRooms" Grid.Row="6" Grid.Column="1"
+                     TextWrapping="Wrap" LostFocus="Field_LostFocus" />
 
             <TextBlock x:Name="ForceItemsLabel" Grid.Row="7" Grid.Column="0" Text="Force Items" Classes="FieldLabel" />
-            <TextBox x:Name="ForceItemsBox" Grid.Row="7" Grid.Column="1"
-                     TextWrapping="Wrap" LostFocus="ForceItemsBox_LostFocus" />
+            <TextBox x:Name="ForceItemsBox" Tag="ForceForItems" Grid.Row="7" Grid.Column="1"
+                     TextWrapping="Wrap" LostFocus="Field_LostFocus" />
         </Grid>
     </Border>
 </UserControl>

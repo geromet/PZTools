@@ -60,6 +60,15 @@ public static class UndoHelper
             oldVal, newVal));
     }
 
+    public static void PushChange(
+        UndoRedoStack undoRedo, ProcListEntry model, TextBox box, string propName)
+    {
+        if (model.TryGetInt(propName, out var intVal))
+            PushIntChange(undoRedo, model, box, propName, intVal, v => model.SetInt(propName, v));
+        else
+            PushStringChange(undoRedo, model, box, propName, model.GetString(propName), v => model.SetString(propName, v));
+    }
+
     public static void PushStringChange(
         UndoRedoStack undoRedo, IDirtyEntry model, TextBox box,
         string propName, string? oldVal, Action<string?> setModel)
