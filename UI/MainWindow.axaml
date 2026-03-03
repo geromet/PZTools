@@ -57,10 +57,10 @@
                 <!-- View menu -->
                 <Menu DockPanel.Dock="Left" VerticalAlignment="Center" Margin="12 0 0 0">
                     <MenuItem Header="View">
-                        <MenuItem x:Name="ViewListItem"   Header="✓ Distribution List" Click="ViewListItem_Click" />
-                        <MenuItem x:Name="ViewDetailItem" Header="✓ Detail View"       Click="ViewDetailItem_Click" />
-                        <MenuItem x:Name="ViewErrorItem"  Header="✓ Error List"        Click="ViewErrorItem_Click" />
-                        <MenuItem x:Name="ViewRightItem"  Header="✓ Properties"        Click="ViewRightItem_Click" />
+                        <MenuItem x:Name="ViewListItem"   Header="✓ Distribution List" Tag="List"   Click="ViewMenuItem_Click" />
+                        <MenuItem x:Name="ViewDetailItem" Header="✓ Detail View"       Tag="Detail" Click="ViewMenuItem_Click" />
+                        <MenuItem x:Name="ViewErrorItem"  Header="✓ Error List"        Tag="Error"  Click="ViewMenuItem_Click" />
+                        <MenuItem x:Name="ViewRightItem"  Header="✓ Properties"        Tag="Right"  Click="ViewMenuItem_Click" />
                     </MenuItem>
                 </Menu>
 
@@ -93,7 +93,7 @@
                         BorderThickness="0 0 1 0">
                     <controls:DistributionListControl x:Name="DistributionList" />
                 </Border>
-                <Button Classes="PanelClose" Click="CloseListBtn_Click" />
+                <Button Classes="PanelClose" Tag="List"   Click="ClosePanelBtn_Click" />
             </Grid>
 
             <GridSplitter x:Name="LeftSplitter"
@@ -159,7 +159,7 @@
                         </TabControl.Theme>
                     </TabControl>
                 </Border>
-                <Button Classes="PanelClose" Click="CloseDetailBtn_Click" />
+                <Button Classes="PanelClose" Tag="Detail" Click="ClosePanelBtn_Click" />
             </Grid>
 
             <GridSplitter x:Name="ErrorSplitter"
@@ -174,7 +174,7 @@
                         BorderThickness="0 1 0 0">
                     <controls:ErrorListControl x:Name="ErrorList" />
                 </Border>
-                <Button Classes="PanelClose" Click="CloseErrorBtn_Click" />
+                <Button Classes="PanelClose" Tag="Error"  Click="ClosePanelBtn_Click" />
             </Grid>
 
             <GridSplitter x:Name="RightSplitter"
@@ -196,7 +196,7 @@
                         <controls:DistributionDetailControl x:Name="RightDetail" Grid.Row="1" />
                     </Grid>
                 </Border>
-                <Button Classes="PanelClose" Click="CloseRightBtn_Click" />
+                <Button Classes="PanelClose" Tag="Right"  Click="ClosePanelBtn_Click" />
             </Grid>
         </Grid>
         <!-- ══ STATUS BAR ══ -->
