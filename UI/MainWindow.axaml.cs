@@ -82,6 +82,7 @@ public partial class MainWindow : Window
         DistributionList.OpenRequested         += OnDistributionOpenRequested;
         DistributionList.OpenMultipleRequested += OnDistributionOpenMultipleRequested;
         ItemsList.ItemOpenRequested += name => OpenOrActivateItemTab(name);
+        ItemsList.FilterChanged     += () => _activeItemTab?.DetailControl?.RefreshIfAutoFilter();
         KeyDown += OnKeyDown;
         AddHandler(ProcListEntryControl.NavigateRequestedEvent, OnNavigateToDistribution);
 
@@ -335,8 +336,10 @@ public partial class MainWindow : Window
 
         var state  = new ItemTabState(itemName) { LastAccessTick = Environment.TickCount64 };
         var detail = new ItemsDetailControl();
-        detail.GetAllDistributions = () => _distributions;
+        detail.GetAllDistributions       = () => _distributions;
+        detail.GetCurrentFilters         = () => ItemsList.FilterContext;
         detail.OpenDistributionRequested += d => OpenTabInBackground(d);
+        detail.DistributionModified      += (dist, parent) => OnItemDetailDistributionModified(state, dist, parent);
         detail.Load(itemName, _itemIndex, state.UndoRedo);
         state.DetailControl = detail;
 
@@ -366,6 +369,7 @@ public partial class MainWindow : Window
         state.LastAccessTick = Environment.TickCount64;
         RightDetail.ShowEmpty();
         RefreshUndoButtons();
+        state.DetailControl?.RefreshIfAutoFilter();
         ScrollTabIntoView(state.TabItem);
     }
 
@@ -373,11 +377,25 @@ public partial class MainWindow : Window
     {
         if (_itemIndex is null) return;
         var detail = new ItemsDetailControl();
-        detail.GetAllDistributions = () => _distributions;
+        detail.GetAllDistributions       = () => _distributions;
+        detail.GetCurrentFilters         = () => ItemsList.FilterContext;
         detail.OpenDistributionRequested += d => OpenTabInBackground(d);
+        detail.DistributionModified      += (dist, parent) => OnItemDetailDistributionModified(state, dist, parent);
         detail.Load(state.ItemName, _itemIndex, state.UndoRedo);
         state.DetailControl   = detail;
         state.TabItem.Content = detail;
+    }
+
+    private void OnItemDetailDistributionModified(ItemTabState itemState, Distribution dist, ItemParent parent)
+    {
+        TabHeaderHelper.RefreshDirtyDotForItem(itemState, true);
+        RefreshDirtyState();
+
+        if (_openTabs.TryGetValue(dist.Name, out var distTab))
+        {
+            TabHeaderHelper.RefreshDirtyDot(distTab, DirtyCheck.IsDistributionDirty(dist));
+            distTab.DetailControl?.RefreshItemRows(parent);
+        }
     }
 
     private void RemoveItemTab(ItemTabState state)
@@ -604,6 +622,8 @@ public partial class MainWindow : Window
         RefreshDirtyState();
         foreach (var tab in _openTabs.Values)
             TabHeaderHelper.RefreshDirtyDot(tab, DirtyCheck.IsDistributionDirty(tab.Distribution));
+        foreach (var tab in _openItemTabs.Values)
+            TabHeaderHelper.RefreshDirtyDotForItem(tab, false);
     }
 
     #endregion

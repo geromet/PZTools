@@ -19,13 +19,12 @@ public class ItemIndex
         return _map.TryGetValue(name, out var list) ? list : [];
     }
 
-    public IReadOnlyList<string> GetFiltered(string search, string? distTypeFilter, bool? isJunk)
+    public IReadOnlyList<string> GetFiltered(Func<string, bool>? searchMatch, string? distTypeFilter, bool? isJunk)
     {
         var result = new List<string>();
         foreach (var name in SortedItems)
         {
-            if (!string.IsNullOrEmpty(search) &&
-                name.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0)
+            if (searchMatch is not null && !searchMatch(name))
                 continue;
 
             var occs = _map[name];

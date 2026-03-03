@@ -26,9 +26,9 @@
                     <!-- Expand/Collapse All buttons -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0 0 6 0">
                         <Button Classes="FilterPill" Content="⊞" ToolTip.Tip="{x:Static loc:Strings.DLExpandAll}"
-                                Click="ExpandAll_Click" Margin="2" Padding="4 2" FontSize="10" />
+                                Tag="True" Click="ExpandCollapseAll_Click" Margin="2" Padding="4 2" FontSize="10" />
                         <Button Classes="FilterPill" Content="⊟" ToolTip.Tip="{x:Static loc:Strings.DLCollapseAll}"
-                                Click="CollapseAll_Click" Margin="2" Padding="4 2" FontSize="10" />
+                                Tag="False" Click="ExpandCollapseAll_Click" Margin="2" Padding="4 2" FontSize="10" />
                     </StackPanel>
                 </DockPanel>
                 <TextBox x:Name="SearchBox"
@@ -120,8 +120,8 @@
                     <MenuItem Header="{x:Static loc:Strings.DLMenuRenameFolder}" x:Name="RenameFolderItem" Click="RenameFolder_Click" />
                     <MenuItem Header="{x:Static loc:Strings.DLMenuDeleteFolder}" x:Name="DeleteFolderItem" Click="DeleteFolder_Click" />
                     <Separator x:Name="FolderExpandSeparator" />
-                    <MenuItem Header="{x:Static loc:Strings.DLMenuExpandAll}" x:Name="ExpandFolderItem" Click="ExpandFolderAll_Click" />
-                    <MenuItem Header="{x:Static loc:Strings.DLMenuCollapseAll}" x:Name="CollapseFolderItem" Click="CollapseFolderAll_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuExpandAll}" x:Name="ExpandFolderItem" Tag="True" Click="ExpandCollapseFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuCollapseAll}" x:Name="CollapseFolderItem" Tag="False" Click="ExpandCollapseFolder_Click" />
                 </ContextMenu>
             </TreeView.ContextMenu>
         </TreeView>

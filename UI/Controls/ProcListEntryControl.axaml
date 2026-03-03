@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:UI.Assets"
              x:Class="UI.Controls.ProcListEntryControl"
              x:CompileBindings="False">
 
@@ -11,23 +12,23 @@
               RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
               ColumnSpacing="4" RowSpacing="4">
 
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Distribution" Classes="FieldLabel" />
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:Strings.PEDistribution}" Classes="FieldLabel" />
             <Button Grid.Row="0" Grid.Column="1"
                     Classes="NavLink"
                     Click="DistributionName_Click"
-                    ToolTip.Tip="Open in Properties panel">
+                    ToolTip.Tip="{x:Static loc:Strings.PEOpenInPropsTip}">
                 <TextBlock x:Name="NameText"
                            FontSize="12.5" FontWeight="Medium"
                            Foreground="{StaticResource Accent}" />
             </Button>
 
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Resolved" Classes="FieldLabel" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:Strings.PEResolved}" Classes="FieldLabel" />
             <TextBlock x:Name="ResolvedText" Grid.Row="1" Grid.Column="1"
                        FontSize="12" Foreground="{StaticResource TextSecondary}" />
 
             <Separator Grid.Row="2" Grid.ColumnSpan="2" />
 
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="Min / Max" Classes="FieldLabel" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="{x:Static loc:Strings.PEMinMax}" Classes="FieldLabel" />
             <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="4">
                 <TextBox x:Name="MinBox" Tag="Min" Width="60" LostFocus="Field_LostFocus" />
                 <TextBlock HorizontalAlignment="Center" Text="&#x2013;" VerticalAlignment="Center"
@@ -35,19 +36,19 @@
                 <TextBox x:Name="MaxBox" Tag="Max" HorizontalAlignment="Right" Width="60" LostFocus="Field_LostFocus" />
             </StackPanel>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Weight" Classes="FieldLabel" />
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Static loc:Strings.PEWeight}" Classes="FieldLabel" />
             <TextBox x:Name="WeightBox" Tag="WeightChance" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left"
                      Width="156" LostFocus="Field_LostFocus" />
 
-            <TextBlock x:Name="ForceTilesLabel" Grid.Row="5" Grid.Column="0" Text="Force Tiles" Classes="FieldLabel" />
+            <TextBlock x:Name="ForceTilesLabel" Grid.Row="5" Grid.Column="0" Text="{x:Static loc:Strings.PEForceTiles}" Classes="FieldLabel" />
             <TextBox x:Name="ForceTilesBox" Tag="ForceForTiles" Grid.Row="5" Grid.Column="1"
                      TextWrapping="Wrap" LostFocus="Field_LostFocus" />
 
-            <TextBlock x:Name="ForceRoomsLabel" Grid.Row="6" Grid.Column="0" Text="Force Rooms" Classes="FieldLabel" />
+            <TextBlock x:Name="ForceRoomsLabel" Grid.Row="6" Grid.Column="0" Text="{x:Static loc:Strings.PEForceRooms}" Classes="FieldLabel" />
             <TextBox x:Name="ForceRoomsBox" Tag="ForceForRooms" Grid.Row="6" Grid.Column="1"
                      TextWrapping="Wrap" LostFocus="Field_LostFocus" />
 
-            <TextBlock x:Name="ForceItemsLabel" Grid.Row="7" Grid.Column="0" Text="Force Items" Classes="FieldLabel" />
+            <TextBlock x:Name="ForceItemsLabel" Grid.Row="7" Grid.Column="0" Text="{x:Static loc:Strings.PEForceItems}" Classes="FieldLabel" />
             <TextBox x:Name="ForceItemsBox" Tag="ForceForItems" Grid.Row="7" Grid.Column="1"
                      TextWrapping="Wrap" LostFocus="Field_LostFocus" />
         </Grid>

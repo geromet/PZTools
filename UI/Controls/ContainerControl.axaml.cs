@@ -68,6 +68,13 @@ public partial class ContainerControl : UserControl
             PopulateContent();
     }
 
+    public void RepopulateItemRows()
+    {
+        if (_model is null || _undoRedo is null || _contentDirty) return;
+        ItemRowHelper.Populate(ItemRowsPanel, _model.ItemChances, _undoRedo, $"{_model.Name}.items", _model);
+        ItemRowHelper.Populate(JunkRowsPanel, _model.JunkChances, _undoRedo, $"{_model.Name}.junk", _model);
+    }
+
     private void PopulateContent()
     {
         if (_model is null || _undoRedo is null) return;

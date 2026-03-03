@@ -31,6 +31,15 @@ public static class FilterPillHelper
         }
     }
 
+    public static void ApplySingleSelectStyles(Panel panel, string? activeTag)
+    {
+        foreach (var child in panel.Children)
+        {
+            if (child is not Button btn) continue;
+            btn.Classes.Set("active", btn.Tag as string == activeTag);
+        }
+    }
+
     public static void ApplyTriStateStyles(Panel panel, ITriStateFilterSource source)
     {
         foreach (var child in panel.Children)

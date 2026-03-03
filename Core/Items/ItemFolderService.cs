@@ -86,6 +86,19 @@ public static class ItemFolderService
         }
     }
 
+    public static ItemFolderDefinition? FindFolderByPath(string path, List<ItemFolderDefinition> folders)
+    {
+        var current = folders;
+        ItemFolderDefinition? result = null;
+        foreach (var part in path.Split('/'))
+        {
+            result = current.FirstOrDefault(f => string.Equals(f.Name, part, StringComparison.OrdinalIgnoreCase));
+            if (result is null) return null;
+            current = result.Children ?? [];
+        }
+        return result;
+    }
+
     public static List<ItemFolderDefinition> DeepCopy(List<ItemFolderDefinition> source)
     {
         return source.Select(f => new ItemFolderDefinition

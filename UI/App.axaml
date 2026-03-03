@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:UI.Assets"
              x:Class="UI.App"
              RequestedThemeVariant="Dark">
 
@@ -185,7 +186,7 @@
                 <Setter Property="VerticalAlignment" Value="Top" />
                 <Setter Property="Margin" Value="0 4 4 0" />
                 <Setter Property="ZIndex" Value="10" />
-                <Setter Property="ToolTip.Tip" Value="Close panel" />
+                <Setter Property="ToolTip.Tip" Value="{x:Static loc:Strings.PanelCloseTip}" />
             </Style>
 
             <!-- ══ TABS ══ -->

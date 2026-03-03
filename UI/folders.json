@@ -88,7 +88,7 @@
           "Tote",
           "Suitcase"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Weapon \u0026 Ammo Cases",
@@ -130,7 +130,7 @@
           "ShotgunCase2",
           "RevolverCase1"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Protective Cases",
@@ -173,7 +173,7 @@
           "Bag_ProtectiveCaseSmall_Electronics",
           "Flightcase"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Toolboxes \u0026 Tool Rolls",
@@ -188,7 +188,7 @@
           "Bag_ToolBag",
           "Toolbox_Farming"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Money \u0026 Valuables",
@@ -204,7 +204,7 @@
           "Wallet_Male",
           "Bag_MoneyBag"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Mail \u0026 Parcels",
@@ -217,7 +217,7 @@
           "Bag_Mail",
           "Bag_Satchel_Mail"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Bins \u0026 Trash",
@@ -235,7 +235,7 @@
           "JunkBin",
           "Bag_TrashBag"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Miscellaneous",
@@ -254,7 +254,7 @@
           "Cooler_Beer",
           "CookieJar"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "KeyRings",
@@ -283,10 +283,10 @@
           "KeyRing_StinkyFace",
           "KeyRing_WestMaple"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Professions",
@@ -299,7 +299,7 @@
           "janitor",
           "mechanic"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Carpenter",
@@ -310,7 +310,7 @@
           "construction",
           "ConstructionWorkerTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Chef",
@@ -319,7 +319,7 @@
           "ChefOutfit",
           "ChefTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Doctor \u0026 Nurse",
@@ -337,7 +337,7 @@
           "FirstAidKit",
           "oldmedical"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Electrician \u0026 Engineer",
@@ -346,7 +346,7 @@
           "ElectricianTools",
           "EngineerTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Mechanic",
@@ -364,7 +364,7 @@
           "MechanicShelfTools",
           "MechanicShelfWheels"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Metal Worker",
@@ -372,7 +372,7 @@
           "MetalWorkerOutfit",
           "MetalWorkerTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Gardener",
@@ -380,7 +380,7 @@
           "GardenerOutfit",
           "GardenerTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Hunter \u0026 Ranger \u0026 Trapper",
@@ -394,7 +394,7 @@
           "hunting",
           "SurvivalGear"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Janitor",
@@ -404,7 +404,7 @@
           "JanitorMisc",
           "JanitorTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Fitness \u0026 Photographer",
@@ -412,10 +412,10 @@
           "FitnessTrainer",
           "Photographer"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Education",
@@ -435,7 +435,7 @@
           "universitylibrary",
           "universitystorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "School Classrooms",
@@ -448,7 +448,7 @@
           "ClassroomSecondaryShelves",
           "CrateBooks"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "School Lockers \u0026 Gym",
@@ -457,7 +457,7 @@
           "SchoolLockersBad",
           "SchoolGymSportsGear"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Public Library",
@@ -497,7 +497,7 @@
           "LibraryTravel",
           "LibraryWestern"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "University Desks",
@@ -528,7 +528,7 @@
           "UniversityDesk_Therapy",
           "AnthropologyDesk"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "University Filing Cabinets",
@@ -556,7 +556,7 @@
           "UniversityFilingCabinet_Therapy",
           "AnthropologyCounter"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "University Library",
@@ -579,7 +579,7 @@
           "UniversityLibraryScience",
           "UniversityLibrarySports"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "University Misc",
@@ -594,7 +594,7 @@
           "AnthropologyDisplayTools",
           "AnthropologyDisplayWeapons"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Elementary",
@@ -602,7 +602,7 @@
           "elementaryclassroom",
           "elementaryschool"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Secondary",
@@ -610,7 +610,7 @@
           "secondaryclassroom",
           "secondaryhall"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Daycare",
@@ -620,7 +620,7 @@
           "DaycareDesk",
           "DaycareShelves"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Science \u0026 Lab",
@@ -632,17 +632,17 @@
           "ScienceMisc",
           "TestingLab"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Dentist",
         "DistributionNames": [
           "dentiststorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Agricultural",
@@ -655,7 +655,7 @@
           "farmstorage",
           "producestorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Farmer Equipment",
@@ -664,7 +664,7 @@
           "FarmerOutfit",
           "FarmerTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Seeds \u0026 Grain",
@@ -674,7 +674,7 @@
           "WheatSack",
           "WheatSeedSack"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Produce - Fruits",
@@ -689,7 +689,7 @@
           "ProduceStorageLooseFruit",
           "ProduceStorageRottenFruit"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Produce - Vegetables",
@@ -713,7 +713,7 @@
           "ProduceStorageLooseVeg",
           "ProduceStorageRottenVeg"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Produce Equipment",
@@ -721,7 +721,7 @@
           "ProduceStorageEmptyBoxes",
           "ProduceStorageEquipment"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Bulk Storage",
@@ -730,7 +730,7 @@
           "eggstorage",
           "waterstorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Garden Store",
@@ -738,10 +738,10 @@
           "GardenStoreMisc",
           "GardenStoreTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Industrial",
@@ -771,7 +771,7 @@
           "batterystorage",
           "dogfoodstorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Shipping \u0026 Warehousing",
@@ -992,28 +992,28 @@
           "CrateYeast",
           "CrateYellowModernChair"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Factory Lockers",
         "DistributionNames": [
           "FactoryLockers"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Bat Factory",
         "DistributionNames": [
           "BatFactoryBats"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Cabinet Factory",
         "DistributionNames": [
           "CabinetFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Dog Food Factory",
@@ -1023,21 +1023,21 @@
           "DogFoodFactoryCans",
           "DogFoodFactoryEquipment"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Fry Factory",
         "DistributionNames": [
           "FryFactoryPotatoes"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Golf Factory",
         "DistributionNames": [
           "GolfFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Jerky Factory",
@@ -1047,7 +1047,7 @@
           "JerkyFactorySpices",
           "JerkyFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Knife Factory",
@@ -1061,14 +1061,14 @@
           "KnifeFactorySushiKnife",
           "KnifeFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Logging",
         "DistributionNames": [
           "LoggingFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Mannequin Factory",
@@ -1076,7 +1076,7 @@
           "MannequinFactoryPaint",
           "MannequinFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Metal \u0026 Tool Production",
@@ -1088,14 +1088,14 @@
           "ToolFactorySawBlades",
           "ToolFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Radio \u0026 Electronics",
         "DistributionNames": [
           "RadioFactoryComponents"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Welding Workshop",
@@ -1104,7 +1104,7 @@
           "WeldingWorkshopMetal",
           "WeldingWorkshopTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Wire Factory",
@@ -1114,7 +1114,7 @@
           "WireFactoryElectric",
           "WireFactoryTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Railroad",
@@ -1123,7 +1123,7 @@
           "RailYardSpikes",
           "RailYardTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Newspaper",
@@ -1131,7 +1131,7 @@
           "newspaperprint_herald",
           "newspaperstorage_herald"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Seasonal Workers",
@@ -1139,10 +1139,10 @@
           "campworkerdorm",
           "SeasonalWorkerLockers"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Commercial",
@@ -1192,7 +1192,7 @@
           "tobaccostore",
           "barn"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Bakery",
@@ -1209,7 +1209,7 @@
           "BakeryMisc",
           "BakeryPie"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Bars \u0026 Nightlife",
@@ -1226,7 +1226,7 @@
           "StripClubCosmetic",
           "StripClubDressers"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Burger \u0026 Fast Food",
@@ -1237,7 +1237,7 @@
           "BurgerKitchenFridge",
           "BurgerKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Cafe \u0026 Coffee",
@@ -1251,7 +1251,7 @@
           "CafeKitchenTea",
           "CafeShelfBooks"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Cafeteria",
@@ -1265,7 +1265,7 @@
           "CafeteriaSnacks",
           "CafeteriaTrays"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Diner",
@@ -1274,7 +1274,7 @@
           "DinerKitchenFreezer",
           "DinerKitchenFridge"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Pizza",
@@ -1286,7 +1286,7 @@
           "PizzaKitchenFridge",
           "PizzaKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Jay\u0027s Chicken",
@@ -1299,7 +1299,7 @@
           "JaysKitchenFridge",
           "JaysKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Spiffo\u0027s",
@@ -1316,7 +1316,7 @@
           "SpiffosKitchenSpecial",
           "SpiffosKitchenTrays"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Restaurants",
@@ -1337,7 +1337,7 @@
           "spiffo_dining",
           "catfish_dining"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Liquor Store",
@@ -1357,7 +1357,7 @@
           "LiquorStoreWine",
           "LiquorStoreWineFancy"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Grocery \u0026 Produce",
@@ -1393,7 +1393,7 @@
           "gasstore",
           "gas2go"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Gigamart",
@@ -1424,7 +1424,7 @@
           "GigamartTools",
           "GigamartToys"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Theatre \u0026 Media",
@@ -1443,7 +1443,7 @@
           "BackstageLockers",
           "BackstageRigging"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Tobacco Store",
@@ -1455,7 +1455,7 @@
           "TobaccoStoreCigars",
           "TobaccoStorePipes"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Store Fixtures",
@@ -1524,14 +1524,14 @@
           "zippeestorage",
           "ZippeeClothing"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Barn",
         "DistributionNames": [
           "BarnTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Art Store",
@@ -1544,7 +1544,7 @@
           "ArtStorePottery",
           "ArtSupplies"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Book Store",
@@ -1593,7 +1593,7 @@
           "BookstoreTravel",
           "BookstoreWestern"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Clothing",
@@ -1639,7 +1639,7 @@
           "Tote_Clothing",
           "WildWestClothing"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Chinese Kitchen",
@@ -1652,7 +1652,7 @@
           "ChineseKitchenFridge",
           "ChineseKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Italian Kitchen",
@@ -1664,7 +1664,7 @@
           "ItalianKitchenFridge",
           "ItalianKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Mexican Kitchen",
@@ -1676,7 +1676,7 @@
           "MexicanKitchenFridge",
           "MexicanKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Seafood Kitchen",
@@ -1687,7 +1687,7 @@
           "SeafoodKitchenFridge",
           "SeafoodKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Fish \u0026 Chips Kitchen",
@@ -1698,7 +1698,7 @@
           "FishChipsKitchenFridge",
           "FishChipsKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Sushi Kitchen",
@@ -1711,7 +1711,7 @@
           "SushiKitchenFridge",
           "SushiKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Western Kitchen",
@@ -1722,7 +1722,7 @@
           "WesternKitchenFridge",
           "WesternKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Catfish Kitchen",
@@ -1732,7 +1732,7 @@
           "CatfishKitchenFreezer",
           "CatfishKitchenFridge"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Crepe Kitchen",
@@ -1741,7 +1741,7 @@
           "CrepeKitchenFridge",
           "CrepeKitchenSauce"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Deep Fry Kitchen",
@@ -1750,7 +1750,7 @@
           "DeepFryKitchenFreezer",
           "DeepFryKitchenFridge"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Donut Kitchen",
@@ -1758,7 +1758,7 @@
           "donut_kitchen",
           "donut_kitchenstorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Serving Trays",
@@ -1811,7 +1811,7 @@
           "ServingTrayTofuFried",
           "ServingTrayWaffles"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Takeout \u0026 Packaging",
@@ -1824,7 +1824,7 @@
           "Plasticbag",
           "Plasticbag_Bags"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Hot Dog Stand",
@@ -1833,7 +1833,7 @@
           "HotdogStandDrinks",
           "HotdogStandToppings"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Ice Cream",
@@ -1841,7 +1841,7 @@
           "icecream",
           "icecreamkitchen"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Butcher Shop",
@@ -1861,7 +1861,7 @@
           "jerkysmoker",
           "Meat"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Whiskey Bottling",
@@ -1870,7 +1870,7 @@
           "WhiskeyBottlingEmpty",
           "WhiskeyBottlingFull"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Brewery",
@@ -1883,7 +1883,7 @@
           "BreweryHops",
           "brewerystorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Beer Garden",
@@ -1891,7 +1891,7 @@
           "beergarden",
           "BeerGardenCounter"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "BBQ Store",
@@ -1904,7 +1904,7 @@
           "GrillStoreBlackBBQ",
           "GrillStoreRedBBQ"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Smoking Room \u0026 VIP",
@@ -1916,7 +1916,7 @@
           "DishCabinetVIPLounge",
           "Humidor"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Gas Station",
@@ -1931,7 +1931,7 @@
           "GasStoreSpecial",
           "GasStoreToiletries"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Department Store",
@@ -1940,14 +1940,14 @@
           "DepartmentStoreJewelry",
           "DepartmentStoreWatches"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Houseware Store",
         "DistributionNames": [
           "housewarestore"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Gift Store",
@@ -1958,7 +1958,7 @@
           "GiftStoreToys",
           "Gifts"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Jewelry Store",
@@ -1976,7 +1976,7 @@
           "JewelleryBox",
           "JewelleryBox_Fancy"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Wedding Store",
@@ -1985,7 +1985,7 @@
           "WeddingStoreDresses",
           "WeddingStoreSuits"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Optometrist",
@@ -1994,7 +1994,7 @@
           "OptometristDesk",
           "OptometristGlasses"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Sewing Store",
@@ -2005,7 +2005,7 @@
           "SewingStoreTools",
           "SewingKit"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Camera Store",
@@ -2014,7 +2014,7 @@
           "CameraStoreDisplayCase",
           "CameraStoreShelves"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Pet Store",
@@ -2023,7 +2023,7 @@
           "PetShopShelf",
           "kennels"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Candy Store",
@@ -2032,7 +2032,7 @@
           "candystore",
           "CandyStoreSnacks"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Music Store",
@@ -2048,7 +2048,7 @@
           "MusicStoreSpeaker",
           "MusicStoreStringed"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Comic Store",
@@ -2064,7 +2064,7 @@
           "ComicStoreShelfGames",
           "ComicStoreShelfSciFi"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Electronic Store",
@@ -2079,7 +2079,7 @@
           "ElectronicStoreMusic",
           "ElectronicStorePhones"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Tool Store",
@@ -2098,7 +2098,7 @@
           "toolstorestorage",
           "ToolStoreTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Pawn Shop",
@@ -2112,14 +2112,14 @@
           "pawnshopstorage",
           "PawnShopTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Knife Store",
         "DistributionNames": [
           "KnifeStoreCutlery"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Lingerie Store",
@@ -2129,7 +2129,7 @@
           "LingerieStoreOutfits",
           "LingerieStoreUnderwear"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Salon",
@@ -2139,14 +2139,14 @@
           "SalonShelfTowels",
           "MakeupCase_Professional"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Antiques",
         "DistributionNames": [
           "Antiques"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Generic Office",
@@ -2168,14 +2168,14 @@
           "BreakRoomCounter",
           "BreakRoomShelves"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Bank",
         "DistributionNames": [
           "BankDeposit"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Named Offices",
@@ -2192,7 +2192,7 @@
           "JackiesDesk",
           "joanstudio"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Cyber Cafe",
@@ -2201,7 +2201,7 @@
           "CyberCafeDesk",
           "CyberCafeFilingCabinet"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Photo Studio",
@@ -2212,7 +2212,7 @@
           "studio",
           "StudioPropShelf"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Magazine Racks",
@@ -2225,7 +2225,7 @@
           "MagazineRackNewspaper",
           "MagazineRackPaperback"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Gun Store",
@@ -2248,10 +2248,10 @@
           "GunStoreShotguns",
           "gunstorestorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Residential",
@@ -2267,7 +2267,7 @@
           "BathroomCounterNoMeds",
           "BathroomShelf"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Bedroom",
@@ -2289,7 +2289,7 @@
           "ww_bedroom",
           "WildWestBedroom"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Living Room",
@@ -2316,7 +2316,7 @@
           "vacated",
           "derelict"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Kitchen",
@@ -2339,7 +2339,7 @@
           "ww_kitchen",
           "WildWestKitchen"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Fridges",
@@ -2363,7 +2363,7 @@
           "FridgeVIPLounge",
           "FridgeWater"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Freezers",
@@ -2379,7 +2379,7 @@
           "FreezerRich",
           "FreezerTrailerPark"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Stoves",
@@ -2389,7 +2389,7 @@
           "StoveRedneck",
           "StoveSpiffos"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Hidden Stashes",
@@ -2406,7 +2406,7 @@
           "PlankStashMisc",
           "PlankStashMoney"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Safehouse - Core",
@@ -2424,7 +2424,7 @@
           "SafehouseMedical_Mid",
           "SafehouseMedical_Late"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Safehouse - Appliances",
@@ -2445,7 +2445,7 @@
           "SafehouseLighting",
           "SafehouseLighting_Late"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Safehouse - Misc",
@@ -2457,7 +2457,7 @@
           "SafehouseBooze",
           "SafehouseTraps"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Base Locations",
@@ -2469,7 +2469,7 @@
           "livingroom",
           "bathroom"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Motel",
@@ -2481,7 +2481,7 @@
           "MotelSideTable",
           "MotelTowels"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Laundry",
@@ -2498,7 +2498,7 @@
           "LaundryLoad8",
           "DryerEmpty"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Home Cinema",
@@ -2507,7 +2507,7 @@
           "HomeCinemaFilm",
           "HomeCinemaLiterature"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Garage \u0026 Shed",
@@ -2523,7 +2523,7 @@
           "storageunit",
           "PlumbingSupplies"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Closet \u0026 Changeroom",
@@ -2536,7 +2536,7 @@
           "ChangeroomCounters",
           "changeroomjockey"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Derelict House",
@@ -2548,7 +2548,7 @@
           "DerelictHouseSquatter",
           "DerelictHouseStove"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Hoarder",
@@ -2557,10 +2557,10 @@
           "hoarderoffice",
           "JunkHoard"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Vehicles \u0026 Auto",
@@ -2576,7 +2576,7 @@
           "CarBrakesNormal2",
           "CarBrakesNormal3"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Car Parts - Mufflers",
@@ -2588,7 +2588,7 @@
           "CarMufflerNormal2",
           "CarMufflerNormal3"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Car Parts - Suspension",
@@ -2600,7 +2600,7 @@
           "CarSuspensionNormal2",
           "CarSuspensionNormal3"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Car Parts - Tires \u0026 Windows",
@@ -2616,7 +2616,7 @@
           "CarWindows3",
           "CarLightbars"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Car Dealership",
@@ -2625,7 +2625,7 @@
           "CarDealerDesk",
           "CarDealerFilingCabinet"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Car Supply Store",
@@ -2639,7 +2639,7 @@
           "carsupplysport",
           "CarSupplyTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Transport Vehicles",
@@ -2647,10 +2647,10 @@
           "loggingtruck",
           "sodatruck"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Sports \u0026 Recreation",
@@ -2665,7 +2665,7 @@
           "BowlingAlleyPins",
           "BowlingAlleyShoes"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Boxing Gym",
@@ -2676,7 +2676,7 @@
           "BoxingStorageGloves",
           "BoxingStorageHelmets"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Golf",
@@ -2688,7 +2688,7 @@
           "GolfStoreBags",
           "GolfStoreLiterature"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Gym",
@@ -2702,7 +2702,7 @@
           "GymTowels",
           "GymWeights"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Pool",
@@ -2710,7 +2710,7 @@
           "pool",
           "PoolLockers"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Fishing Store",
@@ -2720,7 +2720,7 @@
           "FishingStoreGear",
           "Tacklebox"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Sports Storage",
@@ -2734,7 +2734,7 @@
           "SportStorageSticks",
           "SportStorageWeights"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Sports Store",
@@ -2750,7 +2750,7 @@
           "SportStoreSneakers",
           "SportStoreTennis"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Arcade \u0026 Games",
@@ -2765,7 +2765,7 @@
           "ringtossgame",
           "throwgame"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Camping \u0026 Outdoor",
@@ -2789,10 +2789,10 @@
           "OutdoorSupplyMagazines",
           "outdoorsupply_storage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Special Locations",
@@ -2824,7 +2824,7 @@
           "ww_toolstore",
           "ww_sherrif"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Medieval",
@@ -2837,7 +2837,7 @@
           "MedievalWeapons",
           "MedievalWeaponsJapan"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Drug Operations",
@@ -2852,10 +2852,10 @@
           "DrugShackTools",
           "DrugShackWeapons"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Misc",
@@ -2876,7 +2876,7 @@
           "SurvivorCache2",
           "SurvivorCacheBigBuilding"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Generic Lockers",
@@ -2886,7 +2886,7 @@
           "LockerArmyBedroomHome",
           "LockerClassy"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Small Containers",
@@ -2900,7 +2900,7 @@
           "PencilCase",
           "Shoebox"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Hobby \u0026 Crafts",
@@ -2910,7 +2910,7 @@
           "ImprovisedCrafts",
           "PotteryBooks"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Random Filler",
@@ -2919,7 +2919,7 @@
           "RandomFiller",
           "OtherGeneric"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Other",
@@ -2952,10 +2952,10 @@
           "toystorestorage",
           "VacationStuff"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   },
   {
     "Name": "Government \u0026 Public Services",
@@ -2993,7 +2993,7 @@
           "prisonstorage",
           "security"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Military",
@@ -3023,7 +3023,7 @@
           "ArmySurplusTools",
           "ArmySurplusWater"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Police \u0026 SWAT",
@@ -3050,7 +3050,7 @@
           "SWATStorageGuns",
           "evidenceroom"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Fire Department",
@@ -3062,7 +3062,7 @@
           "FiremanOutfit",
           "FiremanTools"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Medical \u0026 Hospital",
@@ -3091,7 +3091,7 @@
           "PharmacyCosmetics",
           "LaundryHospital"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Post Office",
@@ -3103,7 +3103,7 @@
           "PostOfficeParcels",
           "PostOfficeSupplies"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Prison",
@@ -3116,7 +3116,7 @@
           "PrisonRiotStorage",
           "PrisonStorageArmor"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Civic Offices",
@@ -3126,7 +3126,7 @@
           "MayorWestPointDesk",
           "MayorWestPointSafe"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Security",
@@ -3135,7 +3135,7 @@
           "SecurityLockers",
           "SecurityStorage"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Detective",
@@ -3143,14 +3143,14 @@
           "detectiveoffice",
           "interrogationroom"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Coroner",
         "DistributionNames": [
           "coroneroffice"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Control Room",
@@ -3158,7 +3158,7 @@
           "controlroom",
           "ControlRoomCounter"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Waiting Room \u0026 Lobby",
@@ -3167,7 +3167,7 @@
           "waitingroom",
           "WaitingRoomDesk"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Weapons Cache",
@@ -3180,7 +3180,7 @@
           "MeleeWeapons_Mid",
           "GeneratorRoom"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "First Aid Kits",
@@ -3192,9 +3192,9 @@
           "FirstAidKit_NewPro",
           "FirstAidKit_Pro"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       }
     ],
-    "IsExpanded": true
+    "IsExpanded": false
   }
 ]

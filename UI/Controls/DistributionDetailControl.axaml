@@ -3,6 +3,7 @@
              xmlns:controls="using:UI.Controls"
              xmlns:ir="using:Avalonia.Controls"
              xmlns:irlayout="using:Avalonia.Layout"
+             xmlns:loc="clr-namespace:UI.Assets"
              x:Class="UI.Controls.DistributionDetailControl"
              x:CompileBindings="False">
 
@@ -12,11 +13,11 @@
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Spacing="8"
                     Margin="0 4 4 0">
-            <TextBlock Text="No distribution selected"
+            <TextBlock Text="{x:Static loc:Strings.DDEmptyTitle}"
                        FontSize="14"
                        Foreground="{StaticResource TextMuted}"
                        HorizontalAlignment="Center" />
-            <TextBlock Text="Open a folder and select a distribution from the list."
+            <TextBlock Text="{x:Static loc:Strings.DDEmptySubtitle}"
                        FontSize="12"
                        Foreground="{StaticResource TextMuted}"
                        HorizontalAlignment="Center" />
@@ -51,25 +52,25 @@
                           RowDefinitions="Auto"
                           Margin="0 4 0 0" ColumnSpacing="10">
 
-                        <TextBlock Grid.Column="0" Text="Rolls" Classes="HeaderLabel" />
+                        <TextBlock Grid.Column="0" Text="{x:Static loc:Strings.DDRolls}" Classes="HeaderLabel" />
                         <TextBox x:Name="RollsBox" Grid.Column="1"
                                  Width="50" FontSize="11" Padding="4 2"
                                  LostFocus="RollsBox_LostFocus" />
 
                         <CheckBox x:Name="ShopCheck" Grid.Column="2"
-                                  Content="Shop" FontSize="11"
+                                  Content="{x:Static loc:Strings.DDShop}" FontSize="11"
                                   IsCheckedChanged="ShopCheck_IsCheckedChanged" />
 
                         <CheckBox x:Name="NoAmmoCheck" Grid.Column="3"
-                                  Content="No Ammo" FontSize="11"
+                                  Content="{x:Static loc:Strings.DDNoAmmo}" FontSize="11"
                                   IsCheckedChanged="NoAmmoCheck_IsCheckedChanged" />
 
-                        <TextBlock x:Name="MaxMapLabel" Grid.Column="4" Text="MaxMap" Classes="HeaderLabel" />
+                        <TextBlock x:Name="MaxMapLabel" Grid.Column="4" Text="{x:Static loc:Strings.DDMaxMap}" Classes="HeaderLabel" />
                         <TextBox x:Name="MaxMapBox" Grid.Column="5"
                                  Width="50" FontSize="11" Padding="4 2"
                                  LostFocus="MaxMapBox_LostFocus" />
 
-                        <TextBlock x:Name="StashLabel" Grid.Column="6" Text="Stash%" Classes="HeaderLabel" />
+                        <TextBlock x:Name="StashLabel" Grid.Column="6" Text="{x:Static loc:Strings.DDStash}" Classes="HeaderLabel" />
                         <TextBox x:Name="StashBox" Grid.Column="7"
                                  Width="50" FontSize="11" Padding="4 2"
                                  LostFocus="StashBox_LostFocus" />
@@ -85,6 +86,19 @@
                             <Run x:Name="HeaderDirectItemCount" Foreground="{StaticResource TextSecondary}" />
                         </TextBlock>
                     </Grid>
+
+                    <!-- Back-links: distributions that reference this proc list -->
+                    <Border x:Name="BackLinksPanel" IsVisible="False"
+                            BorderBrush="{StaticResource BorderSubtle}"
+                            BorderThickness="0 1 0 0"
+                            Padding="0 4 0 4">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{x:Static loc:Strings.DDReferencedBy}"
+                                       FontSize="11" FontWeight="Medium"
+                                       Foreground="{StaticResource TextMuted}" />
+                            <WrapPanel x:Name="BackLinksRows" Orientation="Horizontal" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Border>
 
@@ -94,23 +108,23 @@
                     BorderBrush="{StaticResource BorderSubtle}"
                     BorderThickness="0 0 0 1">
                 <WrapPanel Orientation="Horizontal">
-                    <Button Classes="FilterPill" Content="Expand All" Click="ExpandAll_Click" Margin="2" />
-                    <Button Classes="FilterPill" Content="Collapse All" Click="CollapseAll_Click" Margin="2" />
-                    <Button x:Name="ShowEmptyBtn" Classes="FilterPill" Content="Show Empty" Click="ShowEmpty_Click" Margin="2"
-                            ToolTip.Tip="Show empty Items/Junk/ProcList columns for editing" />
+                    <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDExpandAll}" Click="ExpandAll_Click" Margin="2" />
+                    <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDCollapseAll}" Click="CollapseAll_Click" Margin="2" />
+                    <Button x:Name="ShowEmptyBtn" Classes="FilterPill" Content="{x:Static loc:Strings.DDShowEmpty}" Click="ShowEmpty_Click" Margin="2"
+                            ToolTip.Tip="{x:Static loc:Strings.DDShowEmptyTip}" />
                     <Border Width="1" Background="{StaticResource BorderSubtle}" Margin="6 2" />
-                    <Button x:Name="AutoFilterBtn" Classes="FilterPill" Content="Auto Filter" Click="AutoFilter_Click" Margin="2"
-                            ToolTip.Tip="Mirror content filters from distribution list" />
-                    <Button Classes="FilterPill" Content="Clear" Click="ClearFilters_Click" Margin="2"
-                            ToolTip.Tip="Clear all container filters" />
+                    <Button x:Name="AutoFilterBtn" Classes="FilterPill" Content="{x:Static loc:Strings.DDAutoFilter}" Click="AutoFilter_Click" Margin="2"
+                            ToolTip.Tip="{x:Static loc:Strings.DDAutoFilterTip}" />
+                    <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDClear}" Click="ClearFilters_Click" Margin="2"
+                            ToolTip.Tip="{x:Static loc:Strings.DDClearTip}" />
                     <Border Width="1" Background="{StaticResource BorderSubtle}" Margin="6 2" />
                     <WrapPanel x:Name="ContainerFilterPills" Orientation="Horizontal">
-                        <Button Classes="FilterPill" Content="Proc List" Tag="ProcList" Margin="2" />
-                        <Button Classes="FilterPill" Content="Rolls" Tag="Rolls" Margin="2" />
-                        <Button Classes="FilterPill" Content="Items" Tag="Items" Margin="2" />
-                        <Button Classes="FilterPill" Content="Junk" Tag="Junk" Margin="2" />
-                        <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Margin="2" />
-                        <Button Classes="FilterPill" Content="Invalid" Tag="Invalid" Margin="2" />
+                        <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDFilterProcList}" Tag="ProcList" Margin="2" />
+                        <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDFilterRolls}" Tag="Rolls" Margin="2" />
+                        <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDFilterItems}" Tag="Items" Margin="2" />
+                        <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDFilterJunk}" Tag="Junk" Margin="2" />
+                        <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDFilterProcedural}" Tag="Procedural" Margin="2" />
+                        <Button Classes="FilterPill" Content="{x:Static loc:Strings.DDFilterInvalid}" Tag="Invalid" Margin="2" />
                     </WrapPanel>
                 </WrapPanel>
             </Border>
@@ -128,30 +142,30 @@
                     <Expander.Header>
                         <Grid ColumnDefinitions="*,Auto,Auto" Margin="4 0">
                             <TextBlock Grid.Column="0"
-                                       Text="(distribution items)"
+                                       Text="{x:Static loc:Strings.DDDistItemsLabel}"
                                        FontSize="12.5" FontWeight="Medium"
                                        Foreground="{StaticResource TextMuted}"
                                        FontStyle="Italic"
                                        VerticalAlignment="Center" />
                             <Border Grid.Column="1" CornerRadius="3" Padding="6 2" Margin="6 0 0 0"
                                     Background="{StaticResource BgInput}"
-                                    ToolTip.Tip="Item rolls">
+                                    ToolTip.Tip="{x:Static loc:Strings.TipItemRolls}">
                                 <TextBlock x:Name="DirectRollsBadge"
                                            FontSize="11" Foreground="{StaticResource TextMuted}" />
                             </Border>
                             <Border Grid.Column="2" CornerRadius="3" Padding="6 2" Margin="4 0 0 0"
                                     Background="{StaticResource BgInput}"
-                                    ToolTip.Tip="Unique items">
+                                    ToolTip.Tip="{x:Static loc:Strings.TipUniqueItems}">
                                 <TextBlock x:Name="DirectCountBadge"
                                            FontSize="11" Foreground="{StaticResource TextMuted}" />
                             </Border>
                         </Grid>
                     </Expander.Header>
                     <TabControl Margin="0">
-                        <TabItem Header="Items">
+                        <TabItem Header="{x:Static loc:Strings.DDTabItems}">
                             <controls:ItemListControl x:Name="DistItemsControl" />
                         </TabItem>
-                        <TabItem x:Name="JunkTab" Header="Junk">
+                        <TabItem x:Name="JunkTab" Header="{x:Static loc:Strings.DDTabJunk}">
                             <controls:ItemListControl x:Name="DistJunkControl" />
                         </TabItem>
                     </TabControl>

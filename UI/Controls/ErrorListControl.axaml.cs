@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Data.Errors;
+using UI.Assets;
 
 namespace UI.Controls;
 
@@ -51,8 +52,8 @@ public partial class ErrorListControl : UserControl
     {
         int errorCount = _all.Count(r => r.Source.IsFatal);
         int warnCount  = _all.Count - errorCount;
-        ErrorCountText.Text   = $"{errorCount} errors";
-        WarningCountText.Text = $"{warnCount} warnings";
+        ErrorCountText.Text   = string.Format(Strings.ELErrorsFmt,   errorCount);
+        WarningCountText.Text = string.Format(Strings.ELWarningsFmt, warnCount);
     }
 
     private void ShowErrors_Click(object? sender, RoutedEventArgs e)   => ApplyFilter();

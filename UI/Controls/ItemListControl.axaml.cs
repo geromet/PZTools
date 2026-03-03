@@ -27,6 +27,12 @@ public partial class ItemListControl : UserControl
         ItemRowHelper.Populate(RowsPanel, items, undoRedo, context, owner);
     }
 
+    public void Repopulate()
+    {
+        if (_items is null || _undoRedo is null || _owner is null) return;
+        ItemRowHelper.Populate(RowsPanel, _items, _undoRedo, _context, _owner);
+    }
+
     private void AddItemBtn_Click(object? sender, RoutedEventArgs e)
     {
         if (_items is null || _undoRedo is null || _owner is null) return;

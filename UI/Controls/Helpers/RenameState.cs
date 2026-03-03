@@ -1,19 +1,19 @@
 namespace UI.Controls;
 
-public class RenameState
+public class RenameState<T> where T : class
 {
-    public ExplorerNode? RenamingNode { get; private set; }
+    public T? RenamingNode { get; private set; }
     public bool IsCreating { get; private set; }
-    public ExplorerNode? NewFolderParent { get; private set; }
+    public T? NewFolderParent { get; private set; }
 
-    public void BeginCreate(ExplorerNode? parent)
+    public void BeginCreate(T? parent)
     {
         IsCreating = true;
         RenamingNode = null;
         NewFolderParent = parent;
     }
 
-    public void BeginRename(ExplorerNode node)
+    public void BeginRename(T node)
     {
         IsCreating = false;
         RenamingNode = node;

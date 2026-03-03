@@ -1,62 +1,37 @@
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using Core.Filtering;
 using Core.Items;
 
 namespace UI.Controls;
 
-public partial class ItemsListControl : UserControl, ITriStateFilterSource
+public partial class ItemsListControl : UserControl
 {
-    private ItemIndex? _index;
-    private List<ItemFolderDefinition> _folders = [];
-    private readonly ObservableCollection<ItemExplorerNode> _rootNodes = [];
-    private string? _activeTypeFilter;
-
-    private TriState _itemsFilter;
-    private TriState _junkFilter;
-    private TriState _fallback;
-
-    // Rename state
-    private ItemExplorerNode? _renamingNode;
-    private bool _isCreatingFolder;
-    private ItemExplorerNode? _newFolderParent;
+    private readonly ItemsListState _state = new();
+    private readonly RenameState<ItemExplorerNode> _rename = new();
 
     public ItemsListControl()
     {
         InitializeComponent();
         SearchBox.TextChanged += (_, _) => ApplyFilter();
-        ItemTree.ItemsSource = _rootNodes;
-
-        FilterPillHelper.WireTriStatePills(ItemTypeFilterPills, this, OnItemTypeFilterChanged);
+        ItemTree.ItemsSource = _state.RootNodes;
+        FilterPillHelper.WireTriStatePills(ItemTypeFilterPills, _state, OnItemTypeFilterChanged);
         ItemTree.DoubleTapped += OnTreeDoubleTapped;
     }
 
     public event Action<string>? ItemOpenRequested;
+    public event Action? FilterChanged;
 
-    #region ITriStateFilterSource
-
-    ref TriState ITriStateFilterSource.GetRef(string? tag)
-    {
-        if (tag == "Items") return ref _itemsFilter;
-        if (tag == "Junk") return ref _junkFilter;
-        return ref _fallback;
-    }
-
-    #endregion
+    public ItemFilterContext FilterContext => _state.GetFilterContext();
 
     #region Load / Filter
 
     public void Load(ItemIndex index)
     {
-        _index = index;
-        _folders = ItemFolderSettings.Load();
-        _itemsFilter = _junkFilter = TriState.Ignored;
-        _activeTypeFilter = null;
+        _state.Load(index);
         SearchBox.Text = string.Empty;
         UpdateAllPillStyles();
         ApplyFilter();
@@ -66,33 +41,12 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
 
     private void ApplyFilter()
     {
-        if (_index is null) return;
-
-        bool? isJunk = (_itemsFilter, _junkFilter) switch
-        {
-            (TriState.Include, TriState.Ignored) => false,
-            (TriState.Ignored, TriState.Include) => true,
-            _ => null
-        };
-
-        var filtered = _index.GetFiltered(SearchQuery, _activeTypeFilter, isJunk);
-        ItemFolderTreeBuilder.Build(_rootNodes, _folders, filtered, hideEmptyFolders: false);
-        CountText.Text = $"{filtered.Count} / {_index.SortedItems.Count}";
+        var (filtered, total) = _state.ApplyFilter(SearchHelper.BuildPredicate(SearchQuery));
+        CountText.Text = $"{filtered} / {total}";
+        FilterChanged?.Invoke();
     }
 
-    private void RefreshTree()
-    {
-        if (_index is null) return;
-        SyncExpansionState();
-        bool? isJunk = (_itemsFilter, _junkFilter) switch
-        {
-            (TriState.Include, TriState.Ignored) => false,
-            (TriState.Ignored, TriState.Include) => true,
-            _ => null
-        };
-        var filtered = _index.GetFiltered(SearchQuery, _activeTypeFilter, isJunk);
-        ItemFolderTreeBuilder.Build(_rootNodes, _folders, filtered, hideEmptyFolders: false);
-    }
+    private void RefreshTree() => _state.RebuildTree(SearchHelper.BuildPredicate(SearchQuery), syncExpansion: true);
 
     #endregion
 
@@ -119,19 +73,18 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
         var isFolder = selected is { IsFolder: true };
         var isItem   = selected is { IsFolder: false, ItemName: not null };
         var inFolder = isItem && selected?.ItemName is not null
-            && ItemFolderService.FindFolderContaining(selected.ItemName, _folders) is not null;
+            && ItemFolderService.FindFolderContaining(selected.ItemName, _state.Folders) is not null;
 
-        NewSubfolderItem.IsVisible = isFolder;
+        NewSubfolderItem.IsVisible      = isFolder;
         MoveToFolderMenu.Items.Clear();
-        BuildMoveToFolderMenu(MoveToFolderMenu, _folders, "");
-        MoveToFolderMenu.IsVisible = isItem && _folders.Count > 0;
-        RemoveFromFolderItem.IsVisible = isItem && inFolder;
-
-        RenameFolderItem.IsVisible = isFolder;
-        DeleteFolderItem.IsVisible = isFolder;
+        BuildMoveToFolderMenu(MoveToFolderMenu, _state.Folders, "");
+        MoveToFolderMenu.IsVisible      = isItem && _state.Folders.Count > 0;
+        RemoveFromFolderItem.IsVisible  = isItem && inFolder;
+        RenameFolderItem.IsVisible      = isFolder;
+        DeleteFolderItem.IsVisible      = isFolder;
         FolderExpandSeparator.IsVisible = isFolder;
-        ExpandFolderItem.IsVisible = isFolder;
-        CollapseFolderItem.IsVisible = isFolder;
+        ExpandFolderItem.IsVisible      = isFolder;
+        CollapseFolderItem.IsVisible    = isFolder;
     }
 
     private void BuildMoveToFolderMenu(MenuItem parent, List<ItemFolderDefinition> folders, string pathPrefix)
@@ -151,42 +104,24 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
 
     #region Expand / Collapse
 
-    private void ExpandAll_Click(object? sender, RoutedEventArgs e)
-        => SetExpandAll(true);
+    private void ExpandCollapseAll_Click(object? sender, RoutedEventArgs e)
+        => SetExpandAll(sender is Control { Tag: "True" });
 
-    private void CollapseAll_Click(object? sender, RoutedEventArgs e)
-        => SetExpandAll(false);
-
-    private void ExpandFolderAll_Click(object? sender, RoutedEventArgs e)
-        => SetExpandSelectedFolder(true);
-
-    private void CollapseFolderAll_Click(object? sender, RoutedEventArgs e)
-        => SetExpandSelectedFolder(false);
+    private void ExpandCollapseFolder_Click(object? sender, RoutedEventArgs e)
+        => SetExpandSelectedFolder(sender is Control { Tag: "True" });
 
     private void SetExpandAll(bool expanded)
     {
-        SetExpandedRecursive(_rootNodes, expanded);
-        SyncExpansionState();
-        ItemFolderSettings.Save(_folders);
+        ItemsListState.SetExpandedRecursive(_state.RootNodes, expanded);
+        _state.SaveFolders();
     }
 
     private void SetExpandSelectedFolder(bool expanded)
     {
         if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: true } folder) return;
         folder.IsExpanded = expanded;
-        SetExpandedRecursive(folder.Children, expanded);
-        SyncExpansionState();
-        ItemFolderSettings.Save(_folders);
-    }
-
-    private static void SetExpandedRecursive(IEnumerable<ItemExplorerNode> nodes, bool expanded)
-    {
-        foreach (var node in nodes)
-        {
-            if (!node.IsFolder) continue;
-            node.IsExpanded = expanded;
-            SetExpandedRecursive(node.Children, expanded);
-        }
+        ItemsListState.SetExpandedRecursive(folder.Children, expanded);
+        _state.SaveFolders();
     }
 
     #endregion
@@ -195,43 +130,30 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
 
     private void NewFolder_Click(object? sender, RoutedEventArgs e)
     {
-        _isCreatingFolder = true;
-        _newFolderParent = null;
-        _renamingNode = null;
+        _rename.BeginCreate(null);
         ShowRenameOverlay("New Folder");
     }
 
     private void NewSubfolder_Click(object? sender, RoutedEventArgs e)
     {
         if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: true } parentNode) return;
-        _isCreatingFolder = true;
-        _newFolderParent = parentNode;
-        _renamingNode = null;
+        _rename.BeginCreate(parentNode);
         ShowRenameOverlay("New Folder");
     }
 
     private void RenameFolder_Click(object? sender, RoutedEventArgs e)
     {
         if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: true } node) return;
-        _isCreatingFolder = false;
-        _renamingNode = node;
-        _newFolderParent = null;
+        _rename.BeginRename(node);
         ShowRenameOverlay(node.Name);
     }
 
     private void DeleteFolder_Click(object? sender, RoutedEventArgs e)
     {
         if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: true } node) return;
-        DeleteFolderNode(node);
-        SaveFolders();
+        _state.DeleteFolder(node);
+        _state.SaveFolders();
         RefreshTree();
-    }
-
-    private void DeleteFolderNode(ItemExplorerNode node)
-    {
-        var (folder, parentList) = FindFolderDefinitionByNode(node);
-        if (folder is null) return;
-        parentList.Remove(folder);
     }
 
     private void MoveToFolder_Click(object? sender, RoutedEventArgs e)
@@ -239,35 +161,17 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
         e.Handled = true;
         if (sender is not MenuItem { Tag: string folderPath }) return;
         if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: false, ItemName: not null } node) return;
-
-        var target = FindFolderByPath(folderPath, _folders);
-        if (target is null) return;
-        ItemFolderService.MoveItem(node.ItemName, target, _folders);
-        SaveFolders();
+        _state.MoveItemToFolder(node.ItemName, folderPath);
+        _state.SaveFolders();
         RefreshTree();
     }
 
     private void RemoveFromFolder_Click(object? sender, RoutedEventArgs e)
     {
         if (ItemTree.SelectedItem is not ItemExplorerNode { IsFolder: false, ItemName: not null } node) return;
-        ItemFolderService.RemoveItemFromAllFolders(node.ItemName, _folders);
-        SaveFolders();
+        _state.RemoveItemFromFolders(node.ItemName);
+        _state.SaveFolders();
         RefreshTree();
-    }
-
-    private static ItemFolderDefinition? FindFolderByPath(string path, List<ItemFolderDefinition> folders)
-    {
-        var parts = path.Split('/');
-        var current = folders;
-        ItemFolderDefinition? result = null;
-        foreach (var part in parts)
-        {
-            result = current.FirstOrDefault(f =>
-                string.Equals(f.Name, part, StringComparison.OrdinalIgnoreCase));
-            if (result is null) return null;
-            current = result.Children ?? [];
-        }
-        return result;
     }
 
     #endregion
@@ -286,72 +190,27 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
     {
         RenameOverlay.IsVisible = false;
         var newName = RenameBox.Text?.Trim() ?? "";
-        if (string.IsNullOrEmpty(newName))
-        {
-            ResetRenameState();
-            return;
-        }
+        if (string.IsNullOrEmpty(newName)) { _rename.Reset(); return; }
 
-        bool changed;
-        if (_isCreatingFolder)
-            changed = CommitCreate(newName, _newFolderParent);
-        else if (_renamingNode is not null)
-            changed = CommitRenameFolder(_renamingNode, newName);
-        else
-            changed = false;
+        var changed = _rename.IsCreating
+            ? _state.CommitCreate(newName, _rename.NewFolderParent)
+            : _rename.RenamingNode is not null && _state.CommitRenameFolder(_rename.RenamingNode, newName);
 
-        ResetRenameState();
+        _rename.Reset();
         if (!changed) return;
-        SaveFolders();
+        _state.SaveFolders();
         RefreshTree();
-    }
-
-    private bool CommitCreate(string newName, ItemExplorerNode? parentNode)
-    {
-        List<ItemFolderDefinition> targetList;
-        if (parentNode is not null)
-        {
-            var (parentDef, _) = FindFolderDefinitionByNode(parentNode);
-            if (parentDef is null) return false;
-            parentDef.Children ??= [];
-            targetList = parentDef.Children;
-        }
-        else
-        {
-            targetList = _folders;
-        }
-
-        if (targetList.Any(f => string.Equals(f.Name, newName, StringComparison.OrdinalIgnoreCase)))
-            return false;
-
-        targetList.Add(new ItemFolderDefinition { Name = newName });
-        return true;
-    }
-
-    private bool CommitRenameFolder(ItemExplorerNode node, string newName)
-    {
-        var (folder, _) = FindFolderDefinitionByNode(node);
-        if (folder is null) return false;
-        folder.Name = newName;
-        return true;
     }
 
     private void CancelRename()
     {
         RenameOverlay.IsVisible = false;
-        ResetRenameState();
-    }
-
-    private void ResetRenameState()
-    {
-        _renamingNode = null;
-        _isCreatingFolder = false;
-        _newFolderParent = null;
+        _rename.Reset();
     }
 
     private void RenameBox_KeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) { CommitRename(); e.Handled = true; }
+        if (e.Key == Key.Enter)  { CommitRename(); e.Handled = true; }
         else if (e.Key == Key.Escape) { CancelRename(); e.Handled = true; }
     }
 
@@ -362,77 +221,13 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
 
     #endregion
 
-    #region Folder lookup
-
-    private (ItemFolderDefinition? folder, List<ItemFolderDefinition> parentList) FindFolderDefinitionByNode(
-        ItemExplorerNode node)
-    {
-        var path = GetNodePath(node);
-        return path is not null
-            ? ItemFolderService.FindByNodePath(path, _folders)
-            : ItemFolderService.FindByName(node.Name, _folders);
-    }
-
-    private List<string>? GetNodePath(ItemExplorerNode target)
-    {
-        var path = new List<string>();
-        return FindNodePath(target, _rootNodes, path) ? path : null;
-    }
-
-    private static bool FindNodePath(
-        ItemExplorerNode target,
-        IEnumerable<ItemExplorerNode> nodes,
-        List<string> path)
-    {
-        foreach (var node in nodes)
-        {
-            if (node == target) { path.Add(node.Name); return true; }
-            if (!node.IsFolder) continue;
-            path.Add(node.Name);
-            if (FindNodePath(target, node.Children, path)) return true;
-            path.RemoveAt(path.Count - 1);
-        }
-        return false;
-    }
-
-    #endregion
-
-    #region Persistence
-
-    private void SaveFolders()
-    {
-        SyncExpansionState();
-        ItemFolderSettings.Save(_folders);
-    }
-
-    private void SyncExpansionState()
-        => SyncExpansionState(_rootNodes, _folders);
-
-    private static void SyncExpansionState(
-        IEnumerable<ItemExplorerNode> nodes, List<ItemFolderDefinition> folders)
-    {
-        foreach (var node in nodes)
-        {
-            if (!node.IsFolder) continue;
-            var folder = folders.FirstOrDefault(f =>
-                string.Equals(f.Name, node.Name, StringComparison.OrdinalIgnoreCase));
-            if (folder is null) continue;
-            folder.IsExpanded = node.IsExpanded;
-            if (folder.Children is not null)
-                SyncExpansionState(node.Children, folder.Children);
-        }
-    }
-
-    #endregion
-
     #region Filter pills
 
     private void TypeFilterPill_Click(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button btn) return;
         var tag = btn.Tag as string;
-        _activeTypeFilter = (_activeTypeFilter == tag) ? null : tag;
-        if (tag is null) _activeTypeFilter = null;
+        _state.ActiveTypeFilter = _state.ActiveTypeFilter == tag ? null : tag;
         UpdateAllPillStyles();
         ApplyFilter();
     }
@@ -445,18 +240,9 @@ public partial class ItemsListControl : UserControl, ITriStateFilterSource
 
     private void UpdateAllPillStyles()
     {
-        foreach (var child in TypeFilterPills.Children)
-        {
-            if (child is not Button btn) continue;
-            if (_activeTypeFilter == btn.Tag as string)
-                btn.Classes.Add("active");
-            else
-                btn.Classes.Remove("active");
-        }
-
-        FilterPillHelper.ApplyTriStateStyles(ItemTypeFilterPills, this);
+        FilterPillHelper.ApplySingleSelectStyles(TypeFilterPills, _state.ActiveTypeFilter);
+        FilterPillHelper.ApplyTriStateStyles(ItemTypeFilterPills, _state);
     }
 
     #endregion
 }
-

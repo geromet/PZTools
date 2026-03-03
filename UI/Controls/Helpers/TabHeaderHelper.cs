@@ -113,6 +113,13 @@ public static class TabHeaderHelper
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 4, 0)
         };
+        var dirtyDot = new Border
+        {
+            Width = 6, Height = 6, Tag = "dirty",
+            CornerRadius = new CornerRadius(3), Background = DirtyDotBrush,
+            IsVisible = false, VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 4, 0)
+        };
         var nameBlock = new TextBlock
         {
             Text = state.ItemName, Foreground = TabNameBrush,
@@ -131,7 +138,7 @@ public static class TabHeaderHelper
         var header = new StackPanel
         {
             Orientation = Orientation.Horizontal, Spacing = 2,
-            Children = { pinIcon, nameBlock, closeBtn }
+            Children = { pinIcon, dirtyDot, nameBlock, closeBtn }
         };
         header.ContextMenu = BuildItemContextMenu(state, onClose, onCloseAll, onCloseOthers, onCloseToSide);
         return header;
@@ -149,8 +156,10 @@ public static class TabHeaderHelper
 
     public static void RefreshDirtyDotForItem(ItemTabState state, bool dirty)
     {
-        // Item tabs don't have a dirty dot (dirty is tracked at distribution level),
-        // but the method exists for API symmetry.
+        if (state.TabItem.Header is not StackPanel header) return;
+        foreach (var child in header.Children)
+            if (child is Border { Tag: "dirty" } dot)
+                dot.IsVisible = dirty;
     }
 
     private static ContextMenu BuildItemContextMenu(

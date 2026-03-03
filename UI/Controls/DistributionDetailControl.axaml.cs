@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.VisualTree;
 using Core.Filtering;
 using Data.Data;
@@ -24,6 +26,8 @@ public partial class DistributionDetailControl : UserControl
     private const int AutoExpandLimit = 10;
 
     public Func<ContentFilterSet>? GetContentFilters { get; set; }
+    public Func<IReadOnlyList<Distribution>>? GetAllDistributions { get; set; }
+    public event Action<Distribution>? OpenTabRequested;
 
     public Distribution? Model => _model;
 
@@ -98,10 +102,32 @@ public partial class DistributionDetailControl : UserControl
 
             UpdateContainerFilterStyles();
             ApplyContainerFilter();
+            RefreshBackLinks();
         }
         finally
         {
             _loading = false;
+        }
+    }
+
+    public void RefreshItemRows(ItemParent parent)
+    {
+        if (_model is null || _undoRedo is null) return;
+
+        if (ReferenceEquals(parent, _model))
+        {
+            DistItemsControl.Repopulate();
+            DistJunkControl.Repopulate();
+            return;
+        }
+
+        foreach (var cc in ContainersRepeater.GetVisualDescendants().OfType<ContainerControl>())
+        {
+            if (ReferenceEquals(cc.Model, parent))
+            {
+                cc.RepopulateItemRows();
+                return;
+            }
         }
     }
 
@@ -111,6 +137,40 @@ public partial class DistributionDetailControl : UserControl
         DetailPanel.IsVisible = false;
         _visibleContainers.Clear();
         _model = null;
+        RefreshBackLinks();
+    }
+
+    private void RefreshBackLinks()
+    {
+        BackLinksPanel.IsVisible = false;
+        BackLinksRows.Children.Clear();
+
+        if (_model is null || GetAllDistributions is null) return;
+
+        this.TryFindResource("Accent", out var accentRes);
+        var accent = accentRes as IBrush;
+
+        foreach (var dist in GetAllDistributions())
+        {
+            foreach (var container in dist.Containers)
+            {
+                if (!container.ProcListEntries.Any(e => ReferenceEquals(e.ResolvedDistribution, _model)))
+                    continue;
+
+                var btn = new Button { Margin = new Thickness(0, 0, 4, 2) };
+                btn.Classes.Add("NavLink");
+                btn.Content = new TextBlock
+                {
+                    Text = $"{dist.Name} · {container.Name}",
+                    FontSize = 11,
+                    Foreground = accent
+                };
+                var captured = dist;
+                btn.Click += (_, _) => OpenTabRequested?.Invoke(captured);
+                BackLinksRows.Children.Add(btn);
+                BackLinksPanel.IsVisible = true;
+            }
+        }
     }
 
     #region Property editing

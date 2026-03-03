@@ -4,6 +4,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Core.Items;
 using Data.Data;
 using UI.Assets;
@@ -19,9 +21,12 @@ public partial class ItemsDetailControl : UserControl
     private string? _itemName;
     private ItemIndex? _itemIndex;
     private UndoRedoStack? _undoRedo;
+    private bool _autoFilter;
 
     public Func<IReadOnlyList<Distribution>>? GetAllDistributions { get; set; }
+    public Func<ItemFilterContext>? GetCurrentFilters { get; set; }
     public event Action<Distribution>? OpenDistributionRequested;
+    public event Action<Distribution, ItemParent>? DistributionModified;
 
     public ItemsDetailControl()
     {
@@ -45,7 +50,28 @@ public partial class ItemsDetailControl : UserControl
 
         var occs = _itemIndex.GetOccurrences(_itemName);
         OccurrenceCountText.Text = string.Format(Strings.IDOccurrences, occs.Count);
-        RebuildRows(occs);
+
+        IReadOnlyList<ItemOccurrence> visible = occs;
+        if (_autoFilter && GetCurrentFilters is not null)
+        {
+            var ctx = GetCurrentFilters();
+            if (ctx.IsActive)
+                visible = [.. occs.Where(ctx.Matches)];
+        }
+
+        RebuildRows(visible);
+    }
+
+    public void RefreshIfAutoFilter()
+    {
+        if (_autoFilter) Refresh();
+    }
+
+    private void AutoFilter_Click(object? sender, RoutedEventArgs e)
+    {
+        _autoFilter = !_autoFilter;
+        AutoFilterBtn.Classes.Set("active", _autoFilter);
+        Refresh();
     }
 
     #region Row building
@@ -220,6 +246,7 @@ public partial class ItemsDetailControl : UserControl
                 list[occ.Index] = v;
                 parent.IsDirty  = true;
                 Refresh();
+                DistributionModified?.Invoke(occ.Distribution, parent);
             },
             oldItem, newItem));
     }
@@ -240,7 +267,7 @@ public partial class ItemsDetailControl : UserControl
         _undoRedo.Push(new ListRemoveAction<Item>(
             $"{_itemName}: remove from {occ.Distribution.Name}",
             list, occ.Index, item,
-            () => { parent.IsDirty = true; Refresh(); }));
+            () => { parent.IsDirty = true; Refresh(); DistributionModified?.Invoke(occ.Distribution, parent); }));
     }
 
     #endregion
@@ -249,9 +276,30 @@ public partial class ItemsDetailControl : UserControl
 
     private void PopulateAddDistBox()
     {
+        // Initial population with all names sorted alphabetically.
+        UpdateAddDistSuggestions(string.Empty);
+    }
+
+    private void AddDistBox_TextChanged(object? sender, TextChangedEventArgs e)
+    {
+        UpdateAddDistSuggestions(AddDistBox.Text ?? string.Empty);
+    }
+
+    private void AddDistBox_DropDownOpened(object? sender, EventArgs e)
+    {
+        // Scroll the dropdown list back to the top each time it opens.
+        Dispatcher.UIThread.Post(() =>
+        {
+            var lb = AddDistBox.GetVisualDescendants().OfType<ListBox>().FirstOrDefault();
+            if (lb?.ItemCount > 0) lb.ScrollIntoView(lb.Items[0]!);
+        }, DispatcherPriority.Loaded);
+    }
+
+    private void UpdateAddDistSuggestions(string query)
+    {
         if (GetAllDistributions is null) return;
-        var names = GetAllDistributions().Select(d => d.Name).ToList();
-        AddDistBox.ItemsSource = names;
+        AddDistBox.ItemsSource = SearchHelper.SortedByRelevance(
+            GetAllDistributions().Select(d => d.Name), query);
     }
 
     private void AddDistBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -307,7 +355,7 @@ public partial class ItemsDetailControl : UserControl
         _undoRedo.Push(new ListInsertAction<Item>(
             $"{_itemName}: add to {dist.Name}",
             list, idx, newItem,
-            () => { parent.IsDirty = true; Refresh(); }));
+            () => { parent.IsDirty = true; Refresh(); DistributionModified?.Invoke(dist, parent); }));
 
         // Reset add form
         AddChanceBox.Text = "1";

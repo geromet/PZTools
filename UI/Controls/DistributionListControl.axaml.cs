@@ -16,7 +16,7 @@ namespace UI.Controls;
 
 public partial class DistributionListControl : UserControl, ITreeDragDropHost
 {
-    private readonly RenameState _rename = new();
+    private readonly RenameState<ExplorerNode> _rename = new();
     private readonly DistributionListState _state = new();
 
     public DistributionListControl()
