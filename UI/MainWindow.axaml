@@ -9,13 +9,13 @@
         FontFamily="Inter,Segoe UI,system-ui,sans-serif">
 
     <Grid RowDefinitions="Auto,*,Auto">
-
-        <!-- ══ TOOLBAR ══ -->
+        
+        <!--#region TOOLBAR-->
         <Border Grid.Row="0"
-                Background="{StaticResource BgPanel}"
-                BorderBrush="{StaticResource BorderSubtle}"
-                BorderThickness="0 0 0 1"
-                Padding="12 6">
+                                               Background="{StaticResource BgPanel}"
+                                               BorderBrush="{StaticResource BorderSubtle}"
+                                               BorderThickness="0 0 0 1"
+                                               Padding="12 6">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
                            Text="PZ Distributions"
@@ -80,8 +80,8 @@
                              Margin="8 0" VerticalAlignment="Center"/>
             </DockPanel>
         </Border>
-
-        <!-- ══ THREE-PANE BODY ══ -->
+        <!--#endregion-->
+        <!--#region THREE-PANE BODY-->
         <Grid x:Name="MainGrid"
               Grid.Row="1"
               ColumnDefinitions="260,4,*,4,260"
@@ -109,15 +109,10 @@
                                 SelectionChanged="TabBar_SelectionChanged"
                                 HorizontalContentAlignment="Stretch"
                                 VerticalContentAlignment="Stretch">
-                        <TabControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </TabControl.ItemsPanel>
                         <TabControl.Template>
                             <ControlTemplate>
                                 <Grid RowDefinitions="Auto,*">
-                                    <!-- Scrollable tab strip -->
+                                    <!-- Tab strip with clipped overflow and scroll buttons -->
                                     <Border Grid.Row="0"
                                             Background="{StaticResource BgPanel}"
                                             BorderBrush="{StaticResource BorderSubtle}"
@@ -127,12 +122,12 @@
                                                     Grid.Column="0"
                                                     Classes="TabScroll"
                                                     Content="&#x2039;" />
-                                            <ScrollViewer x:Name="PART_TabScrollViewer"
-                                                          Grid.Column="1"
-                                                          HorizontalScrollBarVisibility="Hidden"
-                                                          VerticalScrollBarVisibility="Disabled">
-                                                <ItemsPresenter Name="PART_ItemsPresenter" />
-                                            </ScrollViewer>
+                                            <Border x:Name="PART_TabClip"
+                                                    Grid.Column="1"
+                                                    ClipToBounds="True">
+                                                <ItemsPresenter Name="PART_ItemsPresenter"
+                                                                HorizontalAlignment="Left" />
+                                            </Border>
                                             <Button x:Name="PART_ScrollRight"
                                                     Grid.Column="2"
                                                     Classes="TabScroll"
@@ -192,7 +187,7 @@
                 <Button Classes="PanelClose" Click="CloseRightBtn_Click" />
             </Grid>
         </Grid>
-
+        <!--#endregion-->
         <!-- ══ STATUS BAR ══ -->
         <Border Grid.Row="2"
                 Background="{StaticResource BgPanel}"

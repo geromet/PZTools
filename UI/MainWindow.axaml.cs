@@ -9,7 +9,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Data;
@@ -47,7 +49,8 @@ public partial class MainWindow : Window
     private TabState? _activeTab;
     private bool _suppressTabChanged;
     private const int MaxCachedTabs = 10;
-    private ScrollViewer? _tabScrollViewer;
+    private ItemsPresenter? _tabItemsPresenter;
+    private double _tabScrollOffset;
     private const double TabScrollStep = 120;
 
     public MainWindow()
@@ -463,7 +466,12 @@ public partial class MainWindow : Window
 
     private void OnTabBarTemplateApplied(object? sender, TemplateAppliedEventArgs e)
     {
-        _tabScrollViewer = e.NameScope.Find<ScrollViewer>("PART_TabScrollViewer");
+        _tabItemsPresenter = e.NameScope.Find<ItemsPresenter>("PART_ItemsPresenter");
+
+        // Force a non-wrapping horizontal panel regardless of what the theme sets.
+        // This must happen after template application so ItemsPresenter recreates its panel.
+        TabBar.ItemsPanel = new FuncTemplate<Panel?>(() => new StackPanel { Orientation = Orientation.Horizontal });
+
         var left  = e.NameScope.Find<Button>("PART_ScrollLeft");
         var right = e.NameScope.Find<Button>("PART_ScrollRight");
         if (left  is not null) left.Click  += (_, _) => ScrollTabsLeft();
@@ -472,25 +480,44 @@ public partial class MainWindow : Window
 
     private void ScrollTabsLeft()
     {
-        if (_tabScrollViewer is null) return;
-        _tabScrollViewer.Offset = _tabScrollViewer.Offset.WithX(
-            Math.Max(0, _tabScrollViewer.Offset.X - TabScrollStep));
+        _tabScrollOffset = Math.Max(0, _tabScrollOffset - TabScrollStep);
+        ApplyTabScrollOffset();
     }
 
     private void ScrollTabsRight()
     {
-        if (_tabScrollViewer is null) return;
-        _tabScrollViewer.Offset = _tabScrollViewer.Offset.WithX(
-            Math.Min(_tabScrollViewer.ScrollBarMaximum.X, _tabScrollViewer.Offset.X + TabScrollStep));
+        if (_tabItemsPresenter is null) return;
+        var viewWidth    = _tabItemsPresenter.Parent is Control clip ? clip.Bounds.Width : 0;
+        var contentWidth = _tabItemsPresenter.DesiredSize.Width;
+        var maxOffset    = Math.Max(0, contentWidth - viewWidth);
+        _tabScrollOffset = Math.Min(_tabScrollOffset + TabScrollStep, maxOffset);
+        ApplyTabScrollOffset();
+    }
+
+    private void ApplyTabScrollOffset()
+    {
+        if (_tabItemsPresenter is null) return;
+        _tabItemsPresenter.RenderTransform = new TranslateTransform(-_tabScrollOffset, 0);
     }
 
     private void ScrollTabIntoView(TabItem tabItem)
     {
-        if (_tabScrollViewer is null) return;
+        if (_tabItemsPresenter is null) return;
         Dispatcher.UIThread.Post(() =>
         {
             var container = TabBar.ContainerFromItem(tabItem);
-            container?.BringIntoView();
+            if (container is null) return;
+            var pos = container.TranslatePoint(new Point(0, 0), _tabItemsPresenter);
+            if (pos is null) return;
+            var tabLeft  = pos.Value.X;
+            var tabRight = tabLeft + container.Bounds.Width;
+            var viewWidth = _tabItemsPresenter.Parent is Control clip ? clip.Bounds.Width : 0;
+            if (tabLeft < _tabScrollOffset)
+                _tabScrollOffset = tabLeft;
+            else if (tabRight > _tabScrollOffset + viewWidth)
+                _tabScrollOffset = tabRight - viewWidth;
+            _tabScrollOffset = Math.Max(0, _tabScrollOffset);
+            ApplyTabScrollOffset();
         }, DispatcherPriority.Loaded);
     }
 
