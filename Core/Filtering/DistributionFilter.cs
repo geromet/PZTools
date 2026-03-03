@@ -41,7 +41,10 @@ public static class DistributionFilter
             result = result.Where(d => HasInvalidContainers(d) == want);
         }
         if (c.DistributionItems != TriState.Ignored)
-            result = result.Where(d => HasDirectItems(d));
+        {
+            bool want = c.DistributionItems == TriState.Include;
+            result = result.Where(d => HasDirectItems(d) == want);
+        }
 
         // Regex search with graceful fallback
         if (c.SearchQuery.Length > 0)

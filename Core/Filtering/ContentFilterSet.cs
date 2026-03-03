@@ -2,7 +2,7 @@ using Data.Data;
 
 namespace Core.Filtering;
 
-public class ContentFilterSet
+public class ContentFilterSet : ITriStateFilterSource
 {
     private TriState _procList;
     private TriState _rolls;

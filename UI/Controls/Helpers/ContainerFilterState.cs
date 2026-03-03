@@ -2,7 +2,7 @@ using Core.Filtering;
 
 namespace UI.Controls;
 
-public class ContainerFilterState
+public class ContainerFilterState : ITriStateFilterSource
 {
     public ContentFilterSet Content { get; } = new();
     public bool AutoFilter { get; set; }

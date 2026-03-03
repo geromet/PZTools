@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Avalonia.Collections;
 using Avalonia.Controls;
-using Avalonia.Input;
+using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Core.Filtering;
@@ -18,6 +20,9 @@ public partial class DistributionDetailControl : UserControl
     private bool _showToolbar = true;
     private readonly SharedColumnLayout _sharedColumnLayout = new();
     private readonly ContainerFilterState _filter = new();
+    private readonly AvaloniaList<Container> _visibleContainers = new();
+    private bool? _expandOverride;
+    private const int AutoExpandLimit = 10;
 
     public Func<ContentFilterSet>? GetContentFilters { get; set; }
 
@@ -37,11 +42,11 @@ public partial class DistributionDetailControl : UserControl
     {
         InitializeComponent();
 
-        foreach (var child in ContainerFilterPills.Children)
-        {
-            if (child is Button btn)
-                btn.PointerPressed += ContainerFilterPill_PointerPressed;
-        }
+        ContainersItemsControl.ItemsSource = _visibleContainers;
+        ContainersItemsControl.ContainerPrepared += OnContainerPrepared;
+        ContainersItemsControl.ContainerClearing += OnContainerClearing;
+
+        FilterPillHelper.WireTriStatePills(ContainerFilterPills, _filter, OnContainerFilterChanged);
     }
 
     public void Load(Distribution d, UndoRedoStack undoRedo)
@@ -86,16 +91,8 @@ public partial class DistributionDetailControl : UserControl
                     DistJunkControl.Load(d.JunkChances, undoRedo, $"{d.Name}.junk", d);
             }
 
-            ContainersPanel.Children.Clear();
-            const int autoExpandLimit = 10;
-            for (int i = 0; i < d.Containers.Count; i++)
-            {
-                var ctrl = new ContainerControl();
-                ctrl.Load(d.Containers[i], undoRedo, _sharedColumnLayout, _filter.ShowEmpty);
-                if (i < autoExpandLimit)
-                    ctrl.ContainerExpander.IsExpanded = true;
-                ContainersPanel.Children.Add(ctrl);
-            }
+            _expandOverride = null;
+            RebuildVisibleContainers(d.Containers);
 
             if (_filter.AutoFilter && GetContentFilters is not null)
                 _filter.SyncFrom(GetContentFilters());
@@ -113,7 +110,7 @@ public partial class DistributionDetailControl : UserControl
     {
         EmptyPanel.IsVisible = true;
         DetailPanel.IsVisible = false;
-        ContainersPanel.Children.Clear();
+        _visibleContainers.Clear();
         _model = null;
     }
 
@@ -165,10 +162,13 @@ public partial class DistributionDetailControl : UserControl
             var expander = DirectItemsPanel.GetVisualDescendants().OfType<Expander>().FirstOrDefault();
             if (expander is not null) expander.IsExpanded = expanded;
         }
-        foreach (var child in ContainersPanel.Children)
+
+        _expandOverride = expanded;
+        for (int i = 0; i < _visibleContainers.Count; i++)
         {
-            if (child is not ContainerControl cc) continue;
-            cc.ContainerExpander.IsExpanded = expanded;
+            var container = ContainersItemsControl.ContainerFromIndex(i);
+            if (container is ContentPresenter cp && cp.Child is ContainerControl cc)
+                cc.ContainerExpander.IsExpanded = expanded;
         }
     }
 
@@ -211,41 +211,49 @@ public partial class DistributionDetailControl : UserControl
 
     #region Container filters
 
-    private void ContainerFilterPill_Click(object? sender, RoutedEventArgs e)
+    private void OnContainerFilterChanged()
     {
-        if (sender is not Button btn) return;
-        ref var state = ref _filter.GetRef(btn.Tag as string);
-        state = state == TriState.Include ? TriState.Ignored : TriState.Include;
         _filter.AutoFilter = false;
         UpdateContainerFilterStyles();
         ApplyContainerFilter();
-    }
-
-    private void ContainerFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is not Button btn) return;
-        if (!e.GetCurrentPoint(btn).Properties.IsRightButtonPressed) return;
-        ref var state = ref _filter.GetRef(btn.Tag as string);
-        state = state == TriState.Exclude ? TriState.Ignored : TriState.Exclude;
-        _filter.AutoFilter = false;
-        UpdateContainerFilterStyles();
-        ApplyContainerFilter();
-        e.Handled = true;
     }
 
     private void UpdateContainerFilterStyles()
     {
-        FilterPillHelper.ApplyTriStateStyles(ContainerFilterPills, _filter.Content);
+        FilterPillHelper.ApplyTriStateStyles(ContainerFilterPills, _filter);
         AutoFilterBtn.Classes.Set("active", _filter.AutoFilter);
     }
 
     private void ApplyContainerFilter()
     {
-        foreach (var child in ContainersPanel.Children)
-        {
-            if (child is not ContainerControl cc || cc.Model is null) continue;
-            cc.IsVisible = _filter.IsContainerVisible(cc.Model);
-        }
+        if (_model is null) return;
+        RebuildVisibleContainers(_model.Containers);
+    }
+
+    private void RebuildVisibleContainers(IReadOnlyList<Container> all)
+    {
+        _visibleContainers.Clear();
+        _visibleContainers.AddRange(all.Where(c => _filter.IsContainerVisible(c)));
+    }
+
+    private void OnContainerPrepared(object? sender, ContainerPreparedEventArgs e)
+    {
+        if (e.Container is not ContentPresenter cp) return;
+        cp.ApplyTemplate();
+        if (cp.Child is not ContainerControl ctrl) return;
+
+        var container = _visibleContainers[e.Index];
+        ctrl.Load(container, _undoRedo!, _sharedColumnLayout, _filter.ShowEmpty);
+
+        if (_expandOverride.HasValue)
+            ctrl.ContainerExpander.IsExpanded = _expandOverride.Value;
+        else
+            ctrl.ContainerExpander.IsExpanded = e.Index < AutoExpandLimit;
+    }
+
+    private void OnContainerClearing(object? sender, ContainerClearingEventArgs e)
+    {
+        // ContainerControl.Load() handles re-subscription, OnUnloaded handles cleanup.
     }
 
     #endregion

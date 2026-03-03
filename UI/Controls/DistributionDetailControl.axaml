@@ -21,7 +21,7 @@
         </StackPanel>
 
         <!-- Detail view -->
-        <Grid x:Name="DetailPanel" IsVisible="False" RowDefinitions="Auto,Auto,*">
+        <Grid x:Name="DetailPanel" IsVisible="False" RowDefinitions="Auto,Auto,Auto,*">
 
             <!-- Distribution header -->
             <Border Grid.Row="0"
@@ -103,70 +103,81 @@
                             ToolTip.Tip="Clear all container filters" />
                     <Border Width="1" Background="{StaticResource BorderSubtle}" Margin="6 2" />
                     <WrapPanel x:Name="ContainerFilterPills" Orientation="Horizontal">
-                        <Button Classes="FilterPill" Content="Proc List" Tag="ProcList" Click="ContainerFilterPill_Click" Margin="2" />
-                        <Button Classes="FilterPill" Content="Rolls" Tag="Rolls" Click="ContainerFilterPill_Click" Margin="2" />
-                        <Button Classes="FilterPill" Content="Items" Tag="Items" Click="ContainerFilterPill_Click" Margin="2" />
-                        <Button Classes="FilterPill" Content="Junk" Tag="Junk" Click="ContainerFilterPill_Click" Margin="2" />
-                        <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Click="ContainerFilterPill_Click" Margin="2" />
-                        <Button Classes="FilterPill" Content="Invalid" Tag="Invalid" Click="ContainerFilterPill_Click" Margin="2" />
+                        <Button Classes="FilterPill" Content="Proc List" Tag="ProcList" Margin="2" />
+                        <Button Classes="FilterPill" Content="Rolls" Tag="Rolls" Margin="2" />
+                        <Button Classes="FilterPill" Content="Items" Tag="Items" Margin="2" />
+                        <Button Classes="FilterPill" Content="Junk" Tag="Junk" Margin="2" />
+                        <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Margin="2" />
+                        <Button Classes="FilterPill" Content="Invalid" Tag="Invalid" Margin="2" />
                     </WrapPanel>
                 </WrapPanel>
             </Border>
 
-            <!-- Body: direct items + containers -->
-            <ScrollViewer Grid.Row="2"
-                          VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled"
-                          Padding="0 4 0 0">
-                <StackPanel Margin="0 0 0 16">
+            <!-- Row 2: Distribution-level items (pinned above scroll) -->
+            <Border x:Name="DirectItemsPanel" Grid.Row="2"
+                    IsVisible="False"
+                    Margin="8 2"
+                    CornerRadius="6"
+                    Background="{StaticResource BgSurface}"
+                    BorderBrush="{StaticResource BorderSubtle}"
+                    BorderThickness="1"
+                    ClipToBounds="True">
+                <Expander IsExpanded="True" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                    <Expander.Header>
+                        <Grid ColumnDefinitions="*,Auto,Auto" Margin="4 0">
+                            <TextBlock Grid.Column="0"
+                                       Text="(distribution items)"
+                                       FontSize="12.5" FontWeight="Medium"
+                                       Foreground="{StaticResource TextMuted}"
+                                       FontStyle="Italic"
+                                       VerticalAlignment="Center" />
+                            <Border Grid.Column="1" CornerRadius="3" Padding="6 2" Margin="6 0 0 0"
+                                    Background="{StaticResource BgInput}"
+                                    ToolTip.Tip="Item rolls">
+                                <TextBlock x:Name="DirectRollsBadge"
+                                           FontSize="11" Foreground="{StaticResource TextMuted}" />
+                            </Border>
+                            <Border Grid.Column="2" CornerRadius="3" Padding="6 2" Margin="4 0 0 0"
+                                    Background="{StaticResource BgInput}"
+                                    ToolTip.Tip="Unique items">
+                                <TextBlock x:Name="DirectCountBadge"
+                                           FontSize="11" Foreground="{StaticResource TextMuted}" />
+                            </Border>
+                        </Grid>
+                    </Expander.Header>
+                    <TabControl Margin="0">
+                        <TabItem Header="Items">
+                            <controls:ItemListControl x:Name="DistItemsControl" />
+                        </TabItem>
+                        <TabItem x:Name="JunkTab" Header="Junk">
+                            <controls:ItemListControl x:Name="DistJunkControl" />
+                        </TabItem>
+                    </TabControl>
+                </Expander>
+            </Border>
 
-                    <!-- Distribution-level items (procedural distributions, top-level bags, etc.) -->
-                    <Border x:Name="DirectItemsPanel"
-                            IsVisible="False"
-                            Margin="8 2"
-                            CornerRadius="6"
-                            Background="{StaticResource BgSurface}"
-                            BorderBrush="{StaticResource BorderSubtle}"
-                            BorderThickness="1"
-                            ClipToBounds="True">
-                        <Expander IsExpanded="True" Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
-                            <Expander.Header>
-                                <Grid ColumnDefinitions="*,Auto,Auto" Margin="4 0">
-                                    <TextBlock Grid.Column="0"
-                                               Text="(distribution items)"
-                                               FontSize="12.5" FontWeight="Medium"
-                                               Foreground="{StaticResource TextMuted}"
-                                               FontStyle="Italic"
-                                               VerticalAlignment="Center" />
-                                    <Border Grid.Column="1" CornerRadius="3" Padding="6 2" Margin="6 0 0 0"
-                                            Background="{StaticResource BgInput}"
-                                            ToolTip.Tip="Item rolls">
-                                        <TextBlock x:Name="DirectRollsBadge"
-                                                   FontSize="11" Foreground="{StaticResource TextMuted}" />
-                                    </Border>
-                                    <Border Grid.Column="2" CornerRadius="3" Padding="6 2" Margin="4 0 0 0"
-                                            Background="{StaticResource BgInput}"
-                                            ToolTip.Tip="Unique items">
-                                        <TextBlock x:Name="DirectCountBadge"
-                                                   FontSize="11" Foreground="{StaticResource TextMuted}" />
-                                    </Border>
-                                </Grid>
-                            </Expander.Header>
-                            <TabControl Margin="0">
-                                <TabItem Header="Items">
-                                    <controls:ItemListControl x:Name="DistItemsControl" />
-                                </TabItem>
-                                <TabItem x:Name="JunkTab" Header="Junk">
-                                    <controls:ItemListControl x:Name="DistJunkControl" />
-                                </TabItem>
-                            </TabControl>
-                        </Expander>
-                    </Border>
-
-                    <!-- Sub-containers -->
-                    <StackPanel x:Name="ContainersPanel" />
-                </StackPanel>
-            </ScrollViewer>
+            <!-- Row 3: Virtualized containers -->
+            <ItemsControl x:Name="ContainersItemsControl" Grid.Row="3">
+                <ItemsControl.Template>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      Padding="0 4 0 0">
+                            <ItemsPresenter Margin="0 0 0 16" />
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <controls:ContainerControl />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Grid>
     </Grid>
 </UserControl>

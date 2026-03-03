@@ -25,8 +25,8 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         SearchBox.TextChanged += (_, _) => ApplyFilter();
         DistTree.ItemsSource = _state.RootNodes;
 
-        WireRightClickHandlers(ContentFilterPills);
-        WireRightClickHandlers(StructureFilterPills);
+        FilterPillHelper.WireTriStatePills(ContentFilterPills, _state.Filter, OnFilterChanged);
+        FilterPillHelper.WireTriStatePills(StructureFilterPills, _state.Filter, OnFilterChanged);
 
         var dragDrop = new TreeDragDropHandler(DistTree, this);
         dragDrop.Attach();
@@ -453,53 +453,10 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
         ApplyFilter();
     }
 
-    private void ContentFilterPill_Click(object? sender, RoutedEventArgs e)
+    private void OnFilterChanged()
     {
-        ToggleTriStateFilter(sender, TriState.Include);
-    }
-
-    private void StructureFilterPill_Click(object? sender, RoutedEventArgs e)
-    {
-        ToggleTriStateFilter(sender, TriState.Include);
-    }
-
-    private void ContentFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        ToggleTriStateFilterRightClick(sender, e);
-    }
-
-    private void StructureFilterPill_PointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        ToggleTriStateFilterRightClick(sender, e);
-    }
-
-    private void ToggleTriStateFilter(object? sender, TriState targetState)
-    {
-        if (sender is not Button btn) return;
-        ref var state = ref _state.Filter.GetRef(btn.Tag as string);
-        state = state == targetState ? TriState.Ignored : targetState;
         UpdateAllPillStyles();
         ApplyFilter();
-    }
-
-    private void ToggleTriStateFilterRightClick(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is not Button btn) return;
-        if (!e.GetCurrentPoint(btn).Properties.IsRightButtonPressed) return;
-        ref var state = ref _state.Filter.GetRef(btn.Tag as string);
-        state = state == TriState.Exclude ? TriState.Ignored : TriState.Exclude;
-        UpdateAllPillStyles();
-        ApplyFilter();
-        e.Handled = true;
-    }
-
-    private void WireRightClickHandlers(Panel panel)
-    {
-        foreach (var child in panel.Children)
-            if (child is Button btn)
-                btn.PointerPressed += panel == ContentFilterPills
-                    ? ContentFilterPill_PointerPressed
-                    : StructureFilterPill_PointerPressed;
     }
 
     private void UpdateAllPillStyles()
@@ -513,12 +470,9 @@ public partial class DistributionListControl : UserControl, ITreeDragDropHost
                 btn.Classes.Remove("active");
         }
 
-        ApplyTriStatePillStyles(ContentFilterPills);
-        ApplyTriStatePillStyles(StructureFilterPills);
+        FilterPillHelper.ApplyTriStateStyles(ContentFilterPills, _state.Filter);
+        FilterPillHelper.ApplyTriStateStyles(StructureFilterPills, _state.Filter);
     }
-
-    private void ApplyTriStatePillStyles(Panel panel) =>
-        FilterPillHelper.ApplyTriStateStyles(panel, _state.Filter.Content);
 
     #endregion
 }

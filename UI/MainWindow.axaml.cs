@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -40,6 +41,7 @@ public partial class MainWindow : Window
 
     // ── Tab state ──
     private readonly Dictionary<string, TabState> _openTabs = new();
+    private readonly AvaloniaList<TabItem> _tabItems = new();
     private TabState? _activeTab;
     private bool _suppressTabChanged;
     private const int MaxCachedTabs = 10;
@@ -48,6 +50,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
+        TabBar.ItemsSource = _tabItems;
         DistributionList.SetSettings(_settings);
         DistributionList.OpenRequested += OnDistributionOpenRequested;
         DistributionList.OpenMultipleRequested += OnDistributionOpenMultipleRequested;
@@ -105,7 +108,7 @@ public partial class MainWindow : Window
 
         _openTabs[d.Name] = state;
         _suppressTabChanged = true;
-        TabBar.Items.Add(tabItem);
+        _tabItems.Add(tabItem);
         TabBar.SelectedItem = tabItem;
         _suppressTabChanged = false;
 
@@ -266,7 +269,7 @@ public partial class MainWindow : Window
     private void RemoveTab(TabState state)
     {
         _suppressTabChanged = true;
-        TabBar.Items.Remove(state.TabItem);
+        _tabItems.Remove(state.TabItem);
         _openTabs.Remove(state.Distribution.Name);
         _suppressTabChanged = false;
 
@@ -276,9 +279,9 @@ public partial class MainWindow : Window
             RightDetail.ShowEmpty();
 
             // Activate adjacent tab
-            if (TabBar.Items.Count > 0)
+            if (_tabItems.Count > 0)
             {
-                TabBar.SelectedIndex = Math.Min(TabBar.SelectedIndex, TabBar.Items.Count - 1);
+                TabBar.SelectedIndex = Math.Min(TabBar.SelectedIndex, _tabItems.Count - 1);
                 if (TabBar.SelectedIndex < 0) TabBar.SelectedIndex = 0;
                 var selected = TabBar.SelectedItem as TabItem;
                 var next = _openTabs.Values.FirstOrDefault(t => t.TabItem == selected);
@@ -326,7 +329,7 @@ public partial class MainWindow : Window
 
     private async Task CloseTabsToSideAsync(TabState anchor, bool left)
     {
-        var items = TabBar.Items.Cast<TabItem>().ToList();
+        var items = _tabItems.ToList();
         int anchorIndex = items.IndexOf(anchor.TabItem);
         if (anchorIndex < 0) return;
 
@@ -392,15 +395,17 @@ public partial class MainWindow : Window
         foreach (var tab in toEvict)
         {
             tab.DetailControl = null;
-            tab.TabItem.Content = new TextBlock
-            {
-                Text = "Click to reload...",
-                Foreground = EvictedTextBrush,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+            tab.TabItem.Content = CreateEvictedPlaceholder();
         }
     }
+
+    private static TextBlock CreateEvictedPlaceholder() => new()
+    {
+        Text = "Click to reload...",
+        Foreground = EvictedTextBrush,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center
+    };
 
     private void OnTabUndoStateChanged(TabState state)
     {
@@ -442,7 +447,7 @@ public partial class MainWindow : Window
     private void CloseAllTabs()
     {
         _suppressTabChanged = true;
-        TabBar.Items.Clear();
+        _tabItems.Clear();
         _openTabs.Clear();
         _activeTab = null;
         _suppressTabChanged = false;
@@ -520,9 +525,52 @@ public partial class MainWindow : Window
 
     private void OnDistributionOpenMultipleRequested(List<Distribution> distributions)
     {
-        if (!_detailVisible) return;
+        if (!_detailVisible || distributions.Count == 0) return;
+
+        if (distributions.Count == 1)
+        {
+            OpenOrActivateTab(distributions[0]);
+            return;
+        }
+
+        _suppressTabChanged = true;
+
+        TabState? lastState = null;
+        var newTabItems = new List<TabItem>();
         foreach (var d in distributions)
-            OpenOrActivateTab(d);
+        {
+            if (_openTabs.TryGetValue(d.Name, out var existing))
+            {
+                existing.LastAccessTick = Environment.TickCount64;
+                lastState = existing;
+                continue;
+            }
+
+            var state = new TabState(d) { LastAccessTick = Environment.TickCount64 };
+            state.TabItem = new TabItem
+            {
+                Header = CreateTabHeader(state),
+                Content = CreateEvictedPlaceholder()
+            };
+            state.UndoRedo.StateChanged += () => OnTabUndoStateChanged(state);
+            _openTabs[d.Name] = state;
+            newTabItems.Add(state.TabItem);
+            lastState = state;
+        }
+
+        if (lastState is null) { _suppressTabChanged = false; return; }
+
+        if (newTabItems.Count > 0)
+            _tabItems.AddRange(newTabItems);
+
+        // Fully load only the final tab
+        if (lastState.DetailControl is null)
+            RecreateDetailControl(lastState);
+        TabBar.SelectedItem = lastState.TabItem;
+        _suppressTabChanged = false;
+
+        ActivateTab(lastState);
+        EvictOldTabs();
     }
 
     private async void SelectFolder_Click(object? sender, RoutedEventArgs e)

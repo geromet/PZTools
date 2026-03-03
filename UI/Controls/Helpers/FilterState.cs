@@ -2,7 +2,7 @@ using Core.Filtering;
 
 namespace UI.Controls;
 
-public class FilterState
+public class FilterState : ITriStateFilterSource
 {
     private TriState _noContentFilter;
     private TriState _distributionItemsFilter;

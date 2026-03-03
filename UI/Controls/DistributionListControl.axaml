@@ -75,16 +75,11 @@
                         <StackPanel Spacing="2">
                             <TextBlock Text="CONTENT  (L: has · R: no)" Classes="SectionHeader" Margin="2 0 0 0" />
                             <WrapPanel x:Name="ContentFilterPills" Orientation="Horizontal">
-                                <Button Classes="FilterPill" Content="Proc List" Tag="ProcList"
-                                        Click="ContentFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Rolls" Tag="Rolls"
-                                        Click="ContentFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Items" Tag="Items"
-                                        Click="ContentFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Junk" Tag="Junk" Click="ContentFilterPill_Click"
-                                        Margin="2" />
-                                <Button Classes="FilterPill" Content="Procedural" Tag="Procedural"
-                                        Click="ContentFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="Proc List" Tag="ProcList" Margin="2" />
+                                <Button Classes="FilterPill" Content="Rolls" Tag="Rolls" Margin="2" />
+                                <Button Classes="FilterPill" Content="Items" Tag="Items" Margin="2" />
+                                <Button Classes="FilterPill" Content="Junk" Tag="Junk" Margin="2" />
+                                <Button Classes="FilterPill" Content="Procedural" Tag="Procedural" Margin="2" />
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -95,12 +90,9 @@
                         <StackPanel Spacing="2">
                             <TextBlock Text="STRUCTURE" Classes="SectionHeader" Margin="2 0 0 0" />
                             <WrapPanel x:Name="StructureFilterPills" Orientation="Horizontal">
-                                <Button Classes="FilterPill" Content="No Content" Tag="NoContent"
-                                        Click="StructureFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="Invalid" Tag="Invalid"
-                                        Click="StructureFilterPill_Click" Margin="2" />
-                                <Button Classes="FilterPill" Content="DistributionItems" Tag="DistributionItems"
-                                        Click="StructureFilterPill_Click" Margin="2" />
+                                <Button Classes="FilterPill" Content="No Content" Tag="NoContent" Margin="2" />
+                                <Button Classes="FilterPill" Content="Invalid" Tag="Invalid" Margin="2" />
+                                <Button Classes="FilterPill" Content="DistributionItems" Tag="DistributionItems" Margin="2" />
                             </WrapPanel>
                         </StackPanel>
                     </Border>
