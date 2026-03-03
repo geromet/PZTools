@@ -4,7 +4,7 @@
     "DistributionNames": [],
     "Children": [
       {
-        "Name": "Backpacks & Carry Bags",
+        "Name": "Backpacks \u0026 Carry Bags",
         "DistributionNames": [
           "Bag_ALICEpack",
           "Bag_ALICEpack_Army",
@@ -91,7 +91,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Weapon & Ammo Cases",
+        "Name": "Weapon \u0026 Ammo Cases",
         "DistributionNames": [
           "Bag_AmmoBox",
           "Bag_AmmoBox_308",
@@ -176,22 +176,22 @@
         "IsExpanded": false
       },
       {
-        "Name": "Toolboxes & Tool Rolls",
+        "Name": "Toolboxes \u0026 Tool Rolls",
         "DistributionNames": [
           "Toolbox",
-          "Toolbox_Farming",
           "Toolbox_Fishing",
           "Toolbox_Gardening",
           "Toolbox_Mechanic",
           "Toolbox_Wooden",
           "ToolRoll_Fabric",
           "ToolRoll_Leather",
-          "Bag_ToolBag"
+          "Bag_ToolBag",
+          "Toolbox_Farming"
         ],
         "IsExpanded": false
       },
       {
-        "Name": "Money & Valuables",
+        "Name": "Money \u0026 Valuables",
         "DistributionNames": [
           "Briefcase",
           "Briefcase_Money",
@@ -207,7 +207,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Mail & Parcels",
+        "Name": "Mail \u0026 Parcels",
         "DistributionNames": [
           "Parcel_ExtraLarge",
           "Parcel_ExtraSmall",
@@ -220,7 +220,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Bins & Trash",
+        "Name": "Bins \u0026 Trash",
         "DistributionNames": [
           "BinBar",
           "BinBathroom",
@@ -322,7 +322,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Doctor & Nurse",
+        "Name": "Doctor \u0026 Nurse",
         "DistributionNames": [
           "DoctorOutfit",
           "DoctorTools",
@@ -340,7 +340,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Electrician & Engineer",
+        "Name": "Electrician \u0026 Engineer",
         "DistributionNames": [
           "ElectricianOutfit",
           "ElectricianTools",
@@ -383,7 +383,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Hunter & Ranger & Trapper",
+        "Name": "Hunter \u0026 Ranger \u0026 Trapper",
         "DistributionNames": [
           "Hunter",
           "RangerOutfit",
@@ -407,7 +407,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Fitness & Photographer",
+        "Name": "Fitness \u0026 Photographer",
         "DistributionNames": [
           "FitnessTrainer",
           "Photographer"
@@ -451,7 +451,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "School Lockers & Gym",
+        "Name": "School Lockers \u0026 Gym",
         "DistributionNames": [
           "SchoolLockers",
           "SchoolLockersBad",
@@ -623,7 +623,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Science & Lab",
+        "Name": "Science \u0026 Lab",
         "DistributionNames": [
           "Chemistry",
           "LaboratoryBooks",
@@ -667,7 +667,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Seeds & Grain",
+        "Name": "Seeds \u0026 Grain",
         "DistributionNames": [
           "SeedBag",
           "SeedBag_Farming",
@@ -774,7 +774,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Shipping & Warehousing",
+        "Name": "Shipping \u0026 Warehousing",
         "DistributionNames": [
           "cabinetshipping",
           "dogfoodshipping",
@@ -1079,7 +1079,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Metal & Tool Production",
+        "Name": "Metal \u0026 Tool Production",
         "DistributionNames": [
           "MetalShopTools",
           "ToolFactoryBarStock",
@@ -1091,7 +1091,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Radio & Electronics",
+        "Name": "Radio \u0026 Electronics",
         "DistributionNames": [
           "RadioFactoryComponents"
         ],
@@ -1212,7 +1212,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Bars & Nightlife",
+        "Name": "Bars \u0026 Nightlife",
         "DistributionNames": [
           "BarCounterGlasses",
           "BarCounterLiquor",
@@ -1229,7 +1229,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Burger & Fast Food",
+        "Name": "Burger \u0026 Fast Food",
         "DistributionNames": [
           "BurgerKitchenButcher",
           "BurgerKitchenCutlery",
@@ -1240,7 +1240,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Cafe & Coffee",
+        "Name": "Cafe \u0026 Coffee",
         "DistributionNames": [
           "CafeCounterMix",
           "CafeDiningFridge",
@@ -1289,7 +1289,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Jay's Chicken",
+        "Name": "Jay\u0027s Chicken",
         "DistributionNames": [
           "JaysDiningCounter",
           "JaysKitchenBags",
@@ -1302,7 +1302,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Spiffo's",
+        "Name": "Spiffo\u0027s",
         "DistributionNames": [
           "SpiffosDesk",
           "SpiffosDiningCounter",
@@ -1360,7 +1360,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Grocery & Produce",
+        "Name": "Grocery \u0026 Produce",
         "DistributionNames": [
           "GroceryBag1",
           "GroceryBag2",
@@ -1427,7 +1427,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Theatre & Media",
+        "Name": "Theatre \u0026 Media",
         "DistributionNames": [
           "MovieRentalShelves",
           "TheatreDrinks",
@@ -1690,7 +1690,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Fish & Chips Kitchen",
+        "Name": "Fish \u0026 Chips Kitchen",
         "DistributionNames": [
           "fishchipskitchen",
           "FishChipsKitchenButcher",
@@ -1814,7 +1814,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Takeout & Packaging",
+        "Name": "Takeout \u0026 Packaging",
         "DistributionNames": [
           "TakeoutBox_Chinese",
           "TakeoutBox_Styrofoam",
@@ -1907,7 +1907,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Smoking Room & VIP",
+        "Name": "Smoking Room \u0026 VIP",
         "DistributionNames": [
           "smokingroom",
           "SmokingRoomCigars",
@@ -2289,7 +2289,7 @@
           "ww_bedroom",
           "WildWestBedroom"
         ],
-        "IsExpanded": false
+        "IsExpanded": true
       },
       {
         "Name": "Living Room",
@@ -2339,7 +2339,7 @@
           "ww_kitchen",
           "WildWestKitchen"
         ],
-        "IsExpanded": false
+        "IsExpanded": true
       },
       {
         "Name": "Fridges",
@@ -2424,7 +2424,7 @@
           "SafehouseMedical_Mid",
           "SafehouseMedical_Late"
         ],
-        "IsExpanded": true
+        "IsExpanded": false
       },
       {
         "Name": "Safehouse - Appliances",
@@ -2510,7 +2510,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Garage & Shed",
+        "Name": "Garage \u0026 Shed",
         "DistributionNames": [
           "GarageCarpentry",
           "GarageFirearms",
@@ -2526,7 +2526,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Closet & Changeroom",
+        "Name": "Closet \u0026 Changeroom",
         "DistributionNames": [
           "closet",
           "ClosetInstruments",
@@ -2557,13 +2557,13 @@
           "hoarderoffice",
           "JunkHoard"
         ],
-        "IsExpanded": false
+        "IsExpanded": true
       }
     ],
     "IsExpanded": true
   },
   {
-    "Name": "Vehicles & Auto",
+    "Name": "Vehicles \u0026 Auto",
     "DistributionNames": [],
     "Children": [
       {
@@ -2603,7 +2603,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Car Parts - Tires & Windows",
+        "Name": "Car Parts - Tires \u0026 Windows",
         "DistributionNames": [
           "CarTiresModern1",
           "CarTiresModern2",
@@ -2653,7 +2653,7 @@
     "IsExpanded": false
   },
   {
-    "Name": "Sports & Recreation",
+    "Name": "Sports \u0026 Recreation",
     "DistributionNames": [],
     "Children": [
       {
@@ -2753,7 +2753,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Arcade & Games",
+        "Name": "Arcade \u0026 Games",
         "DistributionNames": [
           "CarnivalPrizes",
           "dartgame",
@@ -2768,7 +2768,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Camping & Outdoor",
+        "Name": "Camping \u0026 Outdoor",
         "DistributionNames": [
           "camping",
           "CampingLockers",
@@ -2903,7 +2903,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Hobby & Crafts",
+        "Name": "Hobby \u0026 Crafts",
         "DistributionNames": [
           "Hobbies",
           "Homesteading",
@@ -2958,7 +2958,7 @@
     "IsExpanded": false
   },
   {
-    "Name": "Government & Public Services",
+    "Name": "Government \u0026 Public Services",
     "DistributionNames": [],
     "Children": [
       {
@@ -3026,7 +3026,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Police & SWAT",
+        "Name": "Police \u0026 SWAT",
         "DistributionNames": [
           "PoliceCaptainCabinet",
           "PoliceCaptainDesk",
@@ -3065,7 +3065,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Medical & Hospital",
+        "Name": "Medical \u0026 Hospital",
         "DistributionNames": [
           "HospitalLockers",
           "HospitalMagazineRack",
@@ -3161,7 +3161,7 @@
         "IsExpanded": false
       },
       {
-        "Name": "Waiting Room & Lobby",
+        "Name": "Waiting Room \u0026 Lobby",
         "DistributionNames": [
           "lobby",
           "waitingroom",
