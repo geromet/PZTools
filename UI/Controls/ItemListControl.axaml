@@ -1,14 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:UI.Assets"
              x:Class="UI.Controls.ItemListControl"
              x:CompileBindings="False">
 
     <Grid RowDefinitions="Auto,*,Auto">
         <Grid Grid.Row="0" ColumnDefinitions="*,65"
               Background="{StaticResource BgElevated}" Margin="0 0 0 1">
-            <TextBlock Grid.Column="0" Text="Item" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Grid.Column="0" Text="{x:Static loc:Strings.ColItem}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{StaticResource TextMuted}" Margin="4 3" />
-            <TextBlock Grid.Column="1" Text="Chance" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.ColChance}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{StaticResource TextMuted}"
                        HorizontalAlignment="Right" Margin="0 3 4 3" />
         </Grid>
@@ -18,14 +19,8 @@
         </ScrollViewer>
 
         <Button x:Name="AddItemBtn" Grid.Row="2"
-                Content="+ Add Item"
-                Click="AddItemBtn_Click"
-                FontSize="11"
-                Padding="6 3"
-                Margin="4 4"
-                HorizontalAlignment="Left"
-                Background="Transparent"
-                BorderThickness="0"
-                Foreground="{StaticResource Accent}" />
+                Classes="AddLink"
+                Content="{x:Static loc:Strings.BtnAddItem}"
+                Click="AddItemBtn_Click" />
     </Grid>
 </UserControl>

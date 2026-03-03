@@ -1,8 +1,7 @@
-using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using DataInput.Data;
+using Data.Data;
 using UI.UndoRedo;
 
 namespace UI.Controls;
@@ -13,6 +12,8 @@ public partial class ContainerControl : UserControl
     private UndoRedoStack? _undoRedo;
     private SharedColumnLayout? _sharedLayout;
     private bool _loading;
+    private bool _showEmpty;
+    private bool _contentDirty;
     private bool _hasItems;
     private bool _hasJunk;
     private bool _hasProc;
@@ -23,16 +24,17 @@ public partial class ContainerControl : UserControl
     {
         InitializeComponent();
         Unloaded += OnUnloaded;
+        ContainerExpander.Expanded += OnExpanderExpanded;
     }
 
-    public void Load(Container c, UndoRedoStack undoRedo, SharedColumnLayout? sharedLayout = null, bool showEmpty = false)
+    public void Load(Container c, UndoRedoStack undoRedo, SharedColumnLayout? sharedLayout = null, bool showEmpty = false, bool expanded = false)
     {
         _model = c;
         _undoRedo = undoRedo;
+        _showEmpty = showEmpty;
         _loading = true;
         try
         {
-            // Unsubscribe from previous layout
             if (_sharedLayout is not null)
                 _sharedLayout.ProportionsChanged -= OnSharedProportionsChanged;
 
@@ -40,37 +42,17 @@ public partial class ContainerControl : UserControl
             if (_sharedLayout is not null)
                 _sharedLayout.ProportionsChanged += OnSharedProportionsChanged;
 
+            // Header is always visible; populate it immediately.
             NameText.Text = c.Name;
             ItemRollsBadge.Text = $"\u21bb {c.ItemRolls}";
             ItemCountBadge.Text = $"\u229e {c.ItemChances.Count}";
             ProceduralBadge.IsVisible = c.Procedural;
 
-            ItemRollsBox.Text = c.ItemRolls.ToString();
-            JunkRollsBox.Text = c.JunkRolls.ToString();
-            FillRandCheck.IsChecked = c.FillRand;
-            ProceduralCheck.IsChecked = c.Procedural;
-            DontSpawnAmmoCheck.IsChecked = c.DontSpawnAmmo;
-
-            ItemRowHelper.Populate(ItemRowsPanel, c.ItemChances, undoRedo, $"{c.Name}.items", c);
-            ItemRowHelper.Populate(JunkRowsPanel, c.JunkChances, undoRedo, $"{c.Name}.junk", c);
-            ProcListControl.Load(c.ProcListEntries, undoRedo);
-
-            _hasItems = c.ItemChances.Count > 0 || showEmpty;
-            _hasJunk = c.JunkChances.Count > 0 || showEmpty;
-            _hasProc = c.ProcListEntries.Count > 0 || showEmpty;
-
-            ConfigureColumns();
-
-            // Apply shared proportions
-            ApplySharedProportions();
-
-            // Wire splitter drag events
-            SettingsItemsSplitter.DragDelta -= OnSplitterDragDelta;
-            SettingsItemsSplitter.DragDelta += OnSplitterDragDelta;
-            JunkSplitter.DragDelta -= OnSplitterDragDelta;
-            JunkSplitter.DragDelta += OnSplitterDragDelta;
-            ProcListSplitter.DragDelta -= OnSplitterDragDelta;
-            ProcListSplitter.DragDelta += OnSplitterDragDelta;
+            // Content is only needed when expanded. Defer populate until first expand.
+            ContainerExpander.IsExpanded = expanded;
+            _contentDirty = !expanded;
+            if (expanded)
+                PopulateContent();
         }
         finally
         {
@@ -78,12 +60,66 @@ public partial class ContainerControl : UserControl
         }
     }
 
-    /// <summary>
-    /// Resets all 7 column definitions, then packs every visible panel
-    /// into consecutive (splitter, content) pairs starting from col 1.
-    /// Each GridSplitter always has a real star-width neighbor on both sides.
-    /// Stateless — safe to call repeatedly across toggles and switches.
-    /// </summary>
+    // Called when the user (or SetAllExpanded) expands the container.
+    private void OnExpanderExpanded(object? sender, RoutedEventArgs e)
+    {
+        if (_loading) return; // Load() manages populate directly; suppress re-entry
+        if (_contentDirty)
+            PopulateContent();
+    }
+
+    public void RepopulateItemRows()
+    {
+        if (_model is null || _undoRedo is null || _contentDirty) return;
+        ItemRowHelper.Populate(ItemRowsPanel, _model.ItemChances, _undoRedo, $"{_model.Name}.items", _model);
+        ItemRowHelper.Populate(JunkRowsPanel, _model.JunkChances, _undoRedo, $"{_model.Name}.junk", _model);
+    }
+
+    private void PopulateContent()
+    {
+        if (_model is null || _undoRedo is null) return;
+        _contentDirty = false;
+        _loading = true;
+        try
+        {
+            var c = _model;
+            ItemRollsBox.Text = c.ItemRolls.ToString();
+            JunkRollsBox.Text = c.JunkRolls.ToString();
+            FillRandCheck.IsChecked = c.FillRand;
+            ProceduralCheck.IsChecked = c.Procedural;
+            DontSpawnAmmoCheck.IsChecked = c.DontSpawnAmmo;
+
+            ItemRowHelper.Populate(ItemRowsPanel, c.ItemChances, _undoRedo, $"{c.Name}.items", c);
+            ItemRowHelper.Populate(JunkRowsPanel, c.JunkChances, _undoRedo, $"{c.Name}.junk", c);
+            ProcListControl.Load(c.ProcListEntries, _undoRedo);
+
+            _hasItems = c.ItemChances.Count > 0 || _showEmpty;
+            _hasJunk = c.JunkChances.Count > 0 || _showEmpty;
+            _hasProc = c.ProcListEntries.Count > 0 || _showEmpty;
+
+            ConfigureColumns();
+            ApplySharedProportions();
+            WireSplitters();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    #region Column layout
+
+    private GridSplitter[] Splitters => [SettingsItemsSplitter, JunkSplitter, ProcListSplitter];
+
+    private void WireSplitters()
+    {
+        foreach (var s in Splitters)
+        {
+            s.DragDelta -= OnSplitterDragDelta;
+            s.DragDelta += OnSplitterDragDelta;
+        }
+    }
+
     private void ConfigureColumns()
     {
         var zero = new GridLength(0);
@@ -91,53 +127,29 @@ public partial class ContainerControl : UserControl
         var star = new GridLength(1, GridUnitType.Star);
         var defs = ContentGrid.ColumnDefinitions;
 
-        // 1. Reset all columns to zero
         for (int i = 0; i < 7; i++)
             defs[i].Width = zero;
 
-        // 2. Col 0 is always Settings
         defs[0].Width = star;
-
-        // 3. Pack visible panels into consecutive column pairs
-        //    Each pair is (splitter col, content col).
-        //    Layout: Settings(0) | S(n) | Panel(n+1) | S(n+2) | Panel(n+3) | ...
         int next = 1;
 
-        // Items
-        ItemsPanel.IsVisible = _hasItems;
-        SettingsItemsSplitter.IsVisible = _hasItems;
-        if (_hasItems)
-        {
-            Grid.SetColumn(SettingsItemsSplitter, next);
-            Grid.SetColumn(ItemsPanel, next + 1);
-            defs[next].Width = splitterWidth;
-            defs[next + 1].Width = star;
-            next += 2;
-        }
+        PlaceColumnPair(defs, SettingsItemsSplitter, ItemsPanel, _hasItems, ref next, splitterWidth, star);
+        PlaceColumnPair(defs, JunkSplitter, JunkPanel, _hasJunk, ref next, splitterWidth, star);
+        PlaceColumnPair(defs, ProcListSplitter, ProcListPanel, _hasProc, ref next, splitterWidth, star);
+    }
 
-        // Junk
-        JunkPanel.IsVisible = _hasJunk;
-        JunkSplitter.IsVisible = _hasJunk;
-        if (_hasJunk)
-        {
-            Grid.SetColumn(JunkSplitter, next);
-            Grid.SetColumn(JunkPanel, next + 1);
-            defs[next].Width = splitterWidth;
-            defs[next + 1].Width = star;
-            next += 2;
-        }
-
-        // ProcList
-        ProcListPanel.IsVisible = _hasProc;
-        ProcListSplitter.IsVisible = _hasProc;
-        if (_hasProc)
-        {
-            Grid.SetColumn(ProcListSplitter, next);
-            Grid.SetColumn(ProcListPanel, next + 1);
-            defs[next].Width = splitterWidth;
-            defs[next + 1].Width = star;
-            next += 2;
-        }
+    private static void PlaceColumnPair(
+        ColumnDefinitions defs, Control splitter, Control panel,
+        bool visible, ref int next, GridLength splitterWidth, GridLength star)
+    {
+        splitter.IsVisible = visible;
+        panel.IsVisible = visible;
+        if (!visible) return;
+        Grid.SetColumn(splitter, next);
+        Grid.SetColumn(panel, next + 1);
+        defs[next].Width = splitterWidth;
+        defs[next + 1].Width = star;
+        next += 2;
     }
 
     private void ApplySharedProportions()
@@ -173,6 +185,7 @@ public partial class ContainerControl : UserControl
     private void OnSharedProportionsChanged(object? sender)
     {
         if (sender == this) return;
+        if (_contentDirty) return; // not populated yet; ApplySharedProportions runs when expanded
         ApplySharedProportions();
     }
 
@@ -181,76 +194,68 @@ public partial class ContainerControl : UserControl
         if (_sharedLayout is not null)
             _sharedLayout.ProportionsChanged -= OnSharedProportionsChanged;
 
-        SettingsItemsSplitter.DragDelta -= OnSplitterDragDelta;
-        JunkSplitter.DragDelta -= OnSplitterDragDelta;
-        ProcListSplitter.DragDelta -= OnSplitterDragDelta;
+        foreach (var s in Splitters)
+            s.DragDelta -= OnSplitterDragDelta;
     }
+
+    #endregion
+
+    #region Property editing
 
     private void ItemRollsBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        if (!int.TryParse(ItemRollsBox.Text, out var newVal))
-        {
-            ItemRollsBox.Text = _model.ItemRolls.ToString();
-            return;
-        }
-        if (newVal == _model.ItemRolls) return;
-        var old = _model.ItemRolls;
-        _undoRedo.Push(new PropertyChangeAction<int>(
-            $"{_model.Name}.Rolls: {old}\u2192{newVal}",
-            v => { _model.ItemRolls = v; ItemRollsBox.Text = v.ToString(); ItemRollsBadge.Text = $"\u21bb {v}"; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushIntChange(_undoRedo, _model, ItemRollsBox, "Rolls",
+            _model.ItemRolls, v => _model.ItemRolls = v,
+            v => ItemRollsBadge.Text = $"\u21bb {v}");
     }
 
     private void JunkRollsBox_LostFocus(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        if (!int.TryParse(JunkRollsBox.Text, out var newVal))
-        {
-            JunkRollsBox.Text = _model.JunkRolls.ToString();
-            return;
-        }
-        if (newVal == _model.JunkRolls) return;
-        var old = _model.JunkRolls;
-        _undoRedo.Push(new PropertyChangeAction<int>(
-            $"{_model.Name}.JunkRolls: {old}\u2192{newVal}",
-            v => { _model.JunkRolls = v; JunkRollsBox.Text = v.ToString(); _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushIntChange(_undoRedo, _model, JunkRollsBox, "JunkRolls",
+            _model.JunkRolls, v => _model.JunkRolls = v);
     }
 
     private void FillRandCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = FillRandCheck.IsChecked == true;
-        if (newVal == _model.FillRand) return;
-        var old = _model.FillRand;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.FillRand: {old}\u2192{newVal}",
-            v => { _model.FillRand = v; FillRandCheck.IsChecked = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, FillRandCheck, "FillRand",
+            _model.FillRand, v => _model.FillRand = v);
     }
 
     private void ProceduralCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = ProceduralCheck.IsChecked == true;
-        if (newVal == _model.Procedural) return;
-        var old = _model.Procedural;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.Procedural: {old}\u2192{newVal}",
-            v => { _model.Procedural = v; ProceduralCheck.IsChecked = v; ProceduralBadge.IsVisible = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, ProceduralCheck, "Procedural",
+            _model.Procedural, v => _model.Procedural = v,
+            v => ProceduralBadge.IsVisible = v);
     }
 
     private void DontSpawnAmmoCheck_IsCheckedChanged(object? sender, RoutedEventArgs e)
     {
         if (_loading || _model is null || _undoRedo is null) return;
-        var newVal = DontSpawnAmmoCheck.IsChecked == true;
-        if (newVal == _model.DontSpawnAmmo) return;
-        var old = _model.DontSpawnAmmo;
-        _undoRedo.Push(new PropertyChangeAction<bool>(
-            $"{_model.Name}.DontSpawnAmmo: {old}\u2192{newVal}",
-            v => { _model.DontSpawnAmmo = v; DontSpawnAmmoCheck.IsChecked = v; _model.IsDirty = true; },
-            old, newVal));
+        UndoHelper.PushBoolChange(_undoRedo, _model, DontSpawnAmmoCheck, "DontSpawnAmmo",
+            _model.DontSpawnAmmo, v => _model.DontSpawnAmmo = v);
     }
+
+    #endregion
+
+    #region Add items
+
+    private void AddItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_model is null || _undoRedo is null) return;
+        UndoHelper.PushItemInsert(_undoRedo, _model,
+            _model.ItemChances, ItemRowsPanel, $"{_model.Name}.items");
+    }
+
+    private void AddJunkItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_model is null || _undoRedo is null) return;
+        UndoHelper.PushItemInsert(_undoRedo, _model,
+            _model.JunkChances, JunkRowsPanel, $"{_model.Name}.junk");
+    }
+
+    #endregion
 }

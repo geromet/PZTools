@@ -1,0 +1,148 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:UI.Controls.Helpers"
+             xmlns:loc="clr-namespace:UI.Assets"
+             x:Class="UI.Controls.ItemsListControl"
+             x:CompileBindings="False">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Panel header + search -->
+        <Border Grid.Row="0"
+                Padding="12 10 12 8"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 0 0 1">
+            <StackPanel Spacing="8">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Left"
+                               Text="{x:Static loc:Strings.ILHeader}"
+                               Classes="PanelHeader" />
+                    <!-- Filtered/Total count -->
+                    <TextBlock x:Name="CountText"
+                               DockPanel.Dock="Right"
+                               FontSize="10"
+                               Foreground="{StaticResource TextMuted}"
+                               VerticalAlignment="Center" />
+                    <!-- Expand/Collapse All buttons -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0 0 6 0">
+                        <Button Classes="FilterPill" Content="⊞" ToolTip.Tip="{x:Static loc:Strings.DLExpandAll}"
+                                Tag="True" Click="ExpandCollapseAll_Click" Margin="2" Padding="4 2" FontSize="10" />
+                        <Button Classes="FilterPill" Content="⊟" ToolTip.Tip="{x:Static loc:Strings.DLCollapseAll}"
+                                Tag="False" Click="ExpandCollapseAll_Click" Margin="2" Padding="4 2" FontSize="10" />
+                    </StackPanel>
+                </DockPanel>
+                <TextBox x:Name="SearchBox"
+                         Watermark="{x:Static loc:Strings.ILSearch}"
+                         FontSize="12" />
+            </StackPanel>
+        </Border>
+
+        <!-- Filter pills -->
+        <Border Grid.Row="1"
+                Padding="8 6"
+                BorderBrush="{StaticResource BorderSubtle}"
+                BorderThickness="0 0 0 1">
+            <StackPanel Spacing="4">
+                <!-- Distribution type filter -->
+                <Border Padding="4" CornerRadius="4"
+                        Background="{StaticResource BgElevated}">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{x:Static loc:Strings.DLTypeHeader}" Classes="SectionHeader" Margin="2 0 0 0" />
+                        <WrapPanel x:Name="TypeFilterPills" Orientation="Horizontal">
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeAll}" Tag="{x:Null}" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeRooms}" Tag="Room" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeCaches}" Tag="Cache" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeProfessions}" Tag="Profession" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeProcedural}" Tag="Procedural" Click="TypeFilterPill_Click" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.DLTypeItems}" Tag="Item" Click="TypeFilterPill_Click" Margin="2" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Divider -->
+                <Border Height="1" Background="{StaticResource BorderSubtle}" Margin="0 2" />
+
+                <!-- Item type filter (tri-state) -->
+                <Border Padding="4" CornerRadius="4"
+                        Background="{StaticResource BgElevated}">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{x:Static loc:Strings.ILItemTypeHeader}" Classes="SectionHeader" Margin="2 0 0 0" />
+                        <WrapPanel x:Name="ItemTypeFilterPills" Orientation="Horizontal">
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.ILFilterItems}" Tag="Items" Margin="2" />
+                            <Button Classes="FilterPill" Content="{x:Static loc:Strings.ILFilterJunk}"  Tag="Junk"  Margin="2" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- Item tree -->
+        <TreeView x:Name="ItemTree"
+                  Grid.Row="2"
+                  SelectionMode="Single"
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible"
+                  ScrollViewer.AllowAutoHide="False">
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate ItemsSource="{Binding Children}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" MinHeight="22" Margin="0,0,6,0">
+                        <!-- Folder icon -->
+                        <TextBlock Grid.Column="0"
+                                   Text="&#x1F4C1; "
+                                   FontSize="12"
+                                   IsVisible="{Binding IsFolder}"
+                                   VerticalAlignment="Center" />
+                        <!-- Name -->
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Name}"
+                                   TextTrimming="CharacterEllipsis"
+                                   FontWeight="{Binding IsFolder, Converter={x:Static helpers:BoolToFontWeightConverter.Instance}}"
+                                   VerticalAlignment="Center" />
+                        <!-- Child count (folders only) -->
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding ChildCountText}"
+                                   FontSize="10"
+                                   Foreground="{StaticResource TextMuted}"
+                                   IsVisible="{Binding IsFolder}"
+                                   VerticalAlignment="Center"
+                                   Margin="4 0 0 0" />
+                    </Grid>
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+            <TreeView.ContextMenu>
+                <ContextMenu x:Name="TreeContextMenu" Opening="TreeContextMenu_Opening">
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuNewFolder}" Click="NewFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuNewSubfolder}" x:Name="NewSubfolderItem" Click="NewSubfolder_Click" />
+                    <Separator />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuMoveToFolder}" x:Name="MoveToFolderMenu" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuRemoveFromFolder}" x:Name="RemoveFromFolderItem" Click="RemoveFromFolder_Click" />
+                    <Separator />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuRenameFolder}" x:Name="RenameFolderItem" Click="RenameFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuDeleteFolder}" x:Name="DeleteFolderItem" Click="DeleteFolder_Click" />
+                    <Separator x:Name="FolderExpandSeparator" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuExpandAll}" x:Name="ExpandFolderItem" Tag="True" Click="ExpandCollapseFolder_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.DLMenuCollapseAll}" x:Name="CollapseFolderItem" Tag="False" Click="ExpandCollapseFolder_Click" />
+                </ContextMenu>
+            </TreeView.ContextMenu>
+        </TreeView>
+
+        <!-- Inline rename overlay -->
+        <Border x:Name="RenameOverlay"
+                Grid.Row="2"
+                IsVisible="False"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left"
+                Margin="24 4 0 0"
+                Padding="4"
+                Background="{StaticResource BgElevated}"
+                BorderBrush="{StaticResource Accent}"
+                BorderThickness="1"
+                CornerRadius="4">
+            <TextBox x:Name="RenameBox"
+                     Width="180"
+                     FontSize="12"
+                     KeyDown="RenameBox_KeyDown"
+                     LostFocus="RenameBox_LostFocus" />
+        </Border>
+    </Grid>
+</UserControl>

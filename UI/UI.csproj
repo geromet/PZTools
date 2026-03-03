@@ -12,16 +12,30 @@
     <ItemGroup>
         <!-- Avalonia -->
         <PackageReference Include="Avalonia" Version="11.3.12" />
+        <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
         <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
         <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.12" />
         <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
-        <!-- Project reference -->
-        <ProjectReference Include="..\DataInput\DataInput.csproj" />
+        <!-- Project references -->
+        <ProjectReference Include="..\Data\Data.csproj" />
+        <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <AvaloniaResource Include="Assets\**" />
+        <AvaloniaResource Include="Assets\**" Exclude="Assets\Strings.resx;Assets\Strings.Designer.cs" />
+        <EmbeddedResource Update="Assets\Strings.resx">
+            <LogicalName>UI.Assets.Strings.resources</LogicalName>
+            <Generator>PublicResXFileCodeGenerator</Generator>
+            <LastGenOutput>Assets\Strings.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <Compile Update="Assets\Strings.Designer.cs">
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Strings.resx</DependentUpon>
+        </Compile>
+        <Compile Update="Controls\ItemsDetailControl.axaml.cs">
+          <DependentUpon>ItemsDetailControl.axaml</DependentUpon>
+        </Compile>
     </ItemGroup>
 
     <ItemGroup>
