@@ -52,23 +52,4 @@
                      TextWrapping="Wrap" LostFocus="ForceItemsBox_LostFocus" />
         </Grid>
     </Border>
-
-    <UserControl.Styles>
-        <Style Selector="TextBlock.FieldLabel">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="Button.NavLink">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="Button.NavLink:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="TextBlock.TextDecorations" Value="Underline" />
-        </Style>
-    </UserControl.Styles>
 </UserControl>
