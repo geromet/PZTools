@@ -2,101 +2,37 @@
 
 ## Project
 
-PZTools — desktop viewer/editor for Project Zomboid `Distributions.lua` and `ProceduralDistributions.lua`. Parses Lua into domain model, displays in Avalonia UI with filtering, tabbed editing, undo/redo, save to disk.
+PZTools — desktop viewer/editor for Project Zomboid `Distributions.lua` and `ProceduralDistributions.lua`. Parses Lua into a domain model, displays in Avalonia UI with filtering, tabbed editing, undo/redo, save to disk.
 
 ## Build
 
 ```bash
-dotnet build PZTools.sln        # full solution
+dotnet build PZTools.sln           # full solution
 dotnet run --project UI/UI.csproj  # run UI
-dotnet build DataInput/DataInput.csproj  # parsing lib only
 ```
 
 Target: **net10.0**. No automated tests.
+App running → DLL-locked MSB3027 warnings are expected. Check for real errors: `dotnet build ... 2>&1 | grep " CS[0-9]"`
 
-## Structure
+## Solution Structure
 
-- `DataInput` — parsing, domain model, validation, serialization, comments. No UI deps.
-- `UI` — Avalonia frontend, references DataInput.
+| Project | Role | Details |
+|---|---|---|
+| `Data/` | Parsing, domain model, validation, serialization | No UI or Core deps → [Data/CLAUDE.md](Data/CLAUDE.md) |
+| `Core/` | Shared logic: filtering, folders, items index | References Data only → [Core/CLAUDE.md](Core/CLAUDE.md) |
+| `UI/` | Avalonia frontend | References Core + Data → [UI/CLAUDE.md](UI/CLAUDE.md) |
 
-Only these two are active. Legacy projects removed.
-
-## Git rules
+## Git Rules
 
 - ONLY branch: `sandbox/liability-machine`. Never commit/push elsewhere. Never ask to.
 - User cherry-picks accepted work to correct branches.
 - Commit + push frequently. Small focused commits per logical change.
 
-## DataInput
+## Architectural Principles
 
-### Parse pipeline (no backwards refs)
+These apply across all layers:
 
-```
-ILuaLoader → raw LuaTable → DistributionMapper → domain objects
-→ IValidator[] → ParseError list → DistributionParser → ParseResult
-```
-
-### Domain model
-
-- `Distribution : ItemParent` — top-level (room/bag/cache/profession/procedural)
-- `Container : ItemParent` — nested shelf/counter; also `bags` entries
-- `Item` — struct (Name, Chance) in `List<Item>` on ItemParent
-- `ProcListEntry` — ref to procedural Distribution by name + resolved pointer
-- `DistributionClassifier` — name → DistributionType via HashSet lookups
-- `NamePool` — string interning across distributions
-
-Errors: non-fatal by default (log ParseError, continue). Fatal = early return.
-
-### Serialization (`LuaWriter`)
-
-ItemPickerJava constraints:
-- Non-procedural containers: always emit both `rolls` + `items`
-- Junk blocks: always emit `rolls`
-- Distribution-level: `rolls` + `items` emitted together
-- Procedural without entries: emit `procList = {}`
-
-### Comments (`LuaCommentExtractor`)
-
-State machine: Preamble → InTable → Postamble. Comments keyed by structural path. Postamble captures everything after main table close verbatim (utility funcs, event registrations, `mergeDistributions`).
-
-### References (`LuaRefInfo`)
-
-Cross-table refs (e.g. `bags = BagsAndContainers.X`, `junk = ClutterTables.Y`):
-- `Container.SourceReference/SourceReferenceFile` — whole container
-- `ItemParent.ItemsReference` — items list
-- `ItemParent.JunkReference/JunkReferenceFile` — junk block
-- `ItemParent.JunkItemsReference` — items inside junk
-- `ItemParent.BagsReference/BagsFileReference` — bags block
-
-## UI
-
-Plain code-behind, no MVVM. State in MainWindow + controls.
-
-```
-MainWindow (TabControl + per-tab UndoRedoStack)
-├── DistributionListControl — left; filters + search, fires OpenRequested
-├── TabControl → DistributionDetailControl → ContainerControl → ItemListControl, ProcListListControl
-├── ErrorListControl — bottom
-└── Properties panel — right; read-only detail for proc ref links
-```
-
-### Tabs
-
-Per-tab `TabState`: independent UndoRedoStack, dirty dot, close w/ save confirm, pin support. LRU eviction at 10 cached controls. Context menu: Close/All/Others/Left/Right/Pin.
-
-### Undo/redo
-
-`UndoRedoStack` with `IUndoableAction`. Controls get stack via `Load()`, push `PropertyChangeAction<T>`. Shortcuts: Ctrl+Z/Y/Shift+Z/W.
-
-### Bindings
-
-`MainWindow.axaml`: `x:CompileBindings="False"` (runtime). Other controls may differ — check per-file.
-
-## Conventions
-
-- `ILuaLoader` = injection seam for tests (stub to avoid file I/O)
-- `ParseResult` never throws; check `HasFatalErrors`
-- `Item` is struct for allocation-friendly lists
-- Lua items = flat alternating `name, chance, name, chance` — see `MapItemChances`
-- Lua paths: `media/lua/server/Items/ProceduralDistributions.lua` and `Distributions.lua`
-- Container props `OnlyOne`, `MaxMap`, `StashChance` used by BagsAndContainers
+- **Layer discipline** — domain and business logic belongs in `Data` or `Core`, not in `UI`. UI code-behind calls into Core helpers; it does not reimplement filtering, indexing, folder management, or domain operations.
+- **DRY** — before adding a new helper or class, search for existing code that does the same (or nearly the same) thing and extend it. Check `Core/Filtering/`, `Core/Items/`, `Core/Folders/`, `UI/Controls/Helpers/`.
+- **No premature abstraction** — three similar lines is better than a premature abstraction. Only extract when a pattern is confirmed to repeat.
+- **Minimal scope** — only make changes directly requested or clearly necessary. No speculative features, no extra configurability.
