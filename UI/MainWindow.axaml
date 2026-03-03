@@ -1,15 +1,16 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:UI.Controls"
+        xmlns:loc="clr-namespace:UI.Assets"
         x:Class="UI.MainWindow"
         x:CompileBindings="False"
-        Title="PZ Distribution Viewer"
+        Title="{x:Static loc:Strings.AppTitle}"
         Width="1280" Height="800" MinWidth="900" MinHeight="500"
         Background="{StaticResource BgBase}"
         FontFamily="Inter,Segoe UI,system-ui,sans-serif">
 
     <Grid RowDefinitions="Auto,*,Auto">
-        
+
         <!-- ══ TOOLBAR ══ -->
         <Border Grid.Row="0"
                                                Background="{StaticResource BgPanel}"
@@ -18,7 +19,7 @@
                                                Padding="12 6">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
-                           Text="PZ Distributions"
+                           Text="{x:Static loc:Strings.AppLabel}"
                            Foreground="{StaticResource TextPrimary}"
                            FontSize="13" FontWeight="SemiBold"
                            VerticalAlignment="Center"
@@ -26,15 +27,15 @@
 
                 <!-- File actions -->
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="4">
-                    <Button Content="&#x1F4C2;  Open Folder" Click="SelectFolder_Click"/>
+                    <Button Content="{x:Static loc:Strings.BtnOpenFolder}" Click="SelectFolder_Click"/>
                     <Button x:Name="SaveBtn"
-                            Content="&#x1F4BE;  Save"
+                            Content="{x:Static loc:Strings.BtnSave}"
                             Click="Save_Click"
                             IsEnabled="False"
-                            ToolTip.Tip="Save modified files (Ctrl+S)"/>
-                    <Button Content="&#x27F3;  Reload"
+                            ToolTip.Tip="{x:Static loc:Strings.BtnSaveTip}"/>
+                    <Button Content="{x:Static loc:Strings.BtnReload}"
                             Click="Reload_Click"
-                            ToolTip.Tip="Re-parse current folder"/>
+                            ToolTip.Tip="{x:Static loc:Strings.BtnReloadTip}"/>
                 </StackPanel>
 
                 <!-- Undo / Redo -->
@@ -43,31 +44,32 @@
                     <Button x:Name="UndoBtn"
                             IsEnabled="False"
                             Click="UndoBtn_Click"
-                            ToolTip.Tip="Nothing to undo">
+                            ToolTip.Tip="{x:Static loc:Strings.UndoNothingToUndo}">
                         <TextBlock Text="↩  Undo" Foreground="{StaticResource TextSecondary}"/>
                     </Button>
                     <Button x:Name="RedoBtn"
                             IsEnabled="False"
                             Click="RedoBtn_Click"
-                            ToolTip.Tip="Nothing to redo">
+                            ToolTip.Tip="{x:Static loc:Strings.UndoNothingToRedo}">
                         <TextBlock Text="↪  Redo" Foreground="{StaticResource TextSecondary}"/>
                     </Button>
                 </StackPanel>
 
                 <!-- View menu -->
                 <Menu DockPanel.Dock="Left" VerticalAlignment="Center" Margin="12 0 0 0">
-                    <MenuItem Header="View">
-                        <MenuItem x:Name="ViewListItem"   Header="✓ Distribution List" Tag="List"   Click="ViewMenuItem_Click" />
-                        <MenuItem x:Name="ViewDetailItem" Header="✓ Detail View"       Tag="Detail" Click="ViewMenuItem_Click" />
-                        <MenuItem x:Name="ViewErrorItem"  Header="✓ Error List"        Tag="Error"  Click="ViewMenuItem_Click" />
-                        <MenuItem x:Name="ViewRightItem"  Header="✓ Properties"        Tag="Right"  Click="ViewMenuItem_Click" />
+                    <MenuItem Header="{x:Static loc:Strings.MenuView}">
+                        <MenuItem x:Name="ViewListItem"   Header="{x:Static loc:Strings.MenuViewDistList}" Tag="List"   Click="ViewMenuItem_Click" />
+                        <MenuItem x:Name="ViewItemsItem"  Header="{x:Static loc:Strings.MenuViewItemList}" Tag="Items"  Click="ViewMenuItem_Click" />
+                        <MenuItem x:Name="ViewDetailItem" Header="{x:Static loc:Strings.MenuViewDetail}"   Tag="Detail" Click="ViewMenuItem_Click" />
+                        <MenuItem x:Name="ViewErrorItem"  Header="{x:Static loc:Strings.MenuViewError}"    Tag="Error"  Click="ViewMenuItem_Click" />
+                        <MenuItem x:Name="ViewRightItem"  Header="{x:Static loc:Strings.MenuViewRight}"    Tag="Right"  Click="ViewMenuItem_Click" />
                     </MenuItem>
                 </Menu>
 
                 <!-- Help -->
-                <Button DockPanel.Dock="Right" Content="?  Help" Click="HelpBtn_Click"
+                <Button DockPanel.Dock="Right" Content="{x:Static loc:Strings.BtnHelp}" Click="HelpBtn_Click"
                         Margin="8 0 0 0" VerticalAlignment="Center"
-                        ToolTip.Tip="Open help window" />
+                        ToolTip.Tip="{x:Static loc:Strings.BtnHelpTip}" />
 
                 <!-- Loading indicator -->
                 <ProgressBar x:Name="LoadingBar"
@@ -83,7 +85,7 @@
         <!-- ══ THREE-PANE BODY ══ -->
         <Grid x:Name="MainGrid"
               Grid.Row="1"
-              ColumnDefinitions="260,4,*,4,260"
+              ColumnDefinitions="260,4,260,4,*,4,260"
               RowDefinitions="*,4,160">
 
             <!-- LEFT — Distribution list -->
@@ -101,8 +103,23 @@
                           ResizeDirection="Columns"
                           HorizontalAlignment="Stretch"/>
 
+            <!-- ITEMS — Item explorer -->
+            <Grid x:Name="ItemsListGrid" Grid.Column="2" Grid.RowSpan="3">
+                <Border Background="{StaticResource BgPanel}"
+                        BorderBrush="{StaticResource BorderSubtle}"
+                        BorderThickness="0 0 1 0">
+                    <controls:ItemsListControl x:Name="ItemsList" />
+                </Border>
+                <Button Classes="PanelClose" Tag="Items" Click="ClosePanelBtn_Click" />
+            </Grid>
+
+            <GridSplitter x:Name="ItemsSplitter"
+                          Grid.Column="3" Grid.RowSpan="3"
+                          ResizeDirection="Columns"
+                          HorizontalAlignment="Stretch"/>
+
             <!-- CENTER — Tabbed detail panel -->
-            <Grid x:Name="DetailPanelGrid" Grid.Column="2" Grid.Row="0">
+            <Grid x:Name="DetailPanelGrid" Grid.Column="4" Grid.Row="0">
                 <Border Background="{StaticResource BgBase}">
                     <TabControl x:Name="TabBar"
                                 SelectionChanged="TabBar_SelectionChanged"
@@ -163,12 +180,12 @@
             </Grid>
 
             <GridSplitter x:Name="ErrorSplitter"
-                          Grid.Column="2" Grid.Row="1"
+                          Grid.Column="4" Grid.Row="1"
                           ResizeDirection="Rows"
                           HorizontalAlignment="Stretch"/>
 
             <!-- BOTTOM — Error list -->
-            <Grid x:Name="ErrorPanelGrid" Grid.Column="2" Grid.Row="2">
+            <Grid x:Name="ErrorPanelGrid" Grid.Column="4" Grid.Row="2">
                 <Border Background="{StaticResource BgPanel}"
                         BorderBrush="{StaticResource BorderSubtle}"
                         BorderThickness="0 1 0 0">
@@ -178,12 +195,12 @@
             </Grid>
 
             <GridSplitter x:Name="RightSplitter"
-                          Grid.Column="3" Grid.RowSpan="3"
+                          Grid.Column="5" Grid.RowSpan="3"
                           ResizeDirection="Columns"
                           HorizontalAlignment="Stretch"/>
 
             <!-- RIGHT — Properties panel -->
-            <Grid x:Name="RightPanelGrid" Grid.Column="4" Grid.RowSpan="3">
+            <Grid x:Name="RightPanelGrid" Grid.Column="6" Grid.RowSpan="3">
                 <Border Background="{StaticResource BgPanel}"
                         BorderBrush="{StaticResource BorderSubtle}"
                         BorderThickness="1 0 0 0">
@@ -191,7 +208,7 @@
                         <Border Grid.Row="0" Padding="14 7 12 7"
                                 BorderBrush="{StaticResource BorderSubtle}"
                                 BorderThickness="0 0 0 1">
-                            <TextBlock Text="PROPERTIES" Classes="PanelHeader" />
+                            <TextBlock Text="{x:Static loc:Strings.PanelProperties}" Classes="PanelHeader" />
                         </Border>
                         <controls:DistributionDetailControl x:Name="RightDetail" Grid.Row="1" />
                     </Grid>
@@ -217,5 +234,5 @@
             </DockPanel>
         </Border>
     </Grid>
-    
+
 </Window>

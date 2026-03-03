@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using UI.Assets;
 
 namespace UI.Controls.Helpers;
 
@@ -65,7 +66,7 @@ public static class TabHeaderHelper
             if (child is TextBlock { Tag: "pin" } pin)
                 pin.IsVisible = state.IsPinned;
         if (header.ContextMenu?.Items[0] is MenuItem m)
-            m.Header = state.IsPinned ? "Unpin This Tab" : "Pin This Tab";
+            m.Header = state.IsPinned ? Strings.TabUnpin : Strings.TabPin;
     }
 
     public static void RefreshDirtyDot(TabState state, bool dirty)
@@ -83,14 +84,90 @@ public static class TabHeaderHelper
         Func<TabState, Task> onCloseOthers,
         Func<TabState, bool, Task> onCloseToSide)
     {
-        var pinItem = new MenuItem { Header = state.IsPinned ? "Unpin This Tab" : "Pin This Tab" };
+        var pinItem = new MenuItem { Header = state.IsPinned ? Strings.TabUnpin : Strings.TabPin };
         pinItem.Click += (_, _) => { state.IsPinned = !state.IsPinned; RefreshPinIcon(state); };
 
-        var close      = Item("Close This Tab",              () => onClose(state));
-        var closeAll   = Item("Close All Tabs",              onCloseAll);
-        var closeOther = Item("Close All Tabs Except This",  () => onCloseOthers(state));
-        var closeLeft  = Item("Close All Tabs to the Left",  () => onCloseToSide(state, true));
-        var closeRight = Item("Close All Tabs to the Right", () => onCloseToSide(state, false));
+        var close      = Item(Strings.TabClose,        () => onClose(state));
+        var closeAll   = Item(Strings.TabCloseAll,     onCloseAll);
+        var closeOther = Item(Strings.TabCloseOthers,  () => onCloseOthers(state));
+        var closeLeft  = Item(Strings.TabCloseLeft,    () => onCloseToSide(state, true));
+        var closeRight = Item(Strings.TabCloseRight,   () => onCloseToSide(state, false));
+
+        return new ContextMenu
+        {
+            Items = { pinItem, new Separator(), close, closeAll, closeOther, new Separator(), closeLeft, closeRight }
+        };
+    }
+
+    public static StackPanel CreateForItem(
+        ItemTabState state,
+        Func<ItemTabState, Task> onClose,
+        Func<Task> onCloseAll,
+        Func<ItemTabState, Task> onCloseOthers,
+        Func<ItemTabState, bool, Task> onCloseToSide)
+    {
+        var pinIcon = new TextBlock
+        {
+            Text = "\ud83d\udccc", FontSize = 10, Tag = "pin",
+            Foreground = PinIconBrush, IsVisible = false,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 4, 0)
+        };
+        var nameBlock = new TextBlock
+        {
+            Text = state.ItemName, Foreground = TabNameBrush,
+            FontSize = 12, VerticalAlignment = VerticalAlignment.Center
+        };
+        var closeBtn = new Button
+        {
+            Content = "\u00d7", Width = 18, Height = 18,
+            Padding = new Thickness(0), FontSize = 14,
+            Background = Brushes.Transparent, BorderThickness = new Thickness(0),
+            Foreground = TabCloseBrush, VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(6, 0, 0, 0), Cursor = new Cursor(StandardCursorType.Hand)
+        };
+        closeBtn.Click += (_, _) => _ = onClose(state);
+
+        var header = new StackPanel
+        {
+            Orientation = Orientation.Horizontal, Spacing = 2,
+            Children = { pinIcon, nameBlock, closeBtn }
+        };
+        header.ContextMenu = BuildItemContextMenu(state, onClose, onCloseAll, onCloseOthers, onCloseToSide);
+        return header;
+    }
+
+    public static void RefreshPinIconForItem(ItemTabState state)
+    {
+        if (state.TabItem.Header is not StackPanel header) return;
+        foreach (var child in header.Children)
+            if (child is TextBlock { Tag: "pin" } pin)
+                pin.IsVisible = state.IsPinned;
+        if (header.ContextMenu?.Items[0] is MenuItem m)
+            m.Header = state.IsPinned ? Strings.TabUnpin : Strings.TabPin;
+    }
+
+    public static void RefreshDirtyDotForItem(ItemTabState state, bool dirty)
+    {
+        // Item tabs don't have a dirty dot (dirty is tracked at distribution level),
+        // but the method exists for API symmetry.
+    }
+
+    private static ContextMenu BuildItemContextMenu(
+        ItemTabState state,
+        Func<ItemTabState, Task> onClose,
+        Func<Task> onCloseAll,
+        Func<ItemTabState, Task> onCloseOthers,
+        Func<ItemTabState, bool, Task> onCloseToSide)
+    {
+        var pinItem = new MenuItem { Header = state.IsPinned ? Strings.TabUnpin : Strings.TabPin };
+        pinItem.Click += (_, _) => { state.IsPinned = !state.IsPinned; RefreshPinIconForItem(state); };
+
+        var close      = Item(Strings.TabClose,       () => onClose(state));
+        var closeAll   = Item(Strings.TabCloseAll,    onCloseAll);
+        var closeOther = Item(Strings.TabCloseOthers, () => onCloseOthers(state));
+        var closeLeft  = Item(Strings.TabCloseLeft,   () => onCloseToSide(state, true));
+        var closeRight = Item(Strings.TabCloseRight,  () => onCloseToSide(state, false));
 
         return new ContextMenu
         {
