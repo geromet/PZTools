@@ -33,16 +33,17 @@ public class DistributionListState
 
     public void ApplyFilter(string searchQuery)
     {
-        LastFiltered = DistributionFilter.Apply(_all, Filter.BuildCriteria(searchQuery));
-        RebuildTree(searchQuery);
+        var criteria = Filter.BuildCriteria(searchQuery);
+        LastFiltered = DistributionFilter.Apply(_all, criteria);
+        FolderTreeBuilder.Build(RootNodes, Folders, LastFiltered, DistributionFilter.HasAnyActiveFilter(criteria));
     }
 
     public void RebuildTree(string searchQuery, bool syncExpansion = false)
     {
         if (syncExpansion)
             SyncExpansionState();
-        FolderTreeBuilder.Build(RootNodes, Folders, LastFiltered,
-            DistributionFilter.HasAnyActiveFilter(Filter.BuildCriteria(searchQuery)));
+        var criteria = Filter.BuildCriteria(searchQuery);
+        FolderTreeBuilder.Build(RootNodes, Folders, LastFiltered, DistributionFilter.HasAnyActiveFilter(criteria));
     }
 
     #endregion

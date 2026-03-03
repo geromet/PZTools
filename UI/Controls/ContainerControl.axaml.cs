@@ -12,6 +12,8 @@ public partial class ContainerControl : UserControl
     private UndoRedoStack? _undoRedo;
     private SharedColumnLayout? _sharedLayout;
     private bool _loading;
+    private bool _showEmpty;
+    private bool _contentDirty;
     private bool _hasItems;
     private bool _hasJunk;
     private bool _hasProc;
@@ -22,12 +24,14 @@ public partial class ContainerControl : UserControl
     {
         InitializeComponent();
         Unloaded += OnUnloaded;
+        ContainerExpander.Expanded += OnExpanderExpanded;
     }
 
-    public void Load(Container c, UndoRedoStack undoRedo, SharedColumnLayout? sharedLayout = null, bool showEmpty = false)
+    public void Load(Container c, UndoRedoStack undoRedo, SharedColumnLayout? sharedLayout = null, bool showEmpty = false, bool expanded = false)
     {
         _model = c;
         _undoRedo = undoRedo;
+        _showEmpty = showEmpty;
         _loading = true;
         try
         {
@@ -38,24 +42,53 @@ public partial class ContainerControl : UserControl
             if (_sharedLayout is not null)
                 _sharedLayout.ProportionsChanged += OnSharedProportionsChanged;
 
+            // Header is always visible; populate it immediately.
             NameText.Text = c.Name;
             ItemRollsBadge.Text = $"\u21bb {c.ItemRolls}";
             ItemCountBadge.Text = $"\u229e {c.ItemChances.Count}";
             ProceduralBadge.IsVisible = c.Procedural;
 
+            // Content is only needed when expanded. Defer populate until first expand.
+            ContainerExpander.IsExpanded = expanded;
+            _contentDirty = !expanded;
+            if (expanded)
+                PopulateContent();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    // Called when the user (or SetAllExpanded) expands the container.
+    private void OnExpanderExpanded(object? sender, RoutedEventArgs e)
+    {
+        if (_loading) return; // Load() manages populate directly; suppress re-entry
+        if (_contentDirty)
+            PopulateContent();
+    }
+
+    private void PopulateContent()
+    {
+        if (_model is null || _undoRedo is null) return;
+        _contentDirty = false;
+        _loading = true;
+        try
+        {
+            var c = _model;
             ItemRollsBox.Text = c.ItemRolls.ToString();
             JunkRollsBox.Text = c.JunkRolls.ToString();
             FillRandCheck.IsChecked = c.FillRand;
             ProceduralCheck.IsChecked = c.Procedural;
             DontSpawnAmmoCheck.IsChecked = c.DontSpawnAmmo;
 
-            ItemRowHelper.Populate(ItemRowsPanel, c.ItemChances, undoRedo, $"{c.Name}.items", c);
-            ItemRowHelper.Populate(JunkRowsPanel, c.JunkChances, undoRedo, $"{c.Name}.junk", c);
-            ProcListControl.Load(c.ProcListEntries, undoRedo);
+            ItemRowHelper.Populate(ItemRowsPanel, c.ItemChances, _undoRedo, $"{c.Name}.items", c);
+            ItemRowHelper.Populate(JunkRowsPanel, c.JunkChances, _undoRedo, $"{c.Name}.junk", c);
+            ProcListControl.Load(c.ProcListEntries, _undoRedo);
 
-            _hasItems = c.ItemChances.Count > 0 || showEmpty;
-            _hasJunk = c.JunkChances.Count > 0 || showEmpty;
-            _hasProc = c.ProcListEntries.Count > 0 || showEmpty;
+            _hasItems = c.ItemChances.Count > 0 || _showEmpty;
+            _hasJunk = c.JunkChances.Count > 0 || _showEmpty;
+            _hasProc = c.ProcListEntries.Count > 0 || _showEmpty;
 
             ConfigureColumns();
             ApplySharedProportions();
@@ -145,6 +178,7 @@ public partial class ContainerControl : UserControl
     private void OnSharedProportionsChanged(object? sender)
     {
         if (sender == this) return;
+        if (_contentDirty) return; // not populated yet; ApplySharedProportions runs when expanded
         ApplySharedProportions();
     }
 

@@ -237,8 +237,8 @@ public partial class DistributionDetailControl : UserControl
     private void OnContainerElementPrepared(object? sender, ItemsRepeaterElementPreparedEventArgs e)
     {
         if (e.Element is not ContainerControl ctrl) return;
-        ctrl.Load(_visibleContainers[e.Index], _undoRedo!, _sharedColumnLayout, _filter.ShowEmpty);
-        ctrl.ContainerExpander.IsExpanded = _expandOverride ?? e.Index < AutoExpandLimit;
+        ctrl.Load(_visibleContainers[e.Index], _undoRedo!, _sharedColumnLayout, _filter.ShowEmpty,
+            expanded: _expandOverride ?? e.Index < AutoExpandLimit);
     }
 
     private void OnContainerElementClearing(object? sender, ItemsRepeaterElementClearingEventArgs e)
