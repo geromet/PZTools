@@ -10,7 +10,7 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         
-        <!--#region TOOLBAR-->
+        <!-- ══ TOOLBAR ══ -->
         <Border Grid.Row="0"
                                                Background="{StaticResource BgPanel}"
                                                BorderBrush="{StaticResource BorderSubtle}"
@@ -80,8 +80,7 @@
                              Margin="8 0" VerticalAlignment="Center"/>
             </DockPanel>
         </Border>
-        <!--#endregion-->
-        <!--#region THREE-PANE BODY-->
+        <!-- ══ THREE-PANE BODY ══ -->
         <Grid x:Name="MainGrid"
               Grid.Row="1"
               ColumnDefinitions="260,4,*,4,260"
@@ -129,11 +128,14 @@
                                                             Grid.Column="0"
                                                             Classes="TabScroll"
                                                             Content="&#x2039;" />
-                                                    <Border Grid.Column="1" ClipToBounds="True">
+                                                    <ScrollViewer Name="PART_TabScrollViewer"
+                                                                  Grid.Column="1"
+                                                                  HorizontalScrollBarVisibility="Hidden"
+                                                                  VerticalScrollBarVisibility="Disabled">
                                                         <ItemsPresenter Name="PART_ItemsPresenter"
                                                                         ItemsPanel="{TemplateBinding ItemsPanel}"
                                                                         HorizontalAlignment="Left" />
-                                                    </Border>
+                                                    </ScrollViewer>
                                                     <Button x:Name="PART_ScrollRight"
                                                             Grid.Column="2"
                                                             Classes="TabScroll"
@@ -195,7 +197,6 @@
                 <Button Classes="PanelClose" Click="CloseRightBtn_Click" />
             </Grid>
         </Grid>
-        <!--#endregion-->
         <!-- ══ STATUS BAR ══ -->
         <Border Grid.Row="2"
                 Background="{StaticResource BgPanel}"
