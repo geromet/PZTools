@@ -18,14 +18,8 @@
         </ScrollViewer>
 
         <Button x:Name="AddItemBtn" Grid.Row="2"
+                Classes="AddLink"
                 Content="+ Add Item"
-                Click="AddItemBtn_Click"
-                FontSize="11"
-                Padding="6 3"
-                Margin="4 4"
-                HorizontalAlignment="Left"
-                Background="Transparent"
-                BorderThickness="0"
-                Foreground="{StaticResource Accent}" />
+                Click="AddItemBtn_Click" />
     </Grid>
 </UserControl>

@@ -14,9 +14,7 @@
             <DockPanel>
                 <TextBlock DockPanel.Dock="Left"
                            Text="ERROR LIST"
-                           FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
-                           Foreground="{StaticResource TextMuted}"
-                           VerticalAlignment="Center" />
+                           Classes="PanelHeader" />
 
                 <!-- Error/warning filter toggles -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12">

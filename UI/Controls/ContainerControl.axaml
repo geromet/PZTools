@@ -47,16 +47,13 @@
             <!-- Flat content: Settings | Splitter | Items | Splitter? | Junk? | Splitter? | ProcList? -->
             <Grid x:Name="ContentGrid" ColumnDefinitions="*,4,*,0,0,0,0" HorizontalAlignment="Stretch">
 
-                <!-- ── Settings (col 0) ── -->
+                <!-- Settings (col 0) -->
                 <Border Grid.Column="0"
                         Background="{StaticResource BgSurface}"
                         ClipToBounds="True"
                         Padding="10 8">
                     <StackPanel Spacing="5">
-                        <TextBlock Text="SETTINGS"
-                                   FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
-                                   Foreground="{StaticResource TextMuted}"
-                                   Margin="0 0 0 2" />
+                        <TextBlock Text="SETTINGS" Classes="SectionHeader" Margin="0 0 0 2" />
                         <Grid ColumnDefinitions="Auto,Auto"
                               RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                               ColumnSpacing="8" RowSpacing="5">
@@ -86,13 +83,12 @@
                     </StackPanel>
                 </Border>
 
-                <!-- ── Settings|Items Splitter (col 1) ── -->
+                <!-- Settings|Items Splitter (col 1) -->
                 <GridSplitter x:Name="SettingsItemsSplitter" Grid.Column="1"
                               ResizeDirection="Columns"
-                              Background="{StaticResource BorderSubtle}"
                               Width="4" HorizontalAlignment="Stretch" />
 
-                <!-- ── Items (col 2) ── -->
+                <!-- Items (col 2) -->
                 <Grid x:Name="ItemsPanel" Grid.Column="2" RowDefinitions="Auto,Auto,*"
                       Background="{StaticResource BgSurface}">
                     <Border Grid.Row="0"
@@ -100,9 +96,7 @@
                             Background="{StaticResource BgElevated}"
                             BorderBrush="{StaticResource BorderSubtle}"
                             BorderThickness="0 0 0 1">
-                        <TextBlock Text="ITEMS"
-                                   FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
-                                   Foreground="{StaticResource TextMuted}" />
+                        <TextBlock Text="ITEMS" Classes="SectionHeader" />
                     </Border>
                     <Grid Grid.Row="1" ColumnDefinitions="*,65"
                           Background="{StaticResource BgElevated}">
@@ -121,22 +115,18 @@
                                   MaxHeight="260">
                         <StackPanel>
                             <StackPanel x:Name="ItemRowsPanel" />
-                            <Button Content="+ Add Item" Click="AddItem_Click"
-                                    FontSize="11" Padding="6 3" Margin="4 4"
-                                    HorizontalAlignment="Left" Background="Transparent"
-                                    BorderThickness="0" Foreground="{StaticResource Accent}" />
+                            <Button Classes="AddLink" Content="+ Add Item" Click="AddItem_Click" />
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
 
-                <!-- ── Junk Splitter (col 3, hidden when no junk) ── -->
+                <!-- Junk Splitter (col 3, hidden when no junk) -->
                 <GridSplitter x:Name="JunkSplitter" Grid.Column="3"
                               ResizeDirection="Columns"
-                              Background="{StaticResource BorderSubtle}"
                               Width="4" HorizontalAlignment="Stretch"
                               IsVisible="False" />
 
-                <!-- ── Junk (col 4, hidden when empty) ── -->
+                <!-- Junk (col 4, hidden when empty) -->
                 <Grid x:Name="JunkPanel" Grid.Column="4"
                       RowDefinitions="Auto,Auto,*" IsVisible="False"
                       Background="{StaticResource BgSurface}"
@@ -146,9 +136,7 @@
                             Background="{StaticResource BgElevated}"
                             BorderBrush="{StaticResource BorderSubtle}"
                             BorderThickness="0 0 0 1">
-                        <TextBlock Text="JUNK"
-                                   FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
-                                   Foreground="{StaticResource TextMuted}" />
+                        <TextBlock Text="JUNK" Classes="SectionHeader" />
                     </Border>
                     <Grid Grid.Row="1" ColumnDefinitions="*,65"
                           Background="{StaticResource BgElevated}">
@@ -167,22 +155,18 @@
                                   MaxHeight="260">
                         <StackPanel>
                             <StackPanel x:Name="JunkRowsPanel" />
-                            <Button Content="+ Add Item" Click="AddJunkItem_Click"
-                                    FontSize="11" Padding="6 3" Margin="4 4"
-                                    HorizontalAlignment="Left" Background="Transparent"
-                                    BorderThickness="0" Foreground="{StaticResource Accent}" />
+                            <Button Classes="AddLink" Content="+ Add Item" Click="AddJunkItem_Click" />
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
 
-                <!-- ── ProcList Splitter (col 5, hidden when no proc lists) ── -->
+                <!-- ProcList Splitter (col 5, hidden when no proc lists) -->
                 <GridSplitter x:Name="ProcListSplitter" Grid.Column="5"
                               ResizeDirection="Columns"
-                              Background="{StaticResource BorderSubtle}"
                               Width="4" HorizontalAlignment="Stretch"
                               IsVisible="False" />
 
-                <!-- ── Proc Lists (col 6, hidden when empty) ── -->
+                <!-- Proc Lists (col 6, hidden when empty) -->
                 <Border x:Name="ProcListPanel" Grid.Column="6"
                         IsVisible="False"
                         Background="{StaticResource BgSurface}">
@@ -192,9 +176,7 @@
                                 Background="{StaticResource BgElevated}"
                                 BorderBrush="{StaticResource BorderSubtle}"
                                 BorderThickness="0 0 0 1">
-                            <TextBlock Text="PROC LISTS"
-                                       FontSize="9" FontWeight="SemiBold" LetterSpacing="1"
-                                       Foreground="{StaticResource TextMuted}" />
+                            <TextBlock Text="PROC LISTS" Classes="SectionHeader" />
                         </Border>
                         <ScrollViewer Grid.Row="1"
                                       VerticalScrollBarVisibility="Visible"
@@ -207,21 +189,4 @@
             </Grid>
         </Expander>
     </Border>
-
-    <UserControl.Styles>
-        <Style Selector="TextBlock.FieldLabel">
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="Expander /template/ ToggleButton">
-            <Setter Property="Padding" Value="10 8" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-        </Style>
-        <Style Selector="Expander /template/ ContentPresenter">
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-        </Style>
-    </UserControl.Styles>
 </UserControl>

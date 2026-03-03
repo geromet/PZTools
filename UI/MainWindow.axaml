@@ -8,25 +8,6 @@
         Background="{StaticResource BgBase}"
         FontFamily="Inter,Segoe UI,system-ui,sans-serif">
 
-    <Window.Styles>
-        <Style Selector="Button.PanelClose">
-            <Setter Property="Content" Value="×" />
-            <Setter Property="Width" Value="18" />
-            <Setter Property="Height" Value="18" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
-            <Setter Property="HorizontalAlignment" Value="Right" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-            <Setter Property="Margin" Value="0 4 4 0" />
-            <Setter Property="ZIndex" Value="10" />
-            <Setter Property="ToolTip.Tip" Value="Close panel" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-    </Window.Styles>
-
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- ══ TOOLBAR ══ -->
@@ -119,7 +100,6 @@
             <GridSplitter x:Name="LeftSplitter"
                           Grid.Column="1" Grid.RowSpan="3"
                           ResizeDirection="Columns"
-                          Background="{StaticResource BorderSubtle}"
                           HorizontalAlignment="Stretch"/>
 
             <!-- CENTER — Tabbed detail panel -->
@@ -136,7 +116,6 @@
             <GridSplitter x:Name="ErrorSplitter"
                           Grid.Column="2" Grid.Row="1"
                           ResizeDirection="Rows"
-                          Background="{StaticResource BorderSubtle}"
                           HorizontalAlignment="Stretch"/>
 
             <!-- BOTTOM — Error list -->
@@ -152,7 +131,6 @@
             <GridSplitter x:Name="RightSplitter"
                           Grid.Column="3" Grid.RowSpan="3"
                           ResizeDirection="Columns"
-                          Background="{StaticResource BorderSubtle}"
                           HorizontalAlignment="Stretch"/>
 
             <!-- RIGHT — Properties panel -->
@@ -164,9 +142,7 @@
                         <Border Grid.Row="0" Padding="14 7 12 7"
                                 BorderBrush="{StaticResource BorderSubtle}"
                                 BorderThickness="0 0 0 1">
-                            <TextBlock Text="PROPERTIES"
-                                       FontSize="10" FontWeight="SemiBold" LetterSpacing="1.5"
-                                       Foreground="{StaticResource TextMuted}" />
+                            <TextBlock Text="PROPERTIES" Classes="PanelHeader" />
                         </Border>
                         <controls:DistributionDetailControl x:Name="RightDetail" Grid.Row="1" />
                     </Grid>
