@@ -85,22 +85,37 @@ public partial class ItemsDetailControl : UserControl
         distLink.Click += (_, _) => OpenDistributionRequested?.Invoke(occ.Distribution);
 
         // Container name
-        var containerName = occ.Container?.Name ?? Strings.IDDistLevel;
         var containerText = new TextBlock
         {
-            Text = containerName,
+            Text = occ.Container?.Name ?? Strings.IDDistLevel,
             FontSize = 11,
-            Foreground = occ.Container is null ? MutedBrush : (IBrush)Brushes.Transparent,
+            Foreground = occ.Container is null ? MutedBrush : (IBrush)SolidColorBrush.Parse("#C8C8D8"),
             FontStyle = occ.Container is null ? FontStyle.Italic : FontStyle.Normal,
             TextTrimming = TextTrimming.CharacterEllipsis,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(4, 0),
         };
-        // Set correct foreground for non-null container
-        if (occ.Container is not null)
-            containerText.Foreground = null; // inherit
 
-        // Type badge
+        // Kind badge: "Item" or "Junk"
+        var kindBrush = occ.IsJunk
+            ? SolidColorBrush.Parse("#8B6914")   // amber for junk
+            : SolidColorBrush.Parse("#2E6E3E");  // green for items
+        var kindBadge = new Border
+        {
+            CornerRadius = new CornerRadius(3),
+            Padding = new Thickness(4, 2),
+            Margin = new Thickness(4, 2),
+            Background = kindBrush,
+            Child = new TextBlock
+            {
+                Text = occ.IsJunk ? Strings.ILFilterJunk : Strings.ILFilterItems,
+                FontSize = 10,
+                Foreground = Brushes.White,
+            },
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        // Dist type badge
         var typeBadge = new Border
         {
             CornerRadius = new CornerRadius(3),
@@ -153,19 +168,21 @@ public partial class ItemsDetailControl : UserControl
 
         var row = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("*,120,80,65,26"),
+            ColumnDefinitions = new ColumnDefinitions("*,120,50,80,65,26"),
             MinHeight = 24,
         };
         row.Children.Add(distLink);
         row.Children.Add(containerText);
+        row.Children.Add(kindBadge);
         row.Children.Add(typeBadge);
         row.Children.Add(chanceBox);
         row.Children.Add(deleteBtn);
         Grid.SetColumn(distLink,      0);
         Grid.SetColumn(containerText, 1);
-        Grid.SetColumn(typeBadge,     2);
-        Grid.SetColumn(chanceBox,     3);
-        Grid.SetColumn(deleteBtn,     4);
+        Grid.SetColumn(kindBadge,     2);
+        Grid.SetColumn(typeBadge,     3);
+        Grid.SetColumn(chanceBox,     4);
+        Grid.SetColumn(deleteBtn,     5);
 
         return row;
     }

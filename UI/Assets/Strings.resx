@@ -516,6 +516,9 @@
   <data name="IDColContainer" xml:space="preserve">
     <value>Container</value>
   </data>
+  <data name="IDColItemType" xml:space="preserve">
+    <value>Kind</value>
+  </data>
   <data name="IDColType" xml:space="preserve">
     <value>Type</value>
   </data>

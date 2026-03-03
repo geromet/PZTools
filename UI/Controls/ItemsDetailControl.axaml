@@ -29,7 +29,7 @@
 
         <!-- Row 1: Column headers -->
         <Grid Grid.Row="1"
-              ColumnDefinitions="*,120,80,65,26"
+              ColumnDefinitions="*,120,50,80,65,26"
               Background="{StaticResource BgElevated}"
               Margin="0 0 0 1">
             <TextBlock Grid.Column="0" Text="{x:Static loc:Strings.IDColDistribution}"
@@ -38,10 +38,13 @@
             <TextBlock Grid.Column="1" Text="{x:Static loc:Strings.IDColContainer}"
                        FontSize="10" FontWeight="SemiBold"
                        Foreground="{StaticResource TextMuted}" Margin="4 3" />
-            <TextBlock Grid.Column="2" Text="{x:Static loc:Strings.IDColType}"
+            <TextBlock Grid.Column="2" Text="{x:Static loc:Strings.IDColItemType}"
                        FontSize="10" FontWeight="SemiBold"
                        Foreground="{StaticResource TextMuted}" Margin="4 3" />
-            <TextBlock Grid.Column="3" Text="{x:Static loc:Strings.IDColChance}"
+            <TextBlock Grid.Column="3" Text="{x:Static loc:Strings.IDColType}"
+                       FontSize="10" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextMuted}" Margin="4 3" />
+            <TextBlock Grid.Column="4" Text="{x:Static loc:Strings.IDColChance}"
                        FontSize="10" FontWeight="SemiBold"
                        Foreground="{StaticResource TextMuted}"
                        HorizontalAlignment="Right" Margin="0 3 4 3" />

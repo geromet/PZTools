@@ -193,6 +193,7 @@ public static class Strings
     public static string IDOccurrences          => G(nameof(IDOccurrences));
     public static string IDColDistribution      => G(nameof(IDColDistribution));
     public static string IDColContainer         => G(nameof(IDColContainer));
+    public static string IDColItemType          => G(nameof(IDColItemType));
     public static string IDColType              => G(nameof(IDColType));
     public static string IDColChance            => G(nameof(IDColChance));
     public static string IDDistLevel            => G(nameof(IDDistLevel));
