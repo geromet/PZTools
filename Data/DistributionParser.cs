@@ -73,6 +73,7 @@ public sealed class DistributionParser
         catch
         {
             // Comment extraction failure is non-fatal — we just lose comments on save.
+            // TODO : When we have proper logging : log and fix!
         }
 
         // Stop early if procedurals can't load — distributions reference them.
