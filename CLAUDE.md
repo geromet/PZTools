@@ -24,8 +24,11 @@ App running → DLL-locked MSB3027 warnings are expected. Check for real errors:
 
 ## Git Rules
 
-- ONLY branch: `sandbox/liability-machine`. Never commit/push elsewhere. Never ask to.
-- User cherry-picks accepted work to correct branches.
+- Reconcile the current default branch, open PRs, and active branches before starting work so completed or in-flight work is not duplicated.
+- For each independent change, create a fresh purpose-named branch from the repository's current default branch (`master` currently).
+- Never force-push, rewrite, rebase, or overwrite another contributor/agent's active branch.
+- Keep each branch and PR focused on one coherent change; do not mix unrelated issue work.
+- Open a PR back to the current default branch. Do not push implementation changes directly to the default branch.
 - Commit + push frequently. Small focused commits per logical change.
 
 ## Architectural Principles
