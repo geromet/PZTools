@@ -1,3 +1,4 @@
+using System.Globalization;
 using Data.Data;
 
 namespace Data.Validation;
@@ -84,7 +85,7 @@ public sealed class DistributionSemanticValidator
             yield return new SemanticDiagnostic(
                 Code: OrphanItemChanceCode,
                 Severity: SemanticDiagnosticSeverity.Warning,
-                Message: $"Preserved orphan chance {item.Chance} has no preceding item name.",
+                Message: $"Preserved orphan chance {item.Chance.ToString(CultureInfo.InvariantCulture)} has no preceding item name.",
                 DistributionName: distributionName,
                 ContainerName: container?.Name,
                 Reference: null,
