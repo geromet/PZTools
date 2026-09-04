@@ -1,0 +1,40 @@
+name: Data tests
+
+on:
+  pull_request:
+    paths:
+      - "Data/**"
+      - "Data.Tests/**"
+      - ".github/workflows/data-tests.yml"
+  push:
+    paths:
+      - "Data/**"
+      - "Data.Tests/**"
+      - ".github/workflows/data-tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: data-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore Data tests
+        run: dotnet restore Data.Tests/Data.Tests.csproj
+
+      - name: Run Data tests
+        run: dotnet run --project Data.Tests/Data.Tests.csproj --configuration Release --no-restore
