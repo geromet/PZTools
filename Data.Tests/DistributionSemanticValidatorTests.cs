@@ -1,5 +1,6 @@
 using Data.Data;
 using Data.Validation;
+using Xunit;
 
 namespace Data.Tests;
 
@@ -57,13 +58,14 @@ public sealed class DistributionSemanticValidatorTests
         });
 
         Assert.Equal(
-            [
+            new[]
+            {
                 "Kitchen.items[0]",
                 "Kitchen.junk.items[0]",
                 "Kitchen.counter.items[0]",
                 "Kitchen.counter.junk.items[0]",
-            ],
-            diagnostics.Select(diagnostic => diagnostic.NavigationTarget));
+            },
+            diagnostics.Select(diagnostic => diagnostic.NavigationTarget).ToArray());
     }
 
     [Fact]
