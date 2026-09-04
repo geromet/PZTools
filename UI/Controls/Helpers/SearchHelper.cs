@@ -1,10 +1,10 @@
-using System.Text.RegularExpressions;
+using Core.Filtering;
 
 namespace UI.Controls;
 
 /// <summary>
-/// Shared search helpers for regex/substring matching and relevance-sorted name lists.
-/// Text starting with '/' is treated as a regex; everything else is case-insensitive substring.
+/// Shared UI search helpers. Matching semantics come from Core's SearchQueryMatcher; this type
+/// keeps only presentation-specific relevance ordering.
 /// </summary>
 public static class SearchHelper
 {
@@ -13,23 +13,8 @@ public static class SearchHelper
     /// </summary>
     public static Func<string, bool>? BuildPredicate(string search)
     {
-        if (string.IsNullOrEmpty(search)) return null;
-
-        if (search.StartsWith('/'))
-        {
-            var pattern = search.Length > 1 ? search[1..] : string.Empty;
-            try
-            {
-                var rx = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-                return name => rx.IsMatch(name);
-            }
-            catch
-            {
-                return _ => false;
-            }
-        }
-
-        return name => name.Contains(search, StringComparison.OrdinalIgnoreCase);
+        var matcher = SearchQueryMatcher.Parse(search);
+        return matcher.IsEmpty ? null : matcher.IsMatch;
     }
 
     /// <summary>
@@ -40,25 +25,16 @@ public static class SearchHelper
     /// </summary>
     public static List<string> SortedByRelevance(IEnumerable<string> names, string query)
     {
-        if (string.IsNullOrEmpty(query))
+        var matcher = SearchQueryMatcher.Parse(query);
+
+        if (matcher.IsEmpty)
             return [.. names.Order(StringComparer.OrdinalIgnoreCase)];
 
-        if (query.StartsWith('/'))
-        {
-            var pattern = query.Length > 1 ? query[1..] : string.Empty;
-            try
-            {
-                var rx = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-                return [.. names.Where(n => rx.IsMatch(n)).Order(StringComparer.OrdinalIgnoreCase)];
-            }
-            catch
-            {
-                return [];
-            }
-        }
+        if (matcher.IsRegex)
+            return [.. names.Where(matcher.IsMatch).Order(StringComparer.OrdinalIgnoreCase)];
 
         return [.. names
-            .Where(n => n.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(matcher.IsMatch)
             .OrderBy(n => n.Equals(query, StringComparison.OrdinalIgnoreCase) ? 0
                         : n.StartsWith(query, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
             .ThenBy(n => n, StringComparer.OrdinalIgnoreCase)];

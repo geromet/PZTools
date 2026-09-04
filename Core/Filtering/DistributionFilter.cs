@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Data.Data;
 
 namespace Core.Filtering;
@@ -46,16 +45,9 @@ public static class DistributionFilter
             result = result.Where(d => HasDirectItems(d) == want);
         }
 
-        // Regex search with graceful fallback
-        if (c.SearchQuery.Length > 0)
-        {
-            Regex? regex = null;
-            try { regex = new Regex(c.SearchQuery, RegexOptions.IgnoreCase); } catch { }
-
-            result = regex is not null
-                ? result.Where(d => regex.IsMatch(d.Name))
-                : result.Where(d => d.Name.Contains(c.SearchQuery, StringComparison.OrdinalIgnoreCase));
-        }
+        var search = SearchQueryMatcher.Parse(c.SearchQuery);
+        if (!search.IsEmpty)
+            result = result.Where(d => search.IsMatch(d.Name));
 
         return result.OrderBy(d => d.Name, StringComparer.OrdinalIgnoreCase).ToList();
     }
