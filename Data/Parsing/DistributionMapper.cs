@@ -194,6 +194,12 @@ public sealed class DistributionMapper
                     break;
 
                 case "items":
+                    if (kvp.Value is LuaTable itemsTable)
+                    {
+                        var itemsRef = _refLookup(itemsTable);
+                        if (itemsRef is not null)
+                            dist.ItemsReference = itemsRef.RefPath;
+                    }
                     MapItemChances(dist, kvp.Value, context, sourceFile, isJunk: false);
                     break;
 
