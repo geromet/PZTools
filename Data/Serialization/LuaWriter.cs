@@ -389,8 +389,14 @@ public static class LuaWriter
             sb.AppendLine($"{inner}ignoreZombieDensity = true,");
         }
 
-            string junkItemsPath = $"{junkPath}.items";
-            EmitComment(sb, comments, junkItemsPath, inner);
+        string junkItemsPath = $"{junkPath}.items";
+        EmitComment(sb, comments, junkItemsPath, inner);
+        if (!string.IsNullOrEmpty(parent.JunkItemsReference))
+        {
+            sb.AppendLine($"{inner}items = {parent.JunkItemsReference}");
+        }
+        else
+        {
             sb.AppendLine($"{inner}items = {{");
             if (parent.JunkChances.Count > 0)
             {
@@ -402,6 +408,7 @@ public static class LuaWriter
             }
             // items close inside junk never has a trailing comma.
             sb.AppendLine($"{inner}}}");
+        }
 
         EmitComment(sb, comments, $"{junkPath}.__trailing", inner);
         // junk close: comma in distributions, no comma in procedural.
