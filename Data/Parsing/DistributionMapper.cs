@@ -282,6 +282,15 @@ public sealed class DistributionMapper
                     break;
 
                 case "junk":
+                    if (kvp.Value is LuaTable junkTable)
+                    {
+                        var junkRef = _refLookup(junkTable);
+                        if (junkRef is not null)
+                        {
+                            container.JunkReference = junkRef.RefPath;
+                            container.JunkReferenceFile = junkRef.SourceFile;
+                        }
+                    }
                     MapJunkChances(container, kvp.Value, context, sourceFile);
                     break;
 
