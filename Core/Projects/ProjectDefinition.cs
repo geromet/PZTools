@@ -18,6 +18,10 @@ public sealed record ProjectDefinition(
 
         var normalizedGameRoot = ProjectPathRules.Normalize(gameRoot);
         var normalizedProjectRoot = ProjectPathRules.Normalize(projectRoot);
+
+        if (!Directory.Exists(normalizedGameRoot))
+            throw new DirectoryNotFoundException($"Game/reference root does not exist: {normalizedGameRoot}");
+
         ProjectPathRules.EnsureProjectOutsideGame(normalizedGameRoot, normalizedProjectRoot);
 
         return new ProjectDefinition(
