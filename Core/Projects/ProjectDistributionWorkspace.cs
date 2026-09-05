@@ -8,24 +8,35 @@ public enum DistributionLayer
     Project,
 }
 
+public sealed record ProjectReferenceProvenance(
+    string LayerName,
+    string Root,
+    int PreviewOrder,
+    Distribution Distribution);
+
 /// <summary>
 /// One effective project entry with explicit provenance. Reference remains available underneath a
-/// project override so removing the override reveals the original definition immediately.
+/// project override so removing the override reveals the current configured reference winner.
 /// </summary>
 public sealed record ProjectDistributionEntry(
     Distribution Effective,
     DistributionLayer Layer,
-    Distribution? Reference);
+    Distribution? Reference)
+{
+    public ProjectReferenceProvenance? ReferenceProvenance { get; init; }
+    public IReadOnlyList<ProjectReferenceProvenance> ShadowedReferences { get; init; } = [];
+}
 
 /// <summary>
 /// Thin project-layer projection over the existing distribution model. It does not introduce a
-/// second parser/AST: reference and project distributions are the same Data model, indexed by their
-/// existing type/name identity. Editing a reference deep-clones it into the project layer so the
-/// read-only instance can never be mutated by project-mode UI code.
+/// second parser/AST: game, selected reference layers, and project distributions use the same Data
+/// model and existing type/name identity. Selected reference layers are read-only; their persisted
+/// preview order decides precedence and shadowed provenance is retained for conflict inspection.
 /// </summary>
 public sealed class ProjectDistributionWorkspace
 {
     private readonly Dictionary<DistributionKey, Distribution> _references = [];
+    private readonly Dictionary<DistributionKey, List<ProjectReferenceProvenance>> _referenceHistory = [];
     private readonly Dictionary<DistributionKey, Distribution> _project = [];
     private readonly HashSet<string> _removedSourceFiles = new(StringComparer.OrdinalIgnoreCase);
 
@@ -37,11 +48,25 @@ public sealed class ProjectDistributionWorkspace
         IEnumerable<Distribution>? projectDistributions = null)
     {
         Project = project ?? throw new ArgumentNullException(nameof(project));
+        ArgumentNullException.ThrowIfNull(referenceDistributions);
 
-        foreach (var distribution in referenceDistributions)
+        var orderedReferences = referenceDistributions
+            .Select(distribution => (Distribution: distribution, Provenance: ResolveReferenceProvenance(distribution)))
+            .OrderBy(pair => pair.Provenance.PreviewOrder)
+            .ThenBy(pair => pair.Distribution.OriginalOrder)
+            .ToList();
+
+        foreach (var pair in orderedReferences)
         {
-            ValidateSource(distribution, DistributionLayer.Reference);
-            _references[Key(distribution)] = distribution;
+            var key = Key(pair.Distribution);
+            if (!_referenceHistory.TryGetValue(key, out var history))
+            {
+                history = [];
+                _referenceHistory.Add(key, history);
+            }
+
+            history.Add(pair.Provenance);
+            _references[key] = pair.Distribution;
         }
 
         if (projectDistributions is null)
@@ -49,7 +74,7 @@ public sealed class ProjectDistributionWorkspace
 
         foreach (var distribution in projectDistributions)
         {
-            ValidateSource(distribution, DistributionLayer.Project);
+            ValidateProjectSource(distribution);
             _project[Key(distribution)] = distribution;
         }
     }
@@ -65,10 +90,7 @@ public sealed class ProjectDistributionWorkspace
             {
                 var key = Key(reference);
                 seen.Add(key);
-                if (_project.TryGetValue(key, out var projectOverride))
-                    entries.Add(new ProjectDistributionEntry(projectOverride, DistributionLayer.Project, reference));
-                else
-                    entries.Add(new ProjectDistributionEntry(reference, DistributionLayer.Reference, reference));
+                entries.Add(CreateEntry(key, reference));
             }
 
             foreach (var projectOnly in _project.Where(pair => !seen.Contains(pair.Key)).Select(pair => pair.Value))
@@ -85,22 +107,20 @@ public sealed class ProjectDistributionWorkspace
     public ProjectDistributionEntry Get(DistributionType type, string name)
     {
         var key = new DistributionKey(type, name);
-        if (_project.TryGetValue(key, out var projectOverride))
-        {
-            _references.TryGetValue(key, out var reference);
-            return new ProjectDistributionEntry(projectOverride, DistributionLayer.Project, reference);
-        }
+        if (_references.TryGetValue(key, out var reference))
+            return CreateEntry(key, reference);
 
-        if (_references.TryGetValue(key, out var referenceOnly))
-            return new ProjectDistributionEntry(referenceOnly, DistributionLayer.Reference, referenceOnly);
+        if (_project.TryGetValue(key, out var projectOnly))
+            return new ProjectDistributionEntry(projectOnly, DistributionLayer.Project, null);
 
         throw new KeyNotFoundException($"Distribution not found: {type}/{name}");
     }
 
     /// <summary>
-    /// Returns the writable project object. A read-only reference is cloned exactly once; subsequent
-    /// edits reuse that project override. The clone retains SourceFile as provenance only—the
-    /// ProjectRoutedFileWriter derives the actual writable destination from project ownership.
+    /// Returns the writable project object. A game reference is cloned exactly once; subsequent
+    /// edits reuse that project override. Selected imported reference layers remain deliberately
+    /// read-only until their project-output aggregation/routing seam is implemented, preventing two
+    /// mod roots with the same relative source file from silently overwriting one project file.
     /// </summary>
     public Distribution Edit(DistributionType type, string name)
     {
@@ -111,6 +131,14 @@ public sealed class ProjectDistributionWorkspace
         if (!_references.TryGetValue(key, out var reference))
             throw new KeyNotFoundException($"Reference distribution not found: {type}/{name}");
 
+        var provenance = WinnerProvenance(key);
+        if (provenance is not null && provenance.PreviewOrder >= 0)
+        {
+            throw new InvalidOperationException(
+                $"Selected reference layer '{provenance.LayerName}' is read-only. " +
+                "Create/edit routing for imported-layer overrides requires the project-owned aggregation seam.");
+        }
+
         var projectOverride = Clone(reference);
         projectOverride.IsDirty = true;
         _project.Add(key, projectOverride);
@@ -120,15 +148,15 @@ public sealed class ProjectDistributionWorkspace
     public void AddProjectDistribution(Distribution distribution)
     {
         ArgumentNullException.ThrowIfNull(distribution);
-        ValidateSource(distribution, DistributionLayer.Project);
+        ValidateProjectSource(distribution);
         distribution.IsDirty = true;
         _project[Key(distribution)] = distribution;
     }
 
     /// <summary>
-    /// Removes only the writable layer. The reference object is retained and immediately becomes
-    /// effective again. The removed source is remembered so Save can rewrite the project-owned file
-    /// even when that removal leaves zero overrides in it.
+    /// Removes only the writable layer. The configured reference winner is retained and immediately
+    /// becomes effective again. The removed source is remembered so Save can rewrite the project-owned
+    /// file even when that removal leaves zero overrides in it.
     /// </summary>
     public bool RemoveOverride(DistributionType type, string name)
     {
@@ -146,19 +174,76 @@ public sealed class ProjectDistributionWorkspace
 
     internal void MarkSaved() => _removedSourceFiles.Clear();
 
-    private void ValidateSource(Distribution distribution, DistributionLayer layer)
+    private ProjectDistributionEntry CreateEntry(DistributionKey key, Distribution reference)
+    {
+        var winner = WinnerProvenance(key);
+        var shadowed = ShadowedProvenance(key);
+
+        if (_project.TryGetValue(key, out var projectOverride))
+        {
+            return new ProjectDistributionEntry(projectOverride, DistributionLayer.Project, reference)
+            {
+                ReferenceProvenance = winner,
+                ShadowedReferences = shadowed,
+            };
+        }
+
+        return new ProjectDistributionEntry(reference, DistributionLayer.Reference, reference)
+        {
+            ReferenceProvenance = winner,
+            ShadowedReferences = shadowed,
+        };
+    }
+
+    private ProjectReferenceProvenance ResolveReferenceProvenance(Distribution distribution)
     {
         ArgumentNullException.ThrowIfNull(distribution);
         if (string.IsNullOrWhiteSpace(distribution.SourceFile))
-            throw new InvalidOperationException($"{layer} distribution '{distribution.Name}' has no source provenance.");
+            throw new InvalidOperationException($"Reference distribution '{distribution.Name}' has no source provenance.");
 
-        var root = layer == DistributionLayer.Reference ? Project.GameRoot : Project.ProjectRoot;
-        if (!ProjectPathRules.IsSameOrDescendant(distribution.SourceFile, root))
+        if (ProjectPathRules.IsSameOrDescendant(distribution.SourceFile, Project.GameRoot))
+            return new ProjectReferenceProvenance("Game", Project.GameRoot, -1, distribution);
+
+        var layers = Project.ReferenceLayers ?? [];
+        for (var index = 0; index < layers.Count; index++)
+        {
+            var layer = layers[index];
+            if (!ProjectPathRules.IsSameOrDescendant(distribution.SourceFile, layer.Root))
+                continue;
+
+            if (!layer.Enabled)
+            {
+                throw new InvalidOperationException(
+                    $"Reference distribution '{distribution.Name}' came from disabled layer '{layer.Name}'.");
+            }
+
+            return new ProjectReferenceProvenance(layer.Name, layer.Root, index, distribution);
+        }
+
+        throw new InvalidOperationException(
+            $"Reference distribution '{distribution.Name}' has source outside configured game/selected reference roots: {distribution.SourceFile}");
+    }
+
+    private void ValidateProjectSource(Distribution distribution)
+    {
+        ArgumentNullException.ThrowIfNull(distribution);
+        if (string.IsNullOrWhiteSpace(distribution.SourceFile))
+            throw new InvalidOperationException($"Project distribution '{distribution.Name}' has no source provenance.");
+
+        if (!ProjectPathRules.IsSameOrDescendant(distribution.SourceFile, Project.ProjectRoot))
         {
             throw new InvalidOperationException(
-                $"{layer} distribution '{distribution.Name}' has source outside its configured root: {distribution.SourceFile}");
+                $"Project distribution '{distribution.Name}' has source outside its configured root: {distribution.SourceFile}");
         }
     }
+
+    private ProjectReferenceProvenance? WinnerProvenance(DistributionKey key) =>
+        _referenceHistory.TryGetValue(key, out var history) && history.Count > 0 ? history[^1] : null;
+
+    private IReadOnlyList<ProjectReferenceProvenance> ShadowedProvenance(DistributionKey key) =>
+        _referenceHistory.TryGetValue(key, out var history) && history.Count > 1
+            ? history.Take(history.Count - 1).ToList()
+            : [];
 
     private static DistributionKey Key(Distribution distribution) =>
         new(distribution.Type, distribution.Name);
