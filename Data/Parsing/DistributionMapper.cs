@@ -14,7 +14,7 @@ namespace Data.Parsing;
 ///   - LuaValueParser type-switches boxed NLua values directly: no ToString()/TryParse string alloc.
 ///   - TryParseIntField uses out parameters: no closure/delegate allocation.
 ///   - _proceduralIndex is a Dictionary built once: all proc lookups are O(1).
-///   - List capacities are pre-sized from the LuaTable size when known.
+///   - List capacities are pre-sized from the LuaTable key count where possible.
 ///   - ParseResult wraps the lists via AsReadOnly(), not copying them.
 ///
 /// Error handling:
