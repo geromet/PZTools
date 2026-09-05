@@ -21,6 +21,14 @@ public sealed class LuaFileLoader : ILuaLoader
     // files in the same directory.
     private readonly HashSet<string> _loadedDirs = new(StringComparer.OrdinalIgnoreCase);
 
+    public LuaFileLoader()
+    {
+        // Always install the lookup helper, even when a fixture/game folder has no
+        // Distribution_*.lua siblings. NLua can otherwise return a LuaFunction wrapper
+        // for the missing global and fail only when an inline table is looked up.
+        BuildLuaRefMap(new List<string>());
+    }
+
     public bool TryLoadTable(
         string filePath,
         string tablePath,
