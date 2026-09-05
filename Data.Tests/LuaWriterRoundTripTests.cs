@@ -49,6 +49,16 @@ public sealed class LuaWriterRoundTripTests
                 Distributions = Distributions or {}
 
                 local distributionTable = {
+                    NamedDirectItems = {
+                        rolls = 6,
+                        items = ClutterTables.DeskItems,
+                    },
+                    InlineDirectItems = {
+                        rolls = 7,
+                        items = {
+                            "Base.Hammer", 8,
+                        },
+                    },
                     NamedJunk = {
                         junk = {
                             rolls = 1,
@@ -95,6 +105,16 @@ public sealed class LuaWriterRoundTripTests
             var first = Parse(gameFolder);
             Assert.False(first.HasFatalErrors);
 
+            var namedDirectItems = GetDistribution(first, "NamedDirectItems");
+            Assert.Equal("ClutterTables.DeskItems", namedDirectItems.ItemsReference);
+            Assert.Equal(6, namedDirectItems.ItemRolls);
+            Assert.Equal(new Item("Base.Paperclip", 7), Assert.Single(namedDirectItems.ItemChances));
+
+            var inlineDirectItems = GetDistribution(first, "InlineDirectItems");
+            Assert.Null(inlineDirectItems.ItemsReference);
+            Assert.Equal(7, inlineDirectItems.ItemRolls);
+            Assert.Equal(new Item("Base.Hammer", 8), Assert.Single(inlineDirectItems.ItemChances));
+
             var namedJunk = GetDistribution(first, "NamedJunk");
             Assert.Equal("ClutterTables.DeskItems", namedJunk.JunkItemsReference);
             Assert.Equal(new Item("Base.Paperclip", 7), Assert.Single(namedJunk.JunkChances));
@@ -125,9 +145,10 @@ public sealed class LuaWriterRoundTripTests
 
             string serialized = LuaWriter.WriteDistributionsFile(first.Distributions);
 
-            Assert.Equal(3, CountOccurrences(serialized, "items = ClutterTables.DeskItems"));
+            Assert.Equal(4, CountOccurrences(serialized, "items = ClutterTables.DeskItems"));
             Assert.Equal(1, CountOccurrences(serialized, "junk = ClutterTables.DeskJunk"));
             Assert.DoesNotContain("\"Base.Paperclip\", 7", serialized);
+            Assert.Contains("\"Base.Hammer\", 8", serialized);
             Assert.Contains("\"Base.Nail\", 3", serialized);
             Assert.Contains("\"Base.Screwdriver\", 4", serialized);
             Assert.Contains("\"Base.Glue\", 6", serialized);
@@ -136,6 +157,16 @@ public sealed class LuaWriterRoundTripTests
 
             var second = Parse(gameFolder);
             Assert.False(second.HasFatalErrors);
+
+            var reparsedNamedDirectItems = GetDistribution(second, "NamedDirectItems");
+            Assert.Equal("ClutterTables.DeskItems", reparsedNamedDirectItems.ItemsReference);
+            Assert.Equal(namedDirectItems.ItemRolls, reparsedNamedDirectItems.ItemRolls);
+            Assert.Equal(namedDirectItems.ItemChances.ToArray(), reparsedNamedDirectItems.ItemChances.ToArray());
+
+            var reparsedInlineDirectItems = GetDistribution(second, "InlineDirectItems");
+            Assert.Null(reparsedInlineDirectItems.ItemsReference);
+            Assert.Equal(inlineDirectItems.ItemRolls, reparsedInlineDirectItems.ItemRolls);
+            Assert.Equal(inlineDirectItems.ItemChances.ToArray(), reparsedInlineDirectItems.ItemChances.ToArray());
 
             var reparsedNamedJunk = GetDistribution(second, "NamedJunk");
             Assert.Equal("ClutterTables.DeskItems", reparsedNamedJunk.JunkItemsReference);
