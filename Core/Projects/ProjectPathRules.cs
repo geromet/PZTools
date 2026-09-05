@@ -45,15 +45,37 @@ public static class ProjectPathRules
         gameRoot = Normalize(gameRoot);
         projectRoot = Normalize(projectRoot);
 
-        if (string.Equals(gameRoot, projectRoot, PathComparison))
-            throw new ArgumentException("Project root must be separate from the game root.", nameof(projectRoot));
+        if (IsSameOrDescendant(projectRoot, gameRoot))
+            throw new ArgumentException("Project root must be separate from and outside the game installation.", nameof(projectRoot));
+    }
 
-        var gamePrefix = gameRoot.EndsWith(Path.DirectorySeparatorChar)
-            ? gameRoot
-            : gameRoot + Path.DirectorySeparatorChar;
+    /// <summary>
+    /// Returns true when <paramref name="candidate"/> resolves to <paramref name="root"/> itself or
+    /// a descendant. Both paths are canonicalized on every call so a symlink/reparse swap that
+    /// happens after project creation cannot bypass a later ownership check.
+    /// </summary>
+    public static bool IsSameOrDescendant(string candidate, string root)
+    {
+        candidate = Normalize(candidate);
+        root = Normalize(root);
 
-        if (projectRoot.StartsWith(gamePrefix, PathComparison))
-            throw new ArgumentException("Project root must not be inside the game installation.", nameof(projectRoot));
+        if (string.Equals(candidate, root, PathComparison))
+            return true;
+
+        var rootPrefix = root.EndsWith(Path.DirectorySeparatorChar)
+            ? root
+            : root + Path.DirectorySeparatorChar;
+
+        return candidate.StartsWith(rootPrefix, PathComparison);
+    }
+
+    public static void EnsureInsideProject(string projectRoot, string targetPath)
+    {
+        projectRoot = Normalize(projectRoot);
+        targetPath = Normalize(targetPath);
+
+        if (!IsSameOrDescendant(targetPath, projectRoot))
+            throw new InvalidOperationException($"Project write target escapes the writable project root: {targetPath}");
     }
 
     public static bool PathsEqual(string left, string right) =>
