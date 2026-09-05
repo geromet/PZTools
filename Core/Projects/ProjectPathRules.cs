@@ -2,7 +2,7 @@ namespace Core.Projects;
 
 /// <summary>
 /// Filesystem ownership rules for project mode. The writable project root must never be the game
-/// root or a descendant of it, so ordinary project writes cannot target installed game data.
+/// root or a descendant of it, including when an existing path component is a symbolic link.
 /// </summary>
 public static class ProjectPathRules
 {
@@ -12,7 +12,32 @@ public static class ProjectPathRules
     public static string Normalize(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        return Path.TrimEndingDirectorySeparator(Path.GetFullPath(path));
+
+        var fullPath = Path.GetFullPath(path);
+        var root = Path.GetPathRoot(fullPath)
+            ?? throw new ArgumentException("Path has no filesystem root.", nameof(path));
+        var current = root;
+        var relative = Path.GetRelativePath(root, fullPath);
+
+        if (relative != ".")
+        {
+            foreach (var segment in relative.Split(
+                         [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+                         StringSplitOptions.RemoveEmptyEntries))
+            {
+                var candidate = Path.Combine(current, segment);
+                FileSystemInfo? info = Directory.Exists(candidate)
+                    ? new DirectoryInfo(candidate)
+                    : File.Exists(candidate)
+                        ? new FileInfo(candidate)
+                        : null;
+
+                var resolved = info?.ResolveLinkTarget(returnFinalTarget: true);
+                current = resolved?.FullName ?? candidate;
+            }
+        }
+
+        return Path.TrimEndingDirectorySeparator(Path.GetFullPath(current));
     }
 
     public static void EnsureProjectOutsideGame(string gameRoot, string projectRoot)
