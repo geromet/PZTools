@@ -7,6 +7,17 @@ namespace Data.Tests;
 public sealed class ProjectDefinitionTests
 {
     [Fact]
+    public void Create_RejectsMissingGameReferenceRoot()
+    {
+        using var workspace = new TempWorkspace();
+        var missingGameRoot = Path.Combine(workspace.Root, "missing-game");
+        var projectRoot = Path.Combine(workspace.Root, "project");
+
+        Assert.Throws<DirectoryNotFoundException>(() =>
+            ProjectDefinition.Create("Example", missingGameRoot, projectRoot));
+    }
+
+    [Fact]
     public void Create_RejectsGameRootAndProjectRootBeingTheSameDirectory()
     {
         using var workspace = new TempWorkspace();
@@ -22,6 +33,25 @@ public sealed class ProjectDefinitionTests
         using var workspace = new TempWorkspace();
         var gameRoot = workspace.CreateDirectory("game");
         var projectRoot = Path.Combine(gameRoot, "mods", "MyProject");
+
+        var ex = Assert.Throws<ArgumentException>(() =>
+            ProjectDefinition.Create("Example", gameRoot, projectRoot));
+
+        Assert.Contains("inside", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Create_RejectsProjectRootRoutedThroughSymlinkIntoGameInstallation()
+    {
+        if (OperatingSystem.IsWindows())
+            return; // Linux CI exercises the symlink boundary; Windows may require link privileges.
+
+        using var workspace = new TempWorkspace();
+        var gameRoot = workspace.CreateDirectory("game");
+        var gameMods = workspace.CreateDirectory(Path.Combine("game", "mods"));
+        var alias = Path.Combine(workspace.Root, "project-alias");
+        Directory.CreateSymbolicLink(alias, gameMods);
+        var projectRoot = Path.Combine(alias, "MyProject");
 
         var ex = Assert.Throws<ArgumentException>(() =>
             ProjectDefinition.Create("Example", gameRoot, projectRoot));
