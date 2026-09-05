@@ -1,3 +1,4 @@
+using Data;
 using Data.Data;
 using Data.Errors;
 using Data.Parsing;
@@ -79,7 +80,7 @@ public sealed class LuaWriterRoundTripTests
             Assert.Equal(new Item("Base.Nail", 3), Assert.Single(inlineJunk.JunkChances));
 
             var namedItems = GetDistribution(first, "NamedItems");
-            var bags = Assert.Single(namedItems.Containers, container => container.Name == "bags");
+            var bags = Assert.Single(namedItems.Containers.Where(container => container.Name == "bags"));
             Assert.Equal("ClutterTables.DeskItems", bags.ItemsReference);
 
             string serialized = LuaWriter.WriteDistributionsFile(first.Distributions);
@@ -96,15 +97,15 @@ public sealed class LuaWriterRoundTripTests
             var reparsedNamedJunk = GetDistribution(second, "NamedJunk");
             Assert.Equal("ClutterTables.DeskItems", reparsedNamedJunk.JunkItemsReference);
             Assert.Equal(namedJunk.JunkRolls, reparsedNamedJunk.JunkRolls);
-            Assert.Equal(namedJunk.JunkChances, reparsedNamedJunk.JunkChances);
+            Assert.Equal(namedJunk.JunkChances.ToArray(), reparsedNamedJunk.JunkChances.ToArray());
 
             var reparsedInlineJunk = GetDistribution(second, "InlineJunk");
             Assert.Null(reparsedInlineJunk.JunkItemsReference);
             Assert.Equal(inlineJunk.JunkRolls, reparsedInlineJunk.JunkRolls);
-            Assert.Equal(inlineJunk.JunkChances, reparsedInlineJunk.JunkChances);
+            Assert.Equal(inlineJunk.JunkChances.ToArray(), reparsedInlineJunk.JunkChances.ToArray());
 
             var reparsedNamedItems = GetDistribution(second, "NamedItems");
-            var reparsedBags = Assert.Single(reparsedNamedItems.Containers, container => container.Name == "bags");
+            var reparsedBags = Assert.Single(reparsedNamedItems.Containers.Where(container => container.Name == "bags"));
             Assert.Equal("ClutterTables.DeskItems", reparsedBags.ItemsReference);
         }
         finally
@@ -118,7 +119,7 @@ public sealed class LuaWriterRoundTripTests
         new DistributionParser(new LuaFileLoader(), new DistributionMapper()).Parse(gameFolder);
 
     private static Distribution GetDistribution(ParseResult result, string name) =>
-        Assert.Single(result.Distributions, distribution => distribution.Name == name);
+        Assert.Single(result.Distributions.Where(distribution => distribution.Name == name));
 
     private static int CountOccurrences(string value, string needle)
     {
