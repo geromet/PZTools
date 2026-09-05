@@ -49,7 +49,7 @@ public sealed record ProjectDefinition(
         IEnumerable<ProjectReferenceLayerDefinition>? referenceLayers)
     {
         if (referenceLayers is null)
-            return [];
+            return Array.Empty<ProjectReferenceLayerDefinition>();
 
         var normalized = new List<ProjectReferenceLayerDefinition>();
         foreach (var layer in referenceLayers)
@@ -91,6 +91,8 @@ public sealed record ProjectDefinition(
             normalized.Add(new ProjectReferenceLayerDefinition(layer.Name.Trim(), root, layer.Enabled));
         }
 
-        return normalized;
+        return normalized.Count == 0
+            ? Array.Empty<ProjectReferenceLayerDefinition>()
+            : normalized;
     }
 }
