@@ -28,7 +28,11 @@ public static class ProjectDefinitionStore
     {
         ArgumentNullException.ThrowIfNull(definition);
 
-        var normalized = ProjectDefinition.Create(definition.Name, definition.GameRoot, definition.ProjectRoot);
+        var normalized = ProjectDefinition.Create(
+            definition.Name,
+            definition.GameRoot,
+            definition.ProjectRoot,
+            definition.ReferenceLayers);
         if (definition.SchemaVersion != ProjectDefinition.CurrentSchemaVersion)
             throw new InvalidDataException($"Unsupported project schema version {definition.SchemaVersion}.");
 
@@ -74,7 +78,11 @@ public static class ProjectDefinitionStore
         if (persisted.SchemaVersion != ProjectDefinition.CurrentSchemaVersion)
             throw new InvalidDataException($"Unsupported project schema version {persisted.SchemaVersion}.");
 
-        var normalized = ProjectDefinition.Create(persisted.Name, persisted.GameRoot, persisted.ProjectRoot);
+        var normalized = ProjectDefinition.Create(
+            persisted.Name,
+            persisted.GameRoot,
+            persisted.ProjectRoot,
+            persisted.ReferenceLayers);
         if (!ProjectPathRules.PathsEqual(normalized.ProjectRoot, requestedProjectRoot))
             throw new InvalidDataException("Project definition root does not match the directory it was opened from.");
 
