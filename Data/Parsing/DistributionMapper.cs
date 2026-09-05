@@ -14,7 +14,7 @@ namespace Data.Parsing;
 ///   - LuaValueParser type-switches boxed NLua values directly: no ToString()/TryParse string alloc.
 ///   - TryParseIntField uses out parameters: no closure/delegate allocation.
 ///   - _proceduralIndex is a Dictionary built once: all proc lookups are O(1).
-///   - List capacities are pre-sized from the LuaTable key count where possible.
+///   - List capacities are pre-sized from the LuaTable size when known.
 ///   - ParseResult wraps the lists via AsReadOnly(), not copying them.
 ///
 /// Error handling:
@@ -272,6 +272,12 @@ public sealed class DistributionMapper
                     break;
 
                 case "items":
+                    if (kvp.Value is LuaTable itemsTable)
+                    {
+                        var itemsRef = _refLookup(itemsTable);
+                        if (itemsRef is not null)
+                            container.ItemsReference = itemsRef.RefPath;
+                    }
                     MapItemChances(container, kvp.Value, context, sourceFile, isJunk: false);
                     break;
 
