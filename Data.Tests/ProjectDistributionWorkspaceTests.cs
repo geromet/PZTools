@@ -1,6 +1,7 @@
 using Core.Projects;
 using Data;
 using Data.Data;
+using Data.Errors;
 using Data.Parsing;
 using Xunit;
 
