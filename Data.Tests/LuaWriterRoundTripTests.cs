@@ -29,7 +29,9 @@ public sealed class LuaWriterRoundTripTests
 
                 ClutterTables.DeskJunk = {
                     rolls = 4,
-                    items = ClutterTables.DeskItems,
+                    items = {
+                        "Base.Paperclip", 7,
+                    },
                 }
                 """);
 
@@ -109,7 +111,7 @@ public sealed class LuaWriterRoundTripTests
             Assert.Equal("ClutterTables.DeskItems", counter.ItemsReference);
             Assert.Equal(new Item("Base.Paperclip", 7), Assert.Single(counter.ItemChances));
             Assert.Equal("ClutterTables.DeskJunk", counter.JunkReference);
-            Assert.Equal("ClutterTables.DeskItems", counter.JunkItemsReference);
+            Assert.Equal("ClutterTables.DeskJunk.items", counter.JunkItemsReference);
             Assert.Equal(4, counter.JunkRolls);
             Assert.Equal(new Item("Base.Paperclip", 7), Assert.Single(counter.JunkChances));
 
