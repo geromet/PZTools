@@ -26,6 +26,11 @@ public sealed class LuaWriterRoundTripTests
                 ClutterTables.DeskItems = {
                     "Base.Paperclip", 7,
                 }
+
+                ClutterTables.DeskJunk = {
+                    rolls = 4,
+                    items = ClutterTables.DeskItems,
+                }
                 """);
 
             File.WriteAllText(
@@ -64,11 +69,18 @@ public sealed class LuaWriterRoundTripTests
                         counter = {
                             rolls = 2,
                             items = ClutterTables.DeskItems,
+                            junk = ClutterTables.DeskJunk,
                         },
                         shelf = {
                             rolls = 3,
                             items = {
                                 "Base.Screwdriver", 4,
+                            },
+                            junk = {
+                                rolls = 5,
+                                items = {
+                                    "Base.Glue", 6,
+                                },
                             },
                         },
                     },
@@ -96,17 +108,27 @@ public sealed class LuaWriterRoundTripTests
             var counter = GetContainer(namedItems, "counter");
             Assert.Equal("ClutterTables.DeskItems", counter.ItemsReference);
             Assert.Equal(new Item("Base.Paperclip", 7), Assert.Single(counter.ItemChances));
+            Assert.Equal("ClutterTables.DeskJunk", counter.JunkReference);
+            Assert.Equal("ClutterTables.DeskItems", counter.JunkItemsReference);
+            Assert.Equal(4, counter.JunkRolls);
+            Assert.Equal(new Item("Base.Paperclip", 7), Assert.Single(counter.JunkChances));
 
             var shelf = GetContainer(namedItems, "shelf");
             Assert.Null(shelf.ItemsReference);
             Assert.Equal(new Item("Base.Screwdriver", 4), Assert.Single(shelf.ItemChances));
+            Assert.Null(shelf.JunkReference);
+            Assert.Null(shelf.JunkItemsReference);
+            Assert.Equal(5, shelf.JunkRolls);
+            Assert.Equal(new Item("Base.Glue", 6), Assert.Single(shelf.JunkChances));
 
             string serialized = LuaWriter.WriteDistributionsFile(first.Distributions);
 
             Assert.Equal(3, CountOccurrences(serialized, "items = ClutterTables.DeskItems"));
+            Assert.Equal(1, CountOccurrences(serialized, "junk = ClutterTables.DeskJunk"));
             Assert.DoesNotContain("\"Base.Paperclip\", 7", serialized);
             Assert.Contains("\"Base.Nail\", 3", serialized);
             Assert.Contains("\"Base.Screwdriver\", 4", serialized);
+            Assert.Contains("\"Base.Glue\", 6", serialized);
 
             File.WriteAllText(distributionsPath, serialized);
 
@@ -131,11 +153,17 @@ public sealed class LuaWriterRoundTripTests
             Assert.Equal("ClutterTables.DeskItems", reparsedCounter.ItemsReference);
             Assert.Equal(counter.ItemRolls, reparsedCounter.ItemRolls);
             Assert.Equal(counter.ItemChances.ToArray(), reparsedCounter.ItemChances.ToArray());
+            Assert.Equal("ClutterTables.DeskJunk", reparsedCounter.JunkReference);
+            Assert.Equal(counter.JunkRolls, reparsedCounter.JunkRolls);
+            Assert.Equal(counter.JunkChances.ToArray(), reparsedCounter.JunkChances.ToArray());
 
             var reparsedShelf = GetContainer(reparsedNamedItems, "shelf");
             Assert.Null(reparsedShelf.ItemsReference);
             Assert.Equal(shelf.ItemRolls, reparsedShelf.ItemRolls);
             Assert.Equal(shelf.ItemChances.ToArray(), reparsedShelf.ItemChances.ToArray());
+            Assert.Null(reparsedShelf.JunkReference);
+            Assert.Equal(shelf.JunkRolls, reparsedShelf.JunkRolls);
+            Assert.Equal(shelf.JunkChances.ToArray(), reparsedShelf.JunkChances.ToArray());
         }
         finally
         {
