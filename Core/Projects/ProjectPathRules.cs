@@ -46,7 +46,7 @@ public static class ProjectPathRules
         projectRoot = Normalize(projectRoot);
 
         if (IsSameOrDescendant(projectRoot, gameRoot))
-            throw new ArgumentException("Project root must be separate from and outside the game installation.", nameof(projectRoot));
+            throw new ArgumentException("Project root must be separate from the game root and must not be inside the game installation.", nameof(projectRoot));
     }
 
     /// <summary>
