@@ -10,7 +10,7 @@ namespace Data.Tests;
 public sealed class LuaWriterRoundTripTests
 {
     [Fact]
-    public void NamedJunkItemsReferenceSurvivesParseWriteParseWithoutChangingInlineControls()
+    public void NamedItemReferencesSurviveParseWriteParseWithoutChangingInlineControls()
     {
         string gameFolder = Path.Combine(Path.GetTempPath(), $"pztools-lua-roundtrip-{Guid.NewGuid():N}");
         string itemsFolder = Path.Combine(gameFolder, "media", "lua", "server", "Items");
@@ -61,6 +61,16 @@ public sealed class LuaWriterRoundTripTests
                             rolls = 1,
                             items = ClutterTables.DeskItems,
                         },
+                        counter = {
+                            rolls = 2,
+                            items = ClutterTables.DeskItems,
+                        },
+                        shelf = {
+                            rolls = 3,
+                            items = {
+                                "Base.Screwdriver", 4,
+                            },
+                        },
                     },
                 }
 
@@ -80,14 +90,23 @@ public sealed class LuaWriterRoundTripTests
             Assert.Equal(new Item("Base.Nail", 3), Assert.Single(inlineJunk.JunkChances));
 
             var namedItems = GetDistribution(first, "NamedItems");
-            var bags = Assert.Single(namedItems.Containers.Where(container => container.Name == "bags"));
+            var bags = GetContainer(namedItems, "bags");
             Assert.Equal("ClutterTables.DeskItems", bags.ItemsReference);
+
+            var counter = GetContainer(namedItems, "counter");
+            Assert.Equal("ClutterTables.DeskItems", counter.ItemsReference);
+            Assert.Equal(new Item("Base.Paperclip", 7), Assert.Single(counter.ItemChances));
+
+            var shelf = GetContainer(namedItems, "shelf");
+            Assert.Null(shelf.ItemsReference);
+            Assert.Equal(new Item("Base.Screwdriver", 4), Assert.Single(shelf.ItemChances));
 
             string serialized = LuaWriter.WriteDistributionsFile(first.Distributions);
 
-            Assert.Equal(2, CountOccurrences(serialized, "items = ClutterTables.DeskItems"));
+            Assert.Equal(3, CountOccurrences(serialized, "items = ClutterTables.DeskItems"));
             Assert.DoesNotContain("\"Base.Paperclip\", 7", serialized);
             Assert.Contains("\"Base.Nail\", 3", serialized);
+            Assert.Contains("\"Base.Screwdriver\", 4", serialized);
 
             File.WriteAllText(distributionsPath, serialized);
 
@@ -105,8 +124,18 @@ public sealed class LuaWriterRoundTripTests
             Assert.Equal(inlineJunk.JunkChances.ToArray(), reparsedInlineJunk.JunkChances.ToArray());
 
             var reparsedNamedItems = GetDistribution(second, "NamedItems");
-            var reparsedBags = Assert.Single(reparsedNamedItems.Containers.Where(container => container.Name == "bags"));
+            var reparsedBags = GetContainer(reparsedNamedItems, "bags");
             Assert.Equal("ClutterTables.DeskItems", reparsedBags.ItemsReference);
+
+            var reparsedCounter = GetContainer(reparsedNamedItems, "counter");
+            Assert.Equal("ClutterTables.DeskItems", reparsedCounter.ItemsReference);
+            Assert.Equal(counter.ItemRolls, reparsedCounter.ItemRolls);
+            Assert.Equal(counter.ItemChances.ToArray(), reparsedCounter.ItemChances.ToArray());
+
+            var reparsedShelf = GetContainer(reparsedNamedItems, "shelf");
+            Assert.Null(reparsedShelf.ItemsReference);
+            Assert.Equal(shelf.ItemRolls, reparsedShelf.ItemRolls);
+            Assert.Equal(shelf.ItemChances.ToArray(), reparsedShelf.ItemChances.ToArray());
         }
         finally
         {
@@ -120,6 +149,9 @@ public sealed class LuaWriterRoundTripTests
 
     private static Distribution GetDistribution(ParseResult result, string name) =>
         Assert.Single(result.Distributions.Where(distribution => distribution.Name == name));
+
+    private static Container GetContainer(Distribution distribution, string name) =>
+        Assert.Single(distribution.Containers.Where(container => container.Name == name));
 
     private static int CountOccurrences(string value, string needle)
     {
