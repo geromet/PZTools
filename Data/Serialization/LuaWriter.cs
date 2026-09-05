@@ -199,10 +199,17 @@ public static class LuaWriter
         {
             string itemsPath = $"{path}.items";
             EmitComment(sb, comments, itemsPath, indent);
-            sb.AppendLine($"{indent}items = {{");
-            if (d.ItemChances.Count > 0)
-                WriteItemList(sb, d.ItemChances, indent + "\t", itemsPath, comments);
-            sb.AppendLine($"{indent}}},");
+            if (!string.IsNullOrEmpty(d.ItemsReference))
+            {
+                sb.AppendLine($"{indent}items = {d.ItemsReference},");
+            }
+            else
+            {
+                sb.AppendLine($"{indent}items = {{");
+                if (d.ItemChances.Count > 0)
+                    WriteItemList(sb, d.ItemChances, indent + "\t", itemsPath, comments);
+                sb.AppendLine($"{indent}}},");
+            }
         }
 
         // bags container must come before junk (Lua parser expects this order)
