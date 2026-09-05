@@ -194,6 +194,12 @@ public sealed class DistributionMapper
                     break;
 
                 case "items":
+                    if (kvp.Value is LuaTable itemsTable)
+                    {
+                        var itemsRef = _refLookup(itemsTable);
+                        if (itemsRef is not null)
+                            dist.ItemsReference = itemsRef.RefPath;
+                    }
                     MapItemChances(dist, kvp.Value, context, sourceFile, isJunk: false);
                     break;
 
@@ -272,10 +278,25 @@ public sealed class DistributionMapper
                     break;
 
                 case "items":
+                    if (kvp.Value is LuaTable itemsTable)
+                    {
+                        var itemsRef = _refLookup(itemsTable);
+                        if (itemsRef is not null)
+                            container.ItemsReference = itemsRef.RefPath;
+                    }
                     MapItemChances(container, kvp.Value, context, sourceFile, isJunk: false);
                     break;
 
                 case "junk":
+                    if (kvp.Value is LuaTable junkTable)
+                    {
+                        var junkRef = _refLookup(junkTable);
+                        if (junkRef is not null)
+                        {
+                            container.JunkReference = junkRef.RefPath;
+                            container.JunkReferenceFile = junkRef.SourceFile;
+                        }
+                    }
                     MapJunkChances(container, kvp.Value, context, sourceFile);
                     break;
 

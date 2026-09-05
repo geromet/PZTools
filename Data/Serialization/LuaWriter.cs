@@ -199,10 +199,17 @@ public static class LuaWriter
         {
             string itemsPath = $"{path}.items";
             EmitComment(sb, comments, itemsPath, indent);
-            sb.AppendLine($"{indent}items = {{");
-            if (d.ItemChances.Count > 0)
-                WriteItemList(sb, d.ItemChances, indent + "\t", itemsPath, comments);
-            sb.AppendLine($"{indent}}},");
+            if (!string.IsNullOrEmpty(d.ItemsReference))
+            {
+                sb.AppendLine($"{indent}items = {d.ItemsReference},");
+            }
+            else
+            {
+                sb.AppendLine($"{indent}items = {{");
+                if (d.ItemChances.Count > 0)
+                    WriteItemList(sb, d.ItemChances, indent + "\t", itemsPath, comments);
+                sb.AppendLine($"{indent}}},");
+            }
         }
 
         // bags container must come before junk (Lua parser expects this order)
@@ -389,8 +396,14 @@ public static class LuaWriter
             sb.AppendLine($"{inner}ignoreZombieDensity = true,");
         }
 
-            string junkItemsPath = $"{junkPath}.items";
-            EmitComment(sb, comments, junkItemsPath, inner);
+        string junkItemsPath = $"{junkPath}.items";
+        EmitComment(sb, comments, junkItemsPath, inner);
+        if (!string.IsNullOrEmpty(parent.JunkItemsReference))
+        {
+            sb.AppendLine($"{inner}items = {parent.JunkItemsReference}");
+        }
+        else
+        {
             sb.AppendLine($"{inner}items = {{");
             if (parent.JunkChances.Count > 0)
             {
@@ -402,6 +415,7 @@ public static class LuaWriter
             }
             // items close inside junk never has a trailing comma.
             sb.AppendLine($"{inner}}}");
+        }
 
         EmitComment(sb, comments, $"{junkPath}.__trailing", inner);
         // junk close: comma in distributions, no comma in procedural.
