@@ -10,6 +10,10 @@ namespace Data.Serialization;
 ///
 /// Additionally writes any Distribution_*.lua reference files whose data was modified
 /// (junk/bags from ClutterTables.* or BagsAndContainers.*).
+///
+/// The injected <see cref="IFileWriter"/> is the ownership boundary for the final path. Direct
+/// folder editing uses <see cref="DiskFileWriter"/>; project mode supplies a writer that remaps
+/// reference provenance into the writable project root before any backup/write effect occurs.
 /// </summary>
 public sealed class DistributionFileWriter
 {
@@ -21,14 +25,17 @@ public sealed class DistributionFileWriter
     }
 
     /// <summary>
-    /// Saves all dirty distributions back to their source files.
+    /// Saves dirty distributions back through the configured writer. <paramref name="forceSourceFiles"/>
+    /// lets a layered/project caller rewrite a source file after its final override was removed; an
+    /// empty distribution list is therefore meaningful and serializes as an empty valid table.
     /// Also writes Distribution_*.lua reference files for any dirty referenced junk/bags.
-    /// Returns the list of file paths that were written.
+    /// Returns the final paths requested from the configured writer.
     /// </summary>
     public IReadOnlyList<string> Save(
         IReadOnlyList<Distribution> allDistributions,
         CommentMap? procComments = null,
-        CommentMap? distComments = null)
+        CommentMap? distComments = null,
+        IReadOnlyCollection<string>? forceSourceFiles = null)
     {
         var written = new List<string>();
 
@@ -36,17 +43,29 @@ public sealed class DistributionFileWriter
 
         var groups = allDistributions
             .Where(d => !string.IsNullOrEmpty(d.SourceFile))
-            .GroupBy(d => d.SourceFile, StringComparer.OrdinalIgnoreCase);
+            .GroupBy(d => d.SourceFile, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.ToList(), StringComparer.OrdinalIgnoreCase);
 
-        foreach (var group in groups)
+        var forced = forceSourceFiles is null
+            ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            : new HashSet<string>(forceSourceFiles, StringComparer.OrdinalIgnoreCase);
+        var sourceFiles = new HashSet<string>(groups.Keys, StringComparer.OrdinalIgnoreCase);
+        sourceFiles.UnionWith(forced);
+
+        foreach (var sourceFile in sourceFiles)
         {
-            var dists = group.ToList();
+            var dists = groups.TryGetValue(sourceFile, out var group)
+                ? group
+                : [];
 
-            if (!HasDirtyContent(dists))
+            if (!forced.Contains(sourceFile) && !HasDirtyContent(dists))
                 continue;
 
-            var sourceFile  = group.Key;
-            bool isProcedural = dists.Any(d => d.Type == DistributionType.Procedural);
+            bool isProcedural = dists.Any(d => d.Type == DistributionType.Procedural)
+                || string.Equals(
+                    Path.GetFileName(sourceFile),
+                    "ProceduralDistributions.lua",
+                    StringComparison.OrdinalIgnoreCase);
 
             string content = isProcedural
                 ? LuaWriter.WriteProceduralFile(dists, procComments)
@@ -109,7 +128,7 @@ public sealed class DistributionFileWriter
         }
     }
 
-    private static void ClearDirtyFlags(List<Distribution> dists)
+    private static void ClearDirtyFlags(IEnumerable<Distribution> dists)
     {
         foreach (var d in dists)
         {
@@ -123,7 +142,7 @@ public sealed class DistributionFileWriter
         }
     }
 
-    private static bool HasDirtyContent(List<Distribution> dists)
+    private static bool HasDirtyContent(IEnumerable<Distribution> dists)
     {
         foreach (var d in dists)
         {
