@@ -25,6 +25,8 @@ public sealed class ProjectReferenceLayerTests
             ]);
 
         ProjectDefinitionStore.Save(definition);
+        Directory.Delete(modB, recursive: true);
+
         var reopened = ProjectDefinitionStore.Load(project);
 
         var layers = Assert.IsAssignableFrom<IReadOnlyList<ProjectReferenceLayerDefinition>>(reopened.ReferenceLayers);
@@ -42,6 +44,29 @@ public sealed class ProjectReferenceLayerTests
                 Assert.Equal(ProjectPathRules.Normalize(modB), layer.Root);
                 Assert.False(layer.Enabled);
             });
+    }
+
+    [Fact]
+    public void DefinitionStore_MissingEnabledLayerStillFailsClosed()
+    {
+        using var temp = new TempWorkspace();
+        var game = temp.CreateDirectory("game");
+        var project = temp.CreateDirectory("project");
+        var enabled = temp.CreateDirectory("mods/enabled");
+        var definition = ProjectDefinition.Create(
+            "Layered",
+            game,
+            project,
+            [new ProjectReferenceLayerDefinition("Enabled", enabled)]);
+
+        ProjectDefinitionStore.Save(definition);
+        Directory.Delete(enabled, recursive: true);
+
+        var ex = Assert.Throws<DirectoryNotFoundException>(() =>
+            ProjectDefinitionStore.Load(project));
+
+        Assert.Contains("Reference layer root does not exist", ex.Message, StringComparison.Ordinal);
+        Assert.Contains(ProjectPathRules.Normalize(enabled), ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
