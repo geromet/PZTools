@@ -58,7 +58,10 @@ public sealed record ProjectDefinition(
             ArgumentException.ThrowIfNullOrWhiteSpace(layer.Name);
 
             var root = ProjectPathRules.Normalize(layer.Root);
-            if (!Directory.Exists(root))
+            // Disabled selections remain useful persisted configuration even when their media is
+            // temporarily unavailable. Enabled layers must still exist before they can participate
+            // in preview precedence or parsing.
+            if (layer.Enabled && !Directory.Exists(root))
                 throw new DirectoryNotFoundException($"Reference layer root does not exist: {root}");
 
             if (ProjectPathRules.IsSameOrDescendant(root, gameRoot) ||
