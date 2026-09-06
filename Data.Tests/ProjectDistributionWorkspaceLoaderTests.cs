@@ -177,7 +177,9 @@ public sealed class ProjectDistributionWorkspaceLoaderTests
     {
         public TempWorkspace()
         {
-            Root = Path.Combine(Path.GetTempPath(), $"pztools-layer-loader-tests-{Guid.NewGuid():N}");
+            Root = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
+                $"pztools-layer-loader-tests-{Guid.NewGuid():N}");
             Directory.CreateDirectory(Root);
         }
 
